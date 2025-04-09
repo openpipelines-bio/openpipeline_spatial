@@ -20,7 +20,13 @@ work
 
 # viash
 /target/
-/resources_test/
+check_results/
+out/
+output*
+output_log/
+resources_test
+/viash_tools/
+/test/
 
 # jupyter notebook
 /.ipynb_checkpoints/
@@ -28,3 +34,26 @@ work
 
 # compress
 /__MACOSX/
+
+# python
+*__pycache__*
+
+# Python virtual environments
+.venv
+
+# temporary files related
+temp
+
+# NextFlow
+work/
+.nextflow.log
+.nextflow*
+out/ 
+trace*.txt
+
+# Macos
+.DS_Store
+
+# vscode
+.vscode/launch.json
+.vscode/settings.json
