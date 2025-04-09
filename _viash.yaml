@@ -1,0 +1,27 @@
+viash_version: 0.9.3
+
+source: src
+target: target
+
+name: incubator
+organization: openpipelines-bio
+
+links:
+  repository: https://github.com/openpipelines-bio/openpipeline_spatial
+  docker_registry: ghcr.io
+
+repositories:
+  - name: openpipeline
+    repo: openpipelines-bio/openpipeline
+    type: github
+    tag: main_build
+
+info:
+  test_resources:
+    - type: s3
+      path: s3://openpipelines-bio/openpipeline_spatial/resources_test
+      dest: resources_test
+
+config_mods: |
+  .resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}
+  .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'
