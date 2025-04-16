@@ -8,14 +8,39 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 # ensure that the command below is run from the root of the repository
 cd "$REPO_ROOT"
 
-DIR="resources_test"
+DIR="resources_test/xenium/"
 ID="xenium_tiny"
-OUT="resources_test/$ID"
+OUT="$DIR/$ID/"
 
-[ ! -d "$DIR" ] && mkdir -p "$DIR"
+# create tempdir
+MY_TEMP="${VIASH_TEMP:-/tmp}"
+TMPDIR=$(mktemp -d "$MY_TEMP/$ID-XXXXXX")
+function clean_up {
+  [[ -d "$TMPDIR" ]] && rm -r "$TMPDIR"
+}
+trap clean_up EXIT
 
-# tiny_dataset="https://raw.githubusercontent.com/nf-core/test-datasets/spatialxe/Xenium_Prime_Mouse_Ileum_tiny_outs.zip"
-# wget "$tiny_dataset" -O "$DIR/xenium_tiny.zip"
+if [ ! -d "$OUT" ]; then
+    tiny_dataset="https://raw.githubusercontent.com/nf-core/test-datasets/spatialxe/Xenium_Prime_Mouse_Ileum_tiny_outs.zip"
+    wget "$tiny_dataset" -O "$TMPDIR/xenium_tiny.zip"
 
-unzip -j "$DIR/xenium_tiny.zip" -d "$OUT"
-rm "$DIR/xenium_tiny.zip"
+    unzip -q "$TMPDIR/xenium_tiny.zip" -d "$TMPDIR/xenium_tiny"
+    mkdir -p "$OUT"
+    mv "$TMPDIR/xenium_tiny/Xenium_Prime_Mouse_Ileum_tiny_outs/"* "$OUT/"
+fi
+
+viash run src/convert/from_xenium_to_spatialdata/config.vsh.yaml -- \
+    --input "$OUT" \
+    --output "$DIR/$ID.zarr"
+
+viash run src/convert/from_spatialdata_to_h5mu/config.vsh.yaml -- \
+    --input "$DIR/$ID.zarr" \
+    --output "$DIR/$ID.h5mu"
+
+# Sync to S3
+aws s3 sync \
+    --profile di \
+    "$DIR" \
+    s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium \
+    --delete \
+    --dryrun
