@@ -4,10 +4,10 @@ set -eo pipefail
 
 ## VIASH START
 meta_executable="target/native/spaceranger/spaceranger_count/spaceranger_count"
-meta_resources_dir="resources_test/spaceranger"
+meta_resources_dir="resources_test"
 ## VIASH END
 
-test_data="$meta_resources_dir/spaceranger"
+test_data="$meta_resources_dir/visium"
 
 echo "> Default test run"
 "$meta_executable" \
