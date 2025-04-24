@@ -25,3 +25,10 @@ tar xvf Visium_FFPE_Human_Ovarian_Cancer_fastqs.tar
 mkdir subsampled
 convert Visium_FFPE_Human_Ovarian_Cancer_image.jpg -resize 2000x2000 subsampled/Visium_FFPE_Human_Ovarian_Cancer_image.jpg
 for f in Visium_FFPE_Human_Ovarian_Cancer_fastqs/*L001*R*; do gzip -cdf $f | head -n 40000 | gzip -c > subsampled/$(basename $f); done
+
+aws s3 sync \
+    --profile di \
+    "$DIR" \
+    s3://openpipelines-bio/openpipeline_spatial/resources_test/visium \
+    --delete \
+    --dryrun

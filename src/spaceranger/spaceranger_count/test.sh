@@ -12,7 +12,7 @@ test_data="$meta_resources_dir/visium"
 echo "> Default test run"
 "$meta_executable" \
     --id test_spaceranger \
-    --transcriptome "$test_data/GRCh38" \
+    --transcriptome "$meta_resources_dir/GRCh38" \
     --fastqs "$test_data/subsampled" \
     --probe_set "$test_data/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv" \
     --image "$test_data/subsampled/Visium_FFPE_Human_Ovarian_Cancer_image.jpg" \

@@ -169,6 +169,7 @@ test_resources:
   - type: bash_script
     path: test.sh
   - path: /resources_test/visium
+  - path: /resources_test/GRCh38
 engines:
   - type: docker
     image: ghcr.io/data-intuitive/spaceranger:latest
