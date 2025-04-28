@@ -11,7 +11,7 @@ test_data="$meta_resources_dir/visium"
 
 echo "> Default test run"
 "$meta_executable" \
-    --id test_spaceranger \
+    --output test_spaceranger \
     --gex_reference "$meta_resources_dir/GRCh38" \
     --input "$test_data/subsampled" \
     --probe_set "$test_data/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv" \
