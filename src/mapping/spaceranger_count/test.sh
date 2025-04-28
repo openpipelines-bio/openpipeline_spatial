@@ -12,8 +12,8 @@ test_data="$meta_resources_dir/visium"
 echo "> Default test run"
 "$meta_executable" \
     --id test_spaceranger \
-    --transcriptome "$meta_resources_dir/GRCh38" \
-    --fastqs "$test_data/subsampled" \
+    --gex_reference "$meta_resources_dir/GRCh38" \
+    --input "$test_data/subsampled" \
     --probe_set "$test_data/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv" \
     --image "$test_data/subsampled/Visium_FFPE_Human_Ovarian_Cancer_image.jpg" \
     --unknown_slide visium-1 \
@@ -22,7 +22,7 @@ echo "> Default test run"
 echo "> Checking outputs..."
 
 # Define output directory
-OUT_DIR="test_spaceranger/outs"
+OUT_DIR="test_spaceranger"
 
 # Function to check if file exists and is non-empty
 check_file() {

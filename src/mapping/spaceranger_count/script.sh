@@ -4,6 +4,9 @@ set -eo pipefail
 
 unset_if_false=(
     par_override_id
+    par_reorient_images
+    par_create_bam
+    par_filter_probes
     par_nosecondary
 )
 
@@ -13,9 +16,9 @@ for par in ${unset_if_false[@]}; do
 done
 
 spaceranger count \
-  ${par_id:+--id="$par_id"} \
-  ${par_transcriptome:+--transcriptome="$par_transcriptome"} \
-  ${par_fastqs:+--fastqs="$par_fastqs"} \
+  ${par_output:+--id="$par_output"} \
+  ${par_gex_reference:+--transcriptome="$par_gex_reference"} \
+  ${par_input:+--fastqs="$par_input"} \
   ${par_probe_set:+--probe-set="$par_probe_set"} \
   ${par_cytaimage:+--cytaimage="$par_cytaimage"} \
   ${par_image:+--image="$par_image"} \
@@ -40,3 +43,6 @@ spaceranger count \
   ${par_lanes:+--lanes="$par_lanes"} \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
+
+
+mv -f "$par_output/outs" "$par_output"
