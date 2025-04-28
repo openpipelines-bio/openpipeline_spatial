@@ -13,6 +13,7 @@
 # 
 # Component authors:
 #  * Dorien Roosen (maintainer)
+#  * Weiwei Schultz (contributor)
 
 set -e
 
@@ -455,11 +456,11 @@ RUN apt-get update && \
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io~=0.1.7"
 
-LABEL org.opencontainers.image.authors="Dorien Roosen"
+LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialdata"
-LABEL org.opencontainers.image.created="2025-04-16T13:31:09Z"
+LABEL org.opencontainers.image.created="2025-04-28T12:50:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="603045389605906438b2b4b371ea023684a49e08"
+LABEL org.opencontainers.image.revision="14b7e8d2a406c34875d43d1115db18246e40a0a3"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

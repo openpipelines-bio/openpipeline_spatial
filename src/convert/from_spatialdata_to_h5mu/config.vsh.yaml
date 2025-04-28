@@ -6,6 +6,8 @@ description: |
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
 arguments:
   - name: "--input"
     alternatives: ["-i"]

@@ -1,0 +1,84 @@
+name: "subset_cosmx"
+namespace: "filter"
+description: |
+  Filters the output from NanoString experiment to keep only a subset of the fields of view.
+  Expected input folder structure:
+  path/to/dataset/
+      ├── CellComposite/
+      ├── CellLabels/
+      ├── CellOverlay/
+      ├── CompartmentLabels/
+      ├── <dataset_id>_exprMat_file.csv
+      ├── <dataset_id>_fov_positions_file.csv
+      ├── <dataset_id>_metadata_file.csv
+      └── <dataset_id>_tx_file.csv  
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input folder. Must contain the output from a NanoString CosMx run.
+    example: cosmx_data
+    direction: input
+    required: true
+  - name: "--dataset_id"
+    type: string
+    description: | 
+      ID of the dataset. By default expects the following file structure:
+      path/to/dataset/
+      ├── CellComposite/
+      ├── CellLabels/
+      ├── CellOverlay/
+      ├── CompartmentLabels/
+      ├── <dataset_id>_exprMat_file.csv
+      ├── <dataset_id>_fov_positions_file.csv
+      ├── <dataset_id>_metadata_file.csv
+      └── <dataset_id>_tx_file.csv  
+  - name: "--num_fovs"
+    type: integer
+    required: true
+    description: Number of fields of views to keep. Will keep only the first <num_fovs> fields of view.
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: The directory where the subset data will be stored.
+    example: "cosmx_data_tiny"
+    direction: output
+
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny/
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: 
+          - procps
+      - type: python
+        packages:
+          - squidpy~=1.6.5
+    test_setup:
+    - type: apt
+      packages:
+        - git
+    - type: python
+      packages:
+        - viashpy==0.8.0
+      github: openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]

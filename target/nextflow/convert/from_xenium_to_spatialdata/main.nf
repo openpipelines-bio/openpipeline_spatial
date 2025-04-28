@@ -11,6 +11,7 @@
 // 
 // Component authors:
 //  * Dorien Roosen (maintainer)
+//  * Weiwei Schultz (contributor)
 
 ////////////////////////////
 // VDSL3 helper functions //
@@ -3062,6 +3063,21 @@ meta = [
           }
         ]
       }
+    },
+    {
+      "name" : "Weiwei Schultz",
+      "roles" : [
+        "contributor"
+      ],
+      "info" : {
+        "role" : "Contributor",
+        "organizations" : [
+          {
+            "name" : "Janssen R&D US",
+            "role" : "Associate Director Data Sciences"
+          }
+        ]
+      }
     }
   ],
   "argument_groups" : [
@@ -3408,7 +3424,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialdata",
     "viash_version" : "0.9.3",
-    "git_commit" : "603045389605906438b2b4b371ea023684a49e08",
+    "git_commit" : "14b7e8d2a406c34875d43d1115db18246e40a0a3",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

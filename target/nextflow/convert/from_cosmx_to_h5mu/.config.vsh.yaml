@@ -1,4 +1,4 @@
-name: "from_spatialdata_to_h5mu"
+name: "from_cosmx_to_h5mu"
 namespace: "convert"
 version: "build_main"
 authors:
@@ -30,13 +30,24 @@ argument_groups:
     name: "--input"
     alternatives:
     - "-i"
-    description: "Input zarr folder where the SpatialData object is stored."
+    description: "Input folder. Must contain the output from a NanoString CosMx run."
     info: null
     example:
-    - "input.zarr"
+    - "cosmx_data"
     must_exist: true
     create_parent: true
     required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_id"
+    description: "ID of the dataset. By default expects the following file structure:\n\
+      path/to/dataset/\n├── CellComposite/\n├── CellLabels/\n├── CellOverlay/\n├──\
+      \ CompartmentLabels/\n├── <dataset_id>_exprMat_file.csv\n├── <dataset_id>_fov_positions_file.csv\n\
+      ├── <dataset_id>_metadata_file.csv\n└── <dataset_id>_tx_file.csv  \n"
+    info: null
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -84,14 +95,18 @@ resources:
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Reads in the Tables field stored in a SpatialData object and converts\
-  \ it to an h5mu file.\n  \n"
+description: "Converts the output from NanoString experiment into a MuData objcet.\n\
+  \  - `<dataset_id>_exprMat_file.csv`: File containing the counts.\n  - `<dataset_id>`_metadata_file:\
+  \ File containing the spatial coordinates and additional cell-level metadata.\n\
+  \  - `<dataset_id>_fov_file.csv`: File containing the coordinates of all the fields\
+  \ of view.\nIn addition to reading the regular Nanostring output, it loads CellComposite\
+  \ and CellLabels directories, if present,\ncontaining the images.\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
   is_executable: true
 - type: "file"
-  path: "xenium_tiny.zarr"
+  path: "Lung5_Rep2_tiny"
 info: null
 status: "enabled"
 scope:
@@ -188,8 +203,7 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "spatialdata~=0.3.0"
-    - "spatialdata-io~=0.1.7"
+    - "squidpy~=1.6.5"
     - "mudata~=0.3.1"
     upgrade: true
   test_setup:
@@ -207,11 +221,11 @@ engines:
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/convert/from_spatialdata_to_h5mu/config.vsh.yaml"
+  config: "src/convert/from_cosmx_to_h5mu/config.vsh.yaml"
   runner: "nextflow"
   engine: "docker"
-  output: "target/nextflow/convert/from_spatialdata_to_h5mu"
-  executable: "target/nextflow/convert/from_spatialdata_to_h5mu/main.nf"
+  output: "target/nextflow/convert/from_cosmx_to_h5mu"
+  executable: "target/nextflow/convert/from_cosmx_to_h5mu/main.nf"
   viash_version: "0.9.3"
   git_commit: "14b7e8d2a406c34875d43d1115db18246e40a0a3"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
