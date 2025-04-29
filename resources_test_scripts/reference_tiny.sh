@@ -9,7 +9,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 DIR="resources_test/GRCh38"
 
-mkdir -p $DIR && cd $DIR
+mkdir -p $DIR
 
 aws s3 sync \
     --profile di \
