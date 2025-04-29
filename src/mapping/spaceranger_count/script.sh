@@ -4,9 +4,6 @@ set -eo pipefail
 
 unset_if_false=(
     par_override_id
-    par_reorient_images
-    par_create_bam
-    par_filter_probes
     par_nosecondary
 )
 
@@ -44,5 +41,5 @@ spaceranger count \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 
-
-mv -f "$par_output/outs" "$par_output"
+mv -f "$par_output"/outs/* "$par_output"/
+rm -rf "$par_output"/outs
