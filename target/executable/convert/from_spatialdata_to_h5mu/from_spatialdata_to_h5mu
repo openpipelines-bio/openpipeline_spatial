@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_spatialdata_to_h5mu"
-LABEL org.opencontainers.image.created="2025-06-06T06:59:18Z"
+LABEL org.opencontainers.image.created="2025-06-06T09:54:49Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="bd077dc2a66dae009780f4c95ebb8a0f19116470"
+LABEL org.opencontainers.image.revision="682726d700c3dfee0d010cfab173f7dca71a19b1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -795,7 +795,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/incubator/convert/from_spatialdata_to_h5mu:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openpipelines-bio/openpipeline_spatial/convert/from_spatialdata_to_h5mu:build_main'
   fi
 
   # print dockerfile

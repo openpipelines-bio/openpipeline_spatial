@@ -3316,11 +3316,11 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/filter/subset_cosmx",
     "viash_version" : "0.9.3",
-    "git_commit" : "bd077dc2a66dae009780f4c95ebb8a0f19116470",
+    "git_commit" : "682726d700c3dfee0d010cfab173f7dca71a19b1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
-    "name" : "incubator",
+    "name" : "openpipeline_spatial",
     "version" : "build_main",
     "info" : {
       "test_resources" : [
@@ -3823,7 +3823,7 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openpipelines-bio/incubator/filter/subset_cosmx",
+    "image" : "openpipelines-bio/openpipeline_spatial/filter/subset_cosmx",
     "tag" : "build_main"
   },
   "label" : [

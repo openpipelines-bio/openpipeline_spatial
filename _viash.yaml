@@ -1,7 +1,7 @@
 viash_version: 0.9.3
 source: src
 target: target
-name: incubator
+name: openpipeline_spatial
 organization: openpipelines-bio
 links:
   repository: https://github.com/openpipelines-bio/openpipeline_spatial
