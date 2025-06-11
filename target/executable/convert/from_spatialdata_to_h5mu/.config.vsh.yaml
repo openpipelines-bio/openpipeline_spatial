@@ -188,8 +188,8 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "spatialdata~=0.3.0"
-    - "spatialdata-io~=0.1.7"
+    - "spatialdata~=0.4.0"
+    - "spatialdata-io~=0.2.0"
     - "mudata~=0.3.1"
     upgrade: true
   test_setup:
@@ -213,7 +213,7 @@ build_info:
   output: "target/executable/convert/from_spatialdata_to_h5mu"
   executable: "target/executable/convert/from_spatialdata_to_h5mu/from_spatialdata_to_h5mu"
   viash_version: "0.9.3"
-  git_commit: "682726d700c3dfee0d010cfab173f7dca71a19b1"
+  git_commit: "ec27dd8c1c882499e787f73ea16a3af57028dcda"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"
