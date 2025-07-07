@@ -5,12 +5,10 @@ set -eo pipefail
 # get the root of the directory
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
-# ensure that the command below is run from the root of the repository
-cd "$REPO_ROOT"
-
-DIR="resources_test/xenium/"
+# Define absolute directory paths
+DIR="$REPO_ROOT/resources_test/xenium"
 ID="xenium_tiny"
-OUT="$DIR/$ID/"
+OUT="$DIR/$ID"
 
 # create tempdir
 MY_TEMP="${VIASH_TEMP:-/tmp}"
@@ -29,11 +27,11 @@ if [ ! -d "$OUT" ]; then
     mv "$TMPDIR/xenium_tiny/Xenium_Prime_Mouse_Ileum_tiny_outs/"* "$OUT/"
 fi
 
-viash run src/convert/from_xenium_to_spatialdata/config.vsh.yaml -- \
+viash run "$REPO_ROOT/src/convert/from_xenium_to_spatialdata/config.vsh.yaml" -- \
     --input "$OUT" \
     --output "$DIR/$ID.zarr"
 
-viash run src/convert/from_spatialdata_to_h5mu/config.vsh.yaml -- \
+viash run "$REPO_ROOT/src/convert/from_spatialdata_to_h5mu/config.vsh.yaml" -- \
     --input "$DIR/$ID.zarr" \
     --output "$DIR/$ID.h5mu"
 
