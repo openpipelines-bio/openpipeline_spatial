@@ -9,10 +9,14 @@ def test_simple_execution(run_component, tmp_path):
     dataset_id = "Lung5_Rep2"
     run_component(
         [
-            "--input", meta["resources_dir"] + "/Lung5_Rep2_tiny",
-            "--dataset_id", dataset_id,
-            "--num_fovs", "2",
-            "--output", output_path,
+            "--input",
+            meta["resources_dir"] + "/Lung5_Rep2_tiny",
+            "--dataset_id",
+            dataset_id,
+            "--num_fovs",
+            "2",
+            "--output",
+            output_path,
         ]
     )
 
@@ -28,7 +32,9 @@ def test_simple_execution(run_component, tmp_path):
 
     for image in images:
         assert os.path.exists(output_path / image), f"{image} folder was not created"
-        assert len(os.listdir(output_path / image)) == 2, f"{image} folder should contain 2 files"
+        assert len(os.listdir(output_path / image)) == 2, (
+            f"{image} folder should contain 2 files"
+        )
 
     for matrix in matrices:
         assert os.path.exists(matrix), f"{matrix} file was not created"
