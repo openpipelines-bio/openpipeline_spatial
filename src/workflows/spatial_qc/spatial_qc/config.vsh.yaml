@@ -159,7 +159,7 @@ argument_groups:
         example: output.h5mu
 dependencies:
   - name: workflows/qc/qc
-    alias: qc_workflow
+    alias: spatial_qc_workflow
     repository: openpipeline
 resources:
   - type: nextflow_script
