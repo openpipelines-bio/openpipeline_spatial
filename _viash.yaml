@@ -15,6 +15,10 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: 2.1.2
+  - name: openpipeline_incubator
+    repo: openpipelines-bio/openpipeline_incubator
+    type: github
+    tag: main
 
 info:
   test_resources:
