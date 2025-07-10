@@ -1,0 +1,96 @@
+name: spatial_qc_report
+namespace: spatial_qc
+description: Generate an interactive, stand-alone ingestion QC report for xenium data.
+authors: 
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [author]
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [author]
+  - __merge__: /src/authors/robrecht_cannoodt.yaml
+    roles: [author]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [contributor]
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --id
+        type: string
+        required: false
+        direction: input
+        description: |
+          The sample IDs to include in the report. If not provided,
+          the sample IDs will be extracted from the h5mu files.
+        example: sample1
+      - name: --input
+        type: file
+        required: true
+        direction: input
+        description: The input h5mu files.
+        example: path/to/file1.h5mu
+      - name: --sample_metadata
+        type: file
+        required: false
+        direction: input
+        description: |
+          The sample metadata file corresponding to .obs fields in the h5mu input files, to be used for grouping in the report.
+        example: path/to/file.csv
+      - name: --max_samples_per_report
+        type: integer
+        default: 20
+        description: |
+          The maximum number of samples to be included per report. 
+          Multiple reports will be generated (with samples equally divided over all reports) if number of input samples exceeds this threshold.
+  - name: Options
+    arguments:
+      - name: "--var_gene_names"
+        example: "gene_symbol"
+        type: string
+        description: |
+          The column name in the .var h5mu files that contains the gene names. If not provided, .var_names will be used.
+      - name: --obs_metadata
+        type: string
+        multiple: true
+        description: The metadata keys in the h5mu .obs to include in the report.
+        example: [donor_id, cell_type, batch, condition]
+  - name: QC options
+    arguments:
+      - name: "--var_name_mitochondrial_genes"
+        type: string
+        required: false
+        default: "mitochondrial"
+        description: |
+          In which .var slot to store a boolean array corresponding the mitochondrial genes.
+      - name: "--var_name_ribosomal_genes"
+        type: string
+        required: false
+        default: "ribosomal"
+        description: |
+          In which .var slot to store a boolean array corresponding the ribosomal genes.
+  - name: Outputs
+    arguments:
+      - name: --output_qc_report
+        type: file
+        required: true
+        multiple: true
+        direction: output
+        description: The output HTML report
+        example: path/to/file.html
+      - name: --output_processed_h5mu
+        type: file
+        required: true
+        direction: output
+        description: Folder containing the processed h5mu files.
+        default: qc_h5mu
+
+resources:
+  - type: nextflow_script
+    entrypoint: run_wf
+    path: main.nf
+
+dependencies:
+  - name: ingestion_qc/generate_report
+    alias: spatial_qc_report
+    repository: openpipeline_incubator
+
+runners:
+  - type: nextflow
