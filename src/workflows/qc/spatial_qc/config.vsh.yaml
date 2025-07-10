@@ -1,5 +1,5 @@
 name: "spatial_qc"
-namespace: "workflows/spatial_qc"
+namespace: "workflows/qc"
 scope: "public"
 description: "A pipeline to add basic qc statistics to a MuData containing spatial data."
 authors:

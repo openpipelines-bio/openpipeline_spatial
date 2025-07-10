@@ -1,5 +1,5 @@
-name: spatial_qc_report
-namespace: spatial_qc
+name: "spatial_ingestion_qc_report"
+namespace: "workflows/qc"
 description: Generate an interactive, stand-alone ingestion QC report for xenium data.
 authors: 
   - __merge__: /src/authors/jakub_majercik.yaml
