@@ -3194,7 +3194,13 @@ meta = [
       "type" : "github",
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "main_build"
+      "tag" : "2.1.2"
+    },
+    {
+      "type" : "github",
+      "name" : "openpipeline_incubator",
+      "repo" : "openpipelines-bio/openpipeline_incubator",
+      "tag" : "main"
     }
   ],
   "links" : {
@@ -3334,7 +3340,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_h5mu",
     "viash_version" : "0.9.3",
-    "git_commit" : "7f820d2607f3e1fabc0183915d1bb427715e18ae",
+    "git_commit" : "00cafd63af52decfa15830ba20bc88f7a9384965",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3354,7 +3360,13 @@ meta = [
         "type" : "github",
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "main_build"
+        "tag" : "2.1.2"
+      },
+      {
+        "type" : "github",
+        "name" : "openpipeline_incubator",
+        "repo" : "openpipelines-bio/openpipeline_incubator",
+        "tag" : "main"
       }
     ],
     "viash_version" : "0.9.3",
@@ -3431,15 +3443,14 @@ fov_file = f"{par['dataset_id']}_fov_positions_file.csv"
 meta_file = f"{par['dataset_id']}_metadata_file.csv"
 
 for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), f"File does not exist: {file}"
+    assert os.path.isfile(os.path.join(par["input"], file)), (
+        f"File does not exist: {file}"
+    )
 
 logger.info("Reading in CosMx data...")
 adata = sq.read.nanostring(
-    path=par["input"],
-    counts_file=counts_file,
-    meta_file=meta_file,
-    fov_file=fov_file
-    )
+    path=par["input"], counts_file=counts_file, meta_file=meta_file, fov_file=fov_file
+)
 
 logger.info("Writing output MuData object...")
 mdata = mu.MuData({par["modality"]: adata})

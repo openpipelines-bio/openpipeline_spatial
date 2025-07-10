@@ -7,11 +7,9 @@ par = {
     "input": "./resources_test/xenium/xenium_tiny.zarr",
     "output": "./resources_test/xenium/xenium_tiny.h5mu",
     "modality": "rna",
-    "output_compression": None
+    "output_compression": None,
 }
-meta ={
-    "resources_dir": "src/utils"
-}
+meta = {"resources_dir": "src/utils"}
 ## VIASH END
 
 sys.path.append(meta["resources_dir"])

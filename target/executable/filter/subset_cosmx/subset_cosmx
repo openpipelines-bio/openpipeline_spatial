@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component filter subset_cosmx"
-LABEL org.opencontainers.image.created="2025-07-10T12:28:50Z"
+LABEL org.opencontainers.image.created="2025-07-10T14:33:51Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="7f820d2607f3e1fabc0183915d1bb427715e18ae"
+LABEL org.opencontainers.image.revision="00cafd63af52decfa15830ba20bc88f7a9384965"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1154,7 +1154,9 @@ meta_file = f"{par['dataset_id']}_metadata_file.csv"
 tx_file = f"{par['dataset_id']}_tx_file.csv"
 
 for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), f"File does not exist: {file}"
+    assert os.path.isfile(os.path.join(par["input"], file)), (
+        f"File does not exist: {file}"
+    )
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 

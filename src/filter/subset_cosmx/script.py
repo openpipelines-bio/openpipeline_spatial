@@ -10,11 +10,9 @@ par = {
     "input": "./resources_test/cosmx/Lung5_Rep2",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny/",
     "dataset_id": "Lung5_Rep2",
-    "num_fovs": 5
+    "num_fovs": 5,
 }
-meta ={
-    "resources_dir": "src/utils"
-}
+meta = {"resources_dir": "src/utils"}
 ## VIASH END
 
 
@@ -29,7 +27,9 @@ meta_file = f"{par['dataset_id']}_metadata_file.csv"
 tx_file = f"{par['dataset_id']}_tx_file.csv"
 
 for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), f"File does not exist: {file}"
+    assert os.path.isfile(os.path.join(par["input"], file)), (
+        f"File does not exist: {file}"
+    )
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 

@@ -3284,7 +3284,13 @@ meta = [
       "type" : "github",
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "main_build"
+      "tag" : "2.1.2"
+    },
+    {
+      "type" : "github",
+      "name" : "openpipeline_incubator",
+      "repo" : "openpipelines-bio/openpipeline_incubator",
+      "tag" : "main"
     }
   ],
   "links" : {
@@ -3424,7 +3430,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialdata",
     "viash_version" : "0.9.3",
-    "git_commit" : "7f820d2607f3e1fabc0183915d1bb427715e18ae",
+    "git_commit" : "00cafd63af52decfa15830ba20bc88f7a9384965",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3444,7 +3450,13 @@ meta = [
         "type" : "github",
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "main_build"
+        "tag" : "2.1.2"
+      },
+      {
+        "type" : "github",
+        "name" : "openpipeline_incubator",
+        "repo" : "openpipelines-bio/openpipeline_incubator",
+        "tag" : "main"
       }
     ],
     "viash_version" : "0.9.3",
@@ -3531,12 +3543,12 @@ sdata = xenium(
     cells_labels=par["cells_labels"],
     nucleus_labels=par["nucleus_labels"],
     transcripts=par["transcripts"],
-    morphology_mip=par["morphology_mip"], # only available in version < 2.0.0
+    morphology_mip=par["morphology_mip"],  # only available in version < 2.0.0
     morphology_focus=par["morphology_focus"],
     aligned_images=par["aligned_images"],
     cells_table=par["cells_table"],
-    n_jobs=par["n_jobs"]
-    )
+    n_jobs=par["n_jobs"],
+)
 
 
 logger.info("Writing out SpatialData object to Zarr...")

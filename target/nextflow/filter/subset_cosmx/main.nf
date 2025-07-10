@@ -3177,7 +3177,13 @@ meta = [
       "type" : "github",
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "main_build"
+      "tag" : "2.1.2"
+    },
+    {
+      "type" : "github",
+      "name" : "openpipeline_incubator",
+      "repo" : "openpipelines-bio/openpipeline_incubator",
+      "tag" : "main"
     }
   ],
   "links" : {
@@ -3316,7 +3322,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/filter/subset_cosmx",
     "viash_version" : "0.9.3",
-    "git_commit" : "7f820d2607f3e1fabc0183915d1bb427715e18ae",
+    "git_commit" : "00cafd63af52decfa15830ba20bc88f7a9384965",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3336,7 +3342,13 @@ meta = [
         "type" : "github",
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "main_build"
+        "tag" : "2.1.2"
+      },
+      {
+        "type" : "github",
+        "name" : "openpipeline_incubator",
+        "repo" : "openpipelines-bio/openpipeline_incubator",
+        "tag" : "main"
       }
     ],
     "viash_version" : "0.9.3",
@@ -3416,7 +3428,9 @@ meta_file = f"{par['dataset_id']}_metadata_file.csv"
 tx_file = f"{par['dataset_id']}_tx_file.csv"
 
 for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), f"File does not exist: {file}"
+    assert os.path.isfile(os.path.join(par["input"], file)), (
+        f"File does not exist: {file}"
+    )
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 

@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialdata"
-LABEL org.opencontainers.image.created="2025-07-10T12:28:50Z"
+LABEL org.opencontainers.image.created="2025-07-10T14:33:52Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="7f820d2607f3e1fabc0183915d1bb427715e18ae"
+LABEL org.opencontainers.image.revision="00cafd63af52decfa15830ba20bc88f7a9384965"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1387,12 +1387,12 @@ sdata = xenium(
     cells_labels=par["cells_labels"],
     nucleus_labels=par["nucleus_labels"],
     transcripts=par["transcripts"],
-    morphology_mip=par["morphology_mip"], # only available in version < 2.0.0
+    morphology_mip=par["morphology_mip"],  # only available in version < 2.0.0
     morphology_focus=par["morphology_focus"],
     aligned_images=par["aligned_images"],
     cells_table=par["cells_table"],
-    n_jobs=par["n_jobs"]
-    )
+    n_jobs=par["n_jobs"],
+)
 
 
 logger.info("Writing out SpatialData object to Zarr...")
