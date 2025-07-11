@@ -1,0 +1,3 @@
+id: run
+output: !file 'resources_test/xenium/xenium_tiny_qc.h5mu'
+
