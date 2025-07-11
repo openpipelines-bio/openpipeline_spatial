@@ -1,4 +1,4 @@
-viash_version: 0.9.3
+viash_version: 0.9.4
 
 source: src
 target: target
@@ -14,7 +14,11 @@ repositories:
   - name: openpipeline
     repo: openpipelines-bio/openpipeline
     type: github
-    tag: main_build
+    tag: 2.1.2
+  - name: openpipeline_incubator
+    repo: openpipeline_incubator
+    type: vsh
+    tag: build/main
 
 info:
   test_resources:
@@ -23,5 +27,5 @@ info:
       dest: resources_test
 
 config_mods: |
-  .resources += {path: '/src/labels.config', dest: 'nextflow_labels.config'}
+  resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}
   .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'
