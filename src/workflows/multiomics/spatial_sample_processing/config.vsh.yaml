@@ -1,10 +1,14 @@
 name: "spatial_sample_processing"
-namespace: "workflows"
+namespace: "workflows/multiomics"
 scope: "public"
 description: "A pipeline to pre-process multiple spatial omics samples."
 authors:
   - __merge__: /src/authors/dries_schaumont.yaml
     roles: [ author, maintainer ]
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ contributor ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
 
 argument_groups:
   - name: Inputs
