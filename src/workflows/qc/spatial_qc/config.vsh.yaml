@@ -165,6 +165,10 @@ resources:
   - type: nextflow_script
     path: main.nf
     entrypoint: run_wf
-
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - path: /resources_test/xenium/xenium_tiny.h5mu
 runners:
   - type: nextflow
