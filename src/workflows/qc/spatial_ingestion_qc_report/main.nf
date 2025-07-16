@@ -4,6 +4,10 @@ workflow run_wf {
 
   main:
     output_ch = input_ch
+    // store join id
+      | map { id, state ->
+        [id, state + [_meta: [join_id: id]]]
+      }
       | spatial_qc_report.run(
         fromState: { id, state -> [
           "id": id,
@@ -18,15 +22,17 @@ workflow run_wf {
         ]},
         args: [
             "ingestion_method": "xenium",
-            "run_cellbender": "false"
+            "run_cellbender": false
         ],
-        toState: [
-          "output_processed_h5mu": "output_processed_h5mu",
-          "output_qc_report": "output_qc_report"
-        ]
+        toState: {id, output, state -> [
+          "output_processed_h5mu": output.output_processed_h5mu,
+          "output_qc_report": output.output_qc_report,
+          "_meta": state._meta
+        ]}
       )
 
       | setState(["output_processed_h5mu", "output_qc_report"])
+      | niceView()
     
   emit:
     output_ch
