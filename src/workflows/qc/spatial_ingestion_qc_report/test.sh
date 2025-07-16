@@ -1,4 +1,4 @@
-viash ns build -q spatial_ingestion_qc_report --setup b
+viash ns build -q spatial_ingestion_qc_report --setup cb
 
 nextflow run . \
 -resume \
