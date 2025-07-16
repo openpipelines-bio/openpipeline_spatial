@@ -4,9 +4,12 @@ workflow run_wf {
 
   main:
     output_ch = input_ch
-    // store join id
       | map { id, state ->
-        [id, state + [_meta: [join_id: id]]]
+        def new_state = [
+          state.id, 
+          state + ["_meta": ["join_id": id]]
+        ]
+        new_state
       }
       | spatial_qc_report.run(
         fromState: { id, state -> [
@@ -18,6 +21,8 @@ workflow run_wf {
           "obs_metadata": state.obs_metadata,
           "var_name_mitochondrial_genes": state.var_name_mitochondrial_genes,
           "var_name_ribosomal_genes": state.var_name_ribosomal_genes,
+          "output_processed_h5mu": state.output_processed_h5mu,
+          "output_qc_report": state.output_qc_report
 
         ]},
         args: [
@@ -26,13 +31,17 @@ workflow run_wf {
         ],
         toState: {id, output, state -> [
           "output_processed_h5mu": output.output_processed_h5mu,
-          "output_qc_report": output.output_qc_report,
-          "_meta": state._meta
+          "output_qc_report": output.output_qc_report
         ]}
       )
 
-      | setState(["output_processed_h5mu", "output_qc_report"])
-      | niceView()
+      | setState( 
+        [
+          "_meta": "_meta",
+          "output_processed_h5mu": "output_processed_h5mu",
+          "output_qc_report": "output_qc_report"
+        ]
+      )
     
   emit:
     output_ch
