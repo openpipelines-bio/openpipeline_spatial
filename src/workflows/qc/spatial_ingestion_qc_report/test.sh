@@ -1,3 +1,5 @@
+aws s3 sync s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium resources_test/xenium
+
 viash ns build -q spatial_ingestion_qc_report --setup cb
 
 nextflow run . \
