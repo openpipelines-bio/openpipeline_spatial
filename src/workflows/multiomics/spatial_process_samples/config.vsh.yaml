@@ -277,7 +277,13 @@ argument_groups:
 dependencies:
   - name: workflows/multiomics/process_samples
     alias: spatial_sample_processing
-    repository: openpipeline
+    repository: openpipeline_scrublet
+
+repositories:
+  - name: openpipeline_scrublet
+    repo: openpipelines-bio/openpipeline
+    type: github
+    tag: disable-scrublet_build
 
 resources:
   - type: nextflow_script

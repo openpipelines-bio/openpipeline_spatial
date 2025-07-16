@@ -49,6 +49,9 @@ workflow run_wf {
           "rna_scaling_max_value": state.rna_scaling_max_value,
           "rna_scaling_zero_center": state.rna_scaling_zero_center,
         ]},
+        args: [
+          "skip_scrublet_filtering": "true",
+        ],
         toState: [
           "output": "output"
         ]
