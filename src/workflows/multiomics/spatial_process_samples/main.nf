@@ -5,8 +5,11 @@ workflow run_wf {
   main:
     output_ch = input_ch
       | map { id, state ->
-        def newEvent = [state.id, state + ["_meta": ["join_id": id]]]
-        newEvent
+        def new_state = [
+          state.id, 
+          state + ["_meta": ["join_id": id], "workflow_output": state.output]
+        ]
+        new_state
       }
       | spatial_sample_processing.run(
         fromState: { id, state -> [
@@ -52,6 +55,7 @@ workflow run_wf {
           "rna_scaling_umap_obsm_output": state.rna_scaling_umap_obsm_output,
           "rna_scaling_max_value": state.rna_scaling_max_value,
           "rna_scaling_zero_center": state.rna_scaling_zero_center,
+          "output": state.workflow_output
         ]},
         args: [
           "skip_scrublet_filtering": "true",
@@ -67,15 +71,6 @@ workflow run_wf {
           "output": "output"
         ]
       )
-
-      // | map {combined_id, state ->
-      //   def resultState = [
-      //     "output": state.output,
-      //     // The join ID is the same across all samples from the same run
-      //     "_meta": ["join_id": state._meta.join_id]
-      //   ]
-      //   return [combined_id, resultState]
-      // }
 
   emit:
     output_ch
