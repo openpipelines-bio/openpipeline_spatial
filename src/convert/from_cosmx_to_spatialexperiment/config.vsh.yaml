@@ -1,0 +1,76 @@
+name: "from_cosmx_to_spatialexperiment"
+namespace: "convert"
+scope: "public"
+description: |
+  Creates a SpatialExperiment object from the downloaded unzipped CosMx directory for Nanostring
+  CosMx spatial gene expression data, and saves it as a SpatialExperiment object in Seurat format.
+  The constructor assumes the downloaded unzipped CosMx Folder has the following structure:
+
+  Mandatory files
+  · | — *_exprMat_file.csv
+  · | — *_metadata_file.csv
+  Optional files, by default added to the metadata() as a list of paths (will be converted to parquet):
+  · | —*_fov_positions_file.csv
+  · | — *_tx_file.csv
+  · | — *_polygons.csv
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author, maintainer ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input CosMx directory
+    direction: input
+    required: true
+    example: path/to/cosmx_bundle
+  - name: "--add_parquet_paths"
+    type: boolean
+    default: true
+    description: |
+      Whether to add parquet paths to the metadata. 
+      If True, `transcripts.csv` and `polygons.csv` will be added converted to .parquet and added to the metadata. 
+  - name: "--add_fov_positions"
+    type: boolean
+    default: true
+    description: |
+      Whether to add fov positions to the metadata.
+      If True, `fov_positions_file.csv` will be added to the metadata.
+  - name: "--alternative_experiment_features"
+    type: string
+    multiple: true
+    description: Feature names containing these strings will be moved to altExps(sxe) slots as separate SpatialExperiment objects.
+    default: [NegPrb, Negative, SystemControl, FalseCode]
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: Output SpatialExperiment file in Seurat format
+    direction: output
+    required: true
+    example: output.rds
+resources:
+  - type: r_script
+    path: script.R
+test_resources:
+  - type: r_script
+    path: test.R
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny
+engines:
+  - type: docker
+    image: rocker/r2u:24.04
+    setup:
+      - type: apt
+        packages: 
+          - libhdf5-dev
+          - libgeos-dev
+      - type: r
+        bioc: [ SpatialExperimentIO ]
+    test_setup:
+      - type: r
+        cran: [ testthat ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]

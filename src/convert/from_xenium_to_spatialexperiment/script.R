@@ -6,8 +6,7 @@ par <- list(
   add_experiment_xenium = TRUE,
   add_parquet_paths = TRUE,
   alternative_experiment_features = c("NegControlProbe", "UnassignedCodeword", "NegControlCodeword", "antisense", "BLANK"),
-  output = "spe_test.rds",
-  assay = "RNA"
+  output = "spe_test.rds"
 )
 ### VIASH END
 
