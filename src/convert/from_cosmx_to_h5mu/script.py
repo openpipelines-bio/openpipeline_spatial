@@ -29,11 +29,6 @@ counts_file = find_matrix_file("exprMat_file.csv")
 fov_file = find_matrix_file("fov_positions_file.csv")
 meta_file = find_matrix_file("metadata_file.csv")
 
-for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), (
-        f"File does not exist: {file}"
-    )
-
 logger.info("Reading in CosMx data...")
 adata = sq.read.nanostring(
     path=par["input"], counts_file=counts_file, meta_file=meta_file, fov_file=fov_file
