@@ -3,7 +3,7 @@ namespace: "convert"
 scope: "public"
 description: |
   Creates a SpatialExperiment object from the downloaded unzipped Xenium Output Bundle directory
-  for 10x Genomics Xenium spatial gene expression data, and saves it as a SpatialExperiment object in Seurat format.
+  for 10x Genomics Xenium spatial gene expression data, and saves it as a SpatialExperiment object.
   The constructor assumes the downloaded unzipped Xenium Output Bundle has the following structure:
 
   Mandatory files
@@ -44,7 +44,7 @@ arguments:
   - name: "--output"
     alternatives: ["-o"]
     type: file
-    description: Output SpatialExperiment file in Seurat format
+    description: Output SpatialExperiment file
     direction: output
     required: true
     example: output.rds
