@@ -4,7 +4,7 @@ library(SpatialExperiment)
 
 ## VIASH START
 meta <- list(
-  executable = "target/executable/convert/from_xenium_to_spatial_experiment/from_xenium_to_spatial_experiment",
+  executable = "target/executable/convert/from_xenium_to_spatialexperiment/from_xenium_to_spatialexperiment",
   resources_dir = "resources_test/xenium",
   name = "from_xenium_to_spatial_experiment"
 )
@@ -44,17 +44,22 @@ expect_equal(spatialCoordsNames(obj), c("x_centroid", "y_centroid"))
 # Alternative experiments
 expect_equal(altExpNames(obj), c("NegControlProbe", "UnassignedCodeword", "NegControlCodeword"))
 # Metadata components
+metadata_components <- c("experiment.xenium", "transcripts", "cell_boundaries", "nucleus_boundaries")
 expect_named(
   metadata(obj),
-  c("experiment.xenium", "transcripts", "cell_boundaries", "nucleus_boundaries"),
+  metadata_components,
   ignore.order = TRUE
 )
-
+# Parquet paths
+parquet_components <- c("transcripts", "cell_boundaries", "nucleus_boundaries")
+for (component in parquet_components) {
+  expect_true(grepl("\\.parquet$", metadata(obj)[[component]]))
+}
+# Dimensions
 input <- readXeniumSXE(
   dirName = spe,
   returnType = "SPE"
 )
-
 dim_rds <- dim(obj)
 dim_input <- dim(input)
 

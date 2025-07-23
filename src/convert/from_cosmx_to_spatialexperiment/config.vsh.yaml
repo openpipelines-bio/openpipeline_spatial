@@ -25,12 +25,18 @@ arguments:
     direction: input
     required: true
     example: path/to/cosmx_bundle
-  - name: "--add_parquet_paths"
+  - name: "--add_tx_path"
     type: boolean
     default: true
     description: |
       Whether to add parquet paths to the metadata. 
-      If True, `transcripts.csv` and `polygons.csv` will be converted to .parquet and added to the metadata. 
+      If True, `*_tx_file.csv` file will be converted to .parquet and added to the metadata. 
+  - name: "--add_polygon_path"
+    type: boolean
+    default: true
+    description: |
+      Whether to add polygon path to the metadata.
+      If True, `*_polygons.csv` file will be converted to .parquet and be added to the metadata.
   - name: "--add_fov_positions"
     type: boolean
     default: true

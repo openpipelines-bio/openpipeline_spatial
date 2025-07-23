@@ -23,7 +23,8 @@ out <- processx::run(
   meta[["executable"]],
   c(
     "--input", spe,
-    "--add_parquet_paths", FALSE,
+    "--add_tx_path", TRUE,
+    "--add_polygon_path", FALSE,
     "--output", out_rds
   )
 )
@@ -47,9 +48,12 @@ expect_equal(altExpNames(obj), c("NegPrb"))
 # Metadata components
 expect_named(
   metadata(obj),
-  c("fov_positions")
+  c("fov_positions", "transcripts"),
+  ignore.order = TRUE
 )
-
+# Parquet paths
+expect_true(grepl("\\.parquet$", metadata(obj)[["transcripts"]]))
+# Dimensions
 input <- readCosmxSXE(
   dirName = spe,
   addParquetPaths = FALSE,
@@ -72,7 +76,8 @@ out_ext <- processx::run(
   c(
     "--input", spe,
     "--add_fov_positions", FALSE,
-    "--add_parquet_paths", FALSE,
+    "--add_tx_path", FALSE,
+    "--add_polygon_path", FALSE,
     "--alternative_experiment_features", c("Negative"),
     "--output", out_rds_ext
   )

@@ -26,23 +26,18 @@ arguments:
     example: cosmx_data
     direction: input
     required: true
-  - name: "--dataset_id"
-    type: string
-    description: | 
-      ID of the dataset. By default expects the following file structure:
-      path/to/dataset/
-      ├── CellComposite/
-      ├── CellLabels/
-      ├── CellOverlay/
-      ├── CompartmentLabels/
-      ├── <dataset_id>_exprMat_file.csv
-      ├── <dataset_id>_fov_positions_file.csv
-      ├── <dataset_id>_metadata_file.csv
-      └── <dataset_id>_tx_file.csv  
   - name: "--num_fovs"
     type: integer
     required: true
     description: Number of fields of views to keep. Will keep only the first <num_fovs> fields of view.
+  - name: "--subset_transcripts_file"
+    type: boolean
+    default: true
+    description: Whether to subset the <dataset_id>_tx_file.csv file.
+  - name: "--subset_polygons_file"
+    type: boolean
+    default: true
+    description: Whether to subset the <dataset_id>_polygons.csv file.
   - name: "--output"
     alternatives: ["-o"]
     type: file

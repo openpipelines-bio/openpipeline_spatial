@@ -32,14 +32,14 @@ fi
 viash run src/filter/subset_cosmx/config.vsh.yaml -- \
     --input "$OUT" \
     --num_fovs 3 \
-    --dataset_id "$ID" \
+    --subset_transcripts_file True \
+    --subset_polygons_file False \
     --output "${DIR}/${ID}_tiny"
 
 viash run src/convert/from_cosmx_to_h5mu/config.vsh.yaml -- \
     --input ${DIR}/${ID}_tiny \
-    --dataset_id "$ID" \
     --output "$DIR/${ID}_tiny.h5mu" \
-    --compression "gzip"
+    --output_compression "gzip"
 
 rm -rf "$OUT"
 

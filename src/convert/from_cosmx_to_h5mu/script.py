@@ -2,12 +2,12 @@ import sys
 import os
 import squidpy as sq
 import mudata as mu
+import glob
 
 ## VIASH START
 par = {
     "input": "./resources_test/cosmx/Lung5_Rep2_tiny",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
-    "dataset_id": "Lung5_Rep2",
     "modality": "rna",
     "output_compression": None,
 }
@@ -19,9 +19,15 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
-counts_file = f"{par['dataset_id']}_exprMat_file.csv"
-fov_file = f"{par['dataset_id']}_fov_positions_file.csv"
-meta_file = f"{par['dataset_id']}_metadata_file.csv"
+def find_matrix_file(suffix):
+    pattern = os.path.join(par["input"], f"*{suffix}")
+    files = glob.glob(pattern)
+    assert len(files) == 1, f"Only one file matching pattern {pattern} should be present"
+    return files[0]
+
+counts_file = find_matrix_file("exprMat_file.csv")
+fov_file = find_matrix_file("fov_positions_file.csv")
+meta_file = find_matrix_file("metadata_file.csv")
 
 for file in [counts_file, fov_file, meta_file]:
     assert os.path.isfile(os.path.join(par["input"], file)), (
