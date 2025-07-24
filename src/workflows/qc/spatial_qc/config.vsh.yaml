@@ -33,7 +33,7 @@ argument_groups:
         default: "rna"
         required: false
       - name: "--layer"
-        description: "Layer to calculate qc metrics for."
+        description: "Use specified layer for calculation of qc metrics. If not specified, adata.X is used."
         type: string
         example: "raw_counts"
         required: false
