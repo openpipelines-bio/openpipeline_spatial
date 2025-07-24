@@ -11,8 +11,10 @@ def test_simple_execution(run_component, tmp_path):
         [
             "--input",
             meta["resources_dir"] + "/Lung5_Rep2_tiny",
-            "--dataset_id",
-            dataset_id,
+            "--subset_transcripts_file",
+            "True",
+            "--subset_polygons_file",
+            "False",
             "--num_fovs",
             "2",
             "--output",

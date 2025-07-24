@@ -21,19 +21,6 @@ arguments:
     example: cosmx_data
     direction: input
     required: true
-  - name: "--dataset_id"
-    type: string
-    description: | 
-      ID of the dataset. By default expects the following file structure:
-      path/to/dataset/
-      ├── CellComposite/
-      ├── CellLabels/
-      ├── CellOverlay/
-      ├── CompartmentLabels/
-      ├── <dataset_id>_exprMat_file.csv
-      ├── <dataset_id>_fov_positions_file.csv
-      ├── <dataset_id>_metadata_file.csv
-      └── <dataset_id>_tx_file.csv  
   - name: "--modality"
     type: string
     default: rna
