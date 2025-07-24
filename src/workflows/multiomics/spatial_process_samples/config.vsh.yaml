@@ -68,38 +68,51 @@ argument_groups:
     arguments:
       - name: "--rna_min_counts"
         example: 200
+        min: 1
         type: integer
         description: Minimum number of counts captured per cell.
       - name: "--rna_max_counts"
         example: 5000000
+        min: 1
         type: integer
         description: Maximum number of counts captured per cell.
       - name: "--rna_min_genes_per_cell"
         type: integer
+        min: 1
         example: 200
         description: Minimum of non-zero values per cell.
       - name: "--rna_max_genes_per_cell"
         example: 1500000
+        min: 1
         type: integer
         description: Maximum of non-zero values per cell.
       - name: "--rna_min_cells_per_gene"
         example: 3
+        min: 1
         type: integer
         description: Minimum of non-zero values per gene.
       - name: "--rna_min_fraction_mito"
         example: 0
+        min: 0
+        max: 1
         type: double
         description: Minimum fraction of UMIs that are mitochondrial.
       - name: "--rna_max_fraction_mito"
         type: double
+        min: 0
+        max: 1
         example: 0.2
         description: Maximum fraction of UMIs that are mitochondrial.
       - name: "--rna_min_fraction_ribo"
         example: 0
+        min: 0
+        max: 1
         type: double
         description: Minimum fraction of UMIs that are mitochondrial.
       - name: "--rna_max_fraction_ribo"
         type: double
+        min: 0
+        max: 1
         example: 0.2
         description: Maximum fraction of UMIs that are mitochondrial.
 
@@ -108,21 +121,26 @@ argument_groups:
       - name: "--prot_min_counts"
         description: Minimum number of counts per cell.
         type: integer
+        min: 1
         example: 3
       - name: "--prot_max_counts"
         description: Minimum number of counts per cell.
         type: integer
+        min: 1
         example: 5000000
       - name: "--prot_min_proteins_per_cell"
         type: integer
+        min: 1
         example: 200
         description: Minimum of non-zero values per cell.
       - name: "--prot_max_proteins_per_cell"
         description: Maximum of non-zero values per cell.
         type: integer
+        min: 1
         example: 100000000
       - name: "--prot_min_cells_per_protein"
         example: 3
+        min: 1
         type: integer
         description: Minimum of non-zero values per protein.
 
