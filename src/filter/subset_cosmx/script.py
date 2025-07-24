@@ -3,7 +3,6 @@ import shutil
 import pandas as pd
 import glob
 import sys
-from pathlib import Path
 
 
 ## VIASH START
@@ -23,11 +22,15 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+
 def find_matrix_file(suffix):
     pattern = os.path.join(par["input"], f"*{suffix}")
     files = glob.glob(pattern)
-    assert len(files) == 1, f"Only one file matching pattern {pattern} should be present"
+    assert len(files) == 1, (
+        f"Only one file matching pattern {pattern} should be present"
+    )
     return files[0]
+
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 

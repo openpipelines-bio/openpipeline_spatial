@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component filter subset_cosmx"
-LABEL org.opencontainers.image.created="2025-07-24T14:48:55Z"
+LABEL org.opencontainers.image.created="2025-07-24T15:21:24Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="02ebcce04492923f928213e7311a0ff84fef04a7"
+LABEL org.opencontainers.image.revision="6840f3802d04d96d44f29d3cdbd31c62d144b14d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1134,7 +1134,6 @@ import shutil
 import pandas as pd
 import glob
 import sys
-from pathlib import Path
 
 
 ## VIASH START
@@ -1178,11 +1177,15 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+
 def find_matrix_file(suffix):
     pattern = os.path.join(par["input"], f"*{suffix}")
     files = glob.glob(pattern)
-    assert len(files) == 1, f"Only one file matching pattern {pattern} should be present"
+    assert len(files) == 1, (
+        f"Only one file matching pattern {pattern} should be present"
+    )
     return files[0]
+
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 
