@@ -14,5 +14,4 @@
 
 * `workflows/qc/qc`: Added a pipeline for calculating qc metrics of spatial omics samples (PR #5).
 
-
 * `workflows/multiomics/spatial_process_samples`: Added a pipeline to pre-process multiple spatial omics samples (PR #7).
