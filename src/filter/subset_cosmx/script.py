@@ -3,13 +3,15 @@ import shutil
 import pandas as pd
 import glob
 import sys
+from pathlib import Path
 
 
 ## VIASH START
 par = {
     "input": "./resources_test/cosmx/Lung5_Rep2",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny/",
-    "dataset_id": "Lung5_Rep2",
+    "subset_transcripts_file": True,
+    "subset_polygons_file": False,
     "num_fovs": 5,
 }
 meta = {"resources_dir": "src/utils"}
@@ -21,15 +23,11 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
-counts_file = f"{par['dataset_id']}_exprMat_file.csv"
-fov_file = f"{par['dataset_id']}_fov_positions_file.csv"
-meta_file = f"{par['dataset_id']}_metadata_file.csv"
-tx_file = f"{par['dataset_id']}_tx_file.csv"
-
-for file in [counts_file, fov_file, meta_file]:
-    assert os.path.isfile(os.path.join(par["input"], file)), (
-        f"File does not exist: {file}"
-    )
+def find_matrix_file(suffix):
+    pattern = os.path.join(par["input"], f"*{suffix}")
+    files = glob.glob(pattern)
+    assert len(files) == 1, f"Only one file matching pattern {pattern} should be present"
+    return files[0]
 
 kept_fovs = list(range(1, par["num_fovs"] + 1))
 
@@ -49,9 +47,20 @@ for image_dir in image_dirs:
         shutil.copy2(file_path[0], os.path.join(par["output"], image_dir))
 
 # Matrices
-matrices = [counts_file, fov_file, meta_file, tx_file]
+counts_file = find_matrix_file("exprMat_file.csv")
+fov_file = find_matrix_file("fov_positions_file.csv")
+meta_file = find_matrix_file("metadata_file.csv")
+
+matrices = [counts_file, fov_file, meta_file]
+if par["subset_transcripts_file"]:
+    tx_file = find_matrix_file("tx_file.csv")
+    matrices.append(tx_file)
+if par["subset_polygons_file"]:
+    polygons_file = find_matrix_file("polygons.csv")
+    matrices.append(polygons_file)
+
 for matrix in matrices:
     logger.info(f"Subsetting {matrix}, keeping fovs {kept_fovs}")
-    data = pd.read_csv(os.path.join(par["input"], matrix))
+    data = pd.read_csv(matrix)
     data_tiny = data[data["fov"].isin(kept_fovs)]
-    data_tiny.to_csv(os.path.join(par["output"], matrix), index=False)
+    data_tiny.to_csv(os.path.join(par["output"], os.path.basename(matrix)), index=False)
