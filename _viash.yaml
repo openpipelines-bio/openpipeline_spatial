@@ -15,8 +15,8 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: 2.1.2
-  - name: openpipeline_incubator
-    repo: openpipeline_incubator
+  - name: openpipeline_qc
+    repo: openpipeline_qc
     type: vsh
     tag: build/main
 
