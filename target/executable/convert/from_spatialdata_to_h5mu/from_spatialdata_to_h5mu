@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_spatialdata_to_h5mu"
-LABEL org.opencontainers.image.created="2025-07-24T15:21:24Z"
+LABEL org.opencontainers.image.created="2025-08-13T13:54:33Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="6840f3802d04d96d44f29d3cdbd31c62d144b14d"
+LABEL org.opencontainers.image.revision="032f6b7f4dc0bfaa97b5edb63b35298ff90ffd65"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -4,7 +4,7 @@ library(SpatialExperiment)
 
 ## VIASH START
 meta <- list(
-  executable = "target/executable/convert/from_cosmx_to_spatialexperiment/from_cosmx_to_spatialexperiment",
+  executable = "./from_cosmx_to_spatialexperiment",
   resources_dir = "resources_test/cosmx/",
   name = "from_cosmx_to_spatialexperiment"
 )
@@ -42,7 +42,10 @@ expect_is(obj, "SpatialExperiment")
 # Assay structure
 expect_equal(names(slot(obj, "assays")), "counts")
 # Spatial coordinates
-expect_equal(spatialCoordsNames(obj), c("CenterX_global_px", "CenterY_global_px"))
+expect_equal(
+  spatialCoordsNames(obj),
+  c("CenterX_global_px", "CenterY_global_px")
+)
 # Alternative experiments
 expect_equal(altExpNames(obj), c("NegPrb"))
 # Metadata components
@@ -96,7 +99,10 @@ expect_is(obj_ext, "SpatialExperiment")
 # Assay structure
 expect_equal(names(slot(obj_ext, "assays")), "counts")
 # Spatial coordinates
-expect_equal(spatialCoordsNames(obj_ext), c("CenterX_global_px", "CenterY_global_px"))
+expect_equal(
+  spatialCoordsNames(obj_ext),
+  c("CenterX_global_px", "CenterY_global_px")
+)
 # Alternative experiments
 expect_length(altExpNames(obj_ext), 0)
 # Metadata components

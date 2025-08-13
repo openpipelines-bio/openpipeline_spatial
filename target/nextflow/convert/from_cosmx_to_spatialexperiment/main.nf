@@ -3322,7 +3322,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "6840f3802d04d96d44f29d3cdbd31c62d144b14d",
+    "git_commit" : "032f6b7f4dc0bfaa97b5edb63b35298ff90ffd65",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3421,7 +3421,7 @@ rm(.viash_orig_warn)
 
 ### VIASH END
 
-if (par\\$add_polygon_path == FALSE & par\\$add_tx_path == FALSE) {
+if (par\\$add_polygon_path == FALSE && par\\$add_tx_path == FALSE) {
   add_parquet_paths <- FALSE
 } else {
   add_parquet_paths <- TRUE
