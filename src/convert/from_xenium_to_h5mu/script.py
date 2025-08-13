@@ -19,6 +19,7 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+
 logger = setup_logger()
 
 # Expected folder structure (showing only relevant files):
@@ -49,8 +50,8 @@ metadata = pd.read_parquet(input_data["cells_metadata"], engine="pyarrow")
 with open(input_data["experiment"], "r") as f:
     specs = json.load(f)
 metrics_summary = pd.read_csv(
-        input_data["metrics_summary"], decimal=".", quotechar='"', thousands=","
-    )
+    input_data["metrics_summary"], decimal=".", quotechar='"', thousands=","
+)
 
 # Extract and format required columns
 cell_ids = _format_cell_id_column(metadata["cell_id"])

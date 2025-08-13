@@ -18,14 +18,7 @@ def test_simple_execution(run_component, tmp_path):
 
     # run component
     run_component(
-        [
-            "--input",
-            input,
-            "--output",
-            str(output),
-            "--output_compression",
-            "gzip"
-        ]
+        ["--input", input, "--output", str(output), "--output_compression", "gzip"]
     )
 
     assert output.is_file(), "output file was not created"
@@ -45,7 +38,7 @@ def test_simple_execution(run_component, tmp_path):
         "cell_area",
         "nucleus_area",
         "nucleus_count",
-        "segmentation_method"
+        "segmentation_method",
     ]
 
     assert list(adata.uns.keys()) == ["xenium_experiment", "xenium_metrics"]
@@ -56,9 +49,13 @@ def test_simple_execution(run_component, tmp_path):
     assert all(adata.var["feature_types"] == "Gene Expression")
     assert adata.obsm["spatial"].dtype == "float"
     obs_counts = [
-        "transcript_counts", "control_probe_counts", "genomic_control_counts",
-        "unassigned_codeword_counts", "deprecated_codeword_counts",
-        "total_counts", "nucleus_count"
+        "transcript_counts",
+        "control_probe_counts",
+        "genomic_control_counts",
+        "unassigned_codeword_counts",
+        "deprecated_codeword_counts",
+        "total_counts",
+        "nucleus_count",
     ]
     assert all([adata.obs[obs].dtype == "int" for obs in obs_counts])
     obs_areas = ["cell_area", "nucleus_area"]
@@ -82,7 +79,7 @@ def test_rename_fields(run_component, tmp_path):
             "--uns_metrics",
             "test_metrics",
             "--output_compression",
-            "gzip"
+            "gzip",
         ]
     )
 
