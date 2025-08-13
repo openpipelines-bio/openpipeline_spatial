@@ -6,12 +6,14 @@ par <- list(
   add_tx_path = TRUE,
   add_polygon_path = FALSE,
   add_fov_positions = TRUE,
-  alternative_experiment_features = c("NegPrb", "Negative", "SystemControl", "FalseCode"),
+  alternative_experiment_features = c(
+    "NegPrb", "Negative", "SystemControl", "FalseCode"
+  ),
   output = "spe_cosmx_test.rds"
 )
 ### VIASH END
 
-if (par$add_polygon_path == FALSE & par$add_tx_path == FALSE) {
+if (par$add_polygon_path == FALSE && par$add_tx_path == FALSE) {
   add_parquet_paths <- FALSE
 } else {
   add_parquet_paths <- TRUE
