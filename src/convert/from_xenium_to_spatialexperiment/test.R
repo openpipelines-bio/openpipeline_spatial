@@ -4,7 +4,7 @@ library(SpatialExperiment)
 
 ## VIASH START
 meta <- list(
-  executable = "target/executable/convert/from_xenium_to_spatialexperiment/from_xenium_to_spatialexperiment",
+  executable = "./from_xenium_to_spatialexperiment",
   resources_dir = "resources_test/xenium",
   name = "from_xenium_to_spatial_experiment"
 )
@@ -42,9 +42,14 @@ expect_equal(names(slot(obj, "assays")), "counts")
 # Spatial coordinates
 expect_equal(spatialCoordsNames(obj), c("x_centroid", "y_centroid"))
 # Alternative experiments
-expect_equal(altExpNames(obj), c("NegControlProbe", "UnassignedCodeword", "NegControlCodeword"))
+expect_equal(
+  altExpNames(obj),
+  c("NegControlProbe", "UnassignedCodeword", "NegControlCodeword")
+)
 # Metadata components
-metadata_components <- c("experiment.xenium", "transcripts", "cell_boundaries", "nucleus_boundaries")
+metadata_components <- c(
+  "experiment.xenium", "transcripts", "cell_boundaries", "nucleus_boundaries"
+)
 expect_named(
   metadata(obj),
   metadata_components,
