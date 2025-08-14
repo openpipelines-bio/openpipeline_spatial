@@ -1,0 +1,69 @@
+name: "from_xenium_to_h5mu"
+namespace: "convert"
+scope: "public"
+description: |
+  Converts the output from Xenium to a single .h5mu file, where the count matrix is written to the `rna` modality.
+  The following files are expected to be present in the Xenium output bundle:
+  ├── cell_feature_matrix.h5
+  ├── cells.parquet
+  ├── experiment.xenium
+  └── metrics_summary.csv
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input folder. Must contain the output from a Xenium run.
+    example: xenium_output_bundle
+    direction: input
+    required: true
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: Output .h5mu file.
+    example: "xenium.h5mu"
+    direction: output
+  - name: "--obsm_coordinates"
+    type: string
+    description: Name of the .obsm slot under which to store the cell centroid coordinates.
+    default: "spatial"
+  - name: "--uns_experiment"
+    type: string
+    description: Name of the .uns slot under which to store the Xenium experiment specifications.
+    default: "xenium_experiment"
+  - name: "--uns_metrics"
+    type: string
+    description: Name of the .uns slot under which to store the summary QC metrics.
+    default: "xenium_metrics"
+__merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: 
+          - procps
+      - type: python
+        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/scanpy.yaml, .]
+        packages:
+          - pyarrow
+    test_setup:
+      - type: python
+        __merge__: [ /src/base/requirements/viashpy.yaml, .]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
