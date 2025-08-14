@@ -1,0 +1,2 @@
+packages:
+  - spatialdata~=0.4.1rc
