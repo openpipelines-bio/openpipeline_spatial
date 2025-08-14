@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialdata"
-LABEL org.opencontainers.image.created="2025-08-13T13:54:33Z"
+LABEL org.opencontainers.image.created="2025-08-14T13:35:07Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="032f6b7f4dc0bfaa97b5edb63b35298ff90ffd65"
+LABEL org.opencontainers.image.revision="d72254a0361ee3536d7ce87d7ceed5045a03352d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
