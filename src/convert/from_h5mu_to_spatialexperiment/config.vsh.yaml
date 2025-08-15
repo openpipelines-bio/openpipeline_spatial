@@ -1,0 +1,101 @@
+name: "from_h5mu_to_spatialexperiment"
+namespace: "convert"
+description: |
+  Converts a single modality from an H5MU file to a SpatialExperiment object for spatial single-cell analysis in R.
+  This tool reads a specified modality from multimodal single-cell data stored in H5MU format and creates a Bioconductor
+  SpatialExperiment object containing:
+    - All assays (X matrix and layers) from the specified modality as assays
+    - Cell metadata (obs) as colData
+    - Feature metadata (var) as rowData  
+    - Spatial coordinates (obsm) as spatialCoords
+    - Reduced dimensions (obsm) as reducedDims
+  The output is saved as an RDS file containing the SpatialExperiment object.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input H5MU file containing spatial single-cell data
+    example: "input.h5mu"
+    direction: input
+    required: true
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: Output RDS file containing the SpatialExperiment object
+    example: "output.rds"
+    direction: output
+    required: true
+  - name: "--modality"
+    type: string
+    description: Modality to extract from the H5MU file
+    default: "rna"
+    example: "rna"
+    required: true
+  - name: "--var_gene_names"
+    type: string
+    description: Column name in var metadata to use as feature names. If not provided, .var index will be used.
+    required: false
+    example: "gene_symbols"
+  - name: "--obs_cell_id"
+    type: string
+    description: Column name in obs metadata to use as observation names. If not provided, .obs index will be used.
+    required: false
+    example: "cell_id"
+  - name: "--obsm_spatial_coordinates"
+    type: string
+    description: Name of the obsm field containing spatial coordinates (x, y). If NULL or empty, spatial coordinates are not included.
+    default: "spatial"
+    example: "spatial"
+  - name: "--obsm_reduced_dims"
+    type: string
+    multiple: true
+    description: Names of .obsm fields to include as reduced dimensions (e.g., PCA, UMAP). If NULL or empty, no .obsm fields are included.
+    required: false
+    example: ["X_pca", "X_umap"]
+
+resources:
+  - type: r_script
+    path: script.R
+
+test_resources:
+  - type: r_script
+    path: test.R
+  - path: /resources_test/xenium/xenium_tiny.h5mu
+
+engines:
+  - type: docker
+    image: rocker/r-ver:4.4.0
+    setup:
+      - type: apt
+        packages: 
+          - procps
+          - libhdf5-dev
+          - libcurl4-openssl-dev
+          - libssl-dev
+          - libxml2-dev
+      - type: r
+        cran: 
+          - BiocManager
+          - hdf5r
+          - Matrix
+        bioc:
+          - SpatialExperiment
+          - S4Vectors
+    test_setup:
+      - type: apt
+        packages:
+          - git
+      - type: r
+        cran:
+          - testthat
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]

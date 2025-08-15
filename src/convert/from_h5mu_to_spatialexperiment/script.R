@@ -5,13 +5,13 @@ library(S4Vectors)
 
 ### VIASH START
 par <- list(
-  input = "resources_test/xenium/xenium_tiny.h5mu",
+  input = "/Users/dorienroosen/code/openpipeline/resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu",
   output = "xenium_tiny_qc.h5mu",
   modality = "rna",
   var_gene_names = NULL,
-  obs_cell_id = "cell_id",
-  obsm_spatial_coordinates = "spatial",
-  obsm_reduced_dims = NULL
+  obs_cell_id = NULL,
+  obsm_spatial_coordinates = NULL,
+  obsm_reduced_dims = c("X_pca", "X_umap")
 )
 ### VIASH END
 
@@ -101,18 +101,37 @@ read_h5_layers <- function(h5file, mod_location, obs_names, feat_names) {
   return(assay_list)
 }
 
-read_h5_field <- function(h5file, base_path, field_name = NULL) {
+read_h5_field <- function(h5file, base_path, field_name = NULL, index_type = NULL) {
   if (!is.null(field_name) && field_name != "") {
     field_path <- paste0(base_path, "/", field_name)
+    if (!h5file$exists(field_path)) {
+      stop("Field path not found: ", field_path)
+    }
+    return(h5file[[field_path]]$read())
   } else {
-    field_path <- paste0(base_path, "/_index")
+    # Read index values from the index field
+    group <- h5file[[base_path]]
+    
+    # First, get the index field name from the _index attribute
+    index_attr <- "_index"
+    
+    # Check if attribute exists using h5attr_names
+    attr_names <- hdf5r::h5attr_names(group)
+    if (!index_attr %in% attr_names) {
+      stop("Index attribute '", index_attr, "' not found in group: ", base_path)
+    }
+    
+    # Read the index field 
+    h5a <- group$attr_open(attr_name = index_attr)
+    index_field_name <- h5a$read()
+    h5a$close()
+    field_path <- paste0(base_path, "/", index_field_name)
+    if (!h5file$exists(field_path)) {
+      stop("Index field '", index_field_name, "' not found at path: ", field_path)
+    }
+    
+    return(h5file[[field_path]]$read())
   }
-  
-  if (!h5file$exists(field_path)) {
-    stop("Field path not found: ", field_path)
-  }
-  
-  return(h5file[[field_path]]$read())
 }
 
 read_dataframe_from_h5 <- function(h5file, group_path, index_names) {
@@ -202,10 +221,10 @@ read_reduced_dims <- function(h5file, mod_location, obs_names, reduced_dim_names
   }
   
   for (obsm_name in reduced_dim_names) {
-    obsm_field_path <- paste0("obsm/", obsm_name)
+    obsm_field_path <- paste0(mod_location, "/obsm/", obsm_name)
     
     if (!h5file$exists(obsm_field_path)) {
-      warning("Reduced dimension '", obsm_name, "' not found in obsm")
+      warning("Reduced dimension '", obsm_name, "' not found at path: ", obsm_field_path)
       next
     }
     
@@ -251,7 +270,7 @@ main <- function() {
       stop("Could not find modality '", par$modality)
     }
 
-    # Get observation_and_feature_names
+    # Get observation_and_feature_name
     cat("Reading observation and feature names...")
     var_names <- read_h5_field(h5file, paste0(mod_location, "/var"), par$var_gene_names)
     obs_names <- read_h5_field(h5file, paste0(mod_location, "/obs"), par$obs_cell_id)
