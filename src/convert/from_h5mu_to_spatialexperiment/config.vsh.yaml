@@ -1,99 +1,57 @@
 name: "from_h5mu_to_spatialexperiment"
 namespace: "convert"
+scope: "public"
 description: |
-  Converts a single modality from an H5MU file to a SpatialExperiment object for spatial single-cell analysis in R.
-  This tool reads a specified modality from multimodal single-cell data stored in H5MU format and creates a Bioconductor
-  SpatialExperiment object containing:
-    - All assays (X matrix and layers) from the specified modality as assays
-    - Cell metadata (obs) as colData
-    - Feature metadata (var) as rowData  
-    - Spatial coordinates (obsm) as spatialCoords
-    - Reduced dimensions (obsm) as reducedDims
-  The output is saved as an RDS file containing the SpatialExperiment object.
-
+  Converts an h5mu file into a SpatialExperiment object.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
-
+    roles: [ author ]
 arguments:
   - name: "--input"
     alternatives: ["-i"]
     type: file
-    description: Input H5MU file containing spatial single-cell data
-    example: "input.h5mu"
+    description: Input h5mu file
     direction: input
     required: true
+    example: input.h5mu
+  - name: "--modality"
+    type: string
+    required: true
+    default: "rna"
+    description: Name of the modality to be converted.
+  - name: "--obsm_spatial_coordinates"
+    type: string
+    required: false
+    description: |
+      Key in the .obsm field that contains the spatial coordinates. 
+      Will be mapped to spatialCoords in the SpatialExperiment object.
   - name: "--output"
     alternatives: ["-o"]
     type: file
-    description: Output RDS file containing the SpatialExperiment object
-    example: "output.rds"
+    description: Output SpatialExperiment file
     direction: output
     required: true
-  - name: "--modality"
-    type: string
-    description: Modality to extract from the H5MU file
-    default: "rna"
-    example: "rna"
-    required: true
-  - name: "--var_gene_names"
-    type: string
-    description: Column name in var metadata to use as feature names. If not provided, .var index will be used.
-    required: false
-    example: "gene_symbols"
-  - name: "--obs_cell_id"
-    type: string
-    description: Column name in obs metadata to use as observation names. If not provided, .obs index will be used.
-    required: false
-    example: "cell_id"
-  - name: "--obsm_spatial_coordinates"
-    type: string
-    description: Name of the obsm field containing spatial coordinates (x, y). If NULL or empty, spatial coordinates are not included.
-    default: "spatial"
-    example: "spatial"
-  - name: "--obsm_reduced_dims"
-    type: string
-    multiple: true
-    description: Names of .obsm fields to include as reduced dimensions (e.g., PCA, UMAP). If NULL or empty, no .obsm fields are included.
-    required: false
-    example: ["X_pca", "X_umap"]
-
+    example: output.rds
 resources:
   - type: r_script
     path: script.R
-
 test_resources:
   - type: r_script
     path: test.R
-  - path: /resources_test/xenium/xenium_tiny.h5mu
-
 engines:
   - type: docker
-    image: rocker/r-ver:4.4.0
+    image: rocker/r2u:24.04
     setup:
       - type: apt
         packages: 
-          - procps
           - libhdf5-dev
-          - libcurl4-openssl-dev
-          - libssl-dev
-          - libxml2-dev
+          - libgeos-dev
       - type: r
-        cran: 
-          - BiocManager
-          - hdf5r
-          - Matrix
-        bioc:
-          - SpatialExperiment
-          - S4Vectors
+        cran: [ hdf5r, SpatialExperiment ]
+        github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
     test_setup:
-      - type: apt
-        packages:
-          - git
       - type: r
-        cran:
-          - testthat
-
+        cran: [ testthat ]
 runners:
   - type: executable
   - type: nextflow

@@ -70,34 +70,32 @@ read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
   spatial_coords
 }
 
-main <- function() {
-  # Convert to AnnData
-  cat("Converting H5MU file to H5AD...")
-  h5file <- h5mu_to_h5ad(par$input, par$modality)
 
-  # Convert to SpatialExperiment
-  cat("Converting to SingleCellExperiment...")
-  sce <- read_h5ad(h5file, as = "SingleCellExperiment")
+# Convert to AnnData
+cat("Converting H5MU file to H5AD...")
+h5file <- h5mu_to_h5ad(par$input, par$modality)
 
-  # Extract spatial coordinates if specified
-  if (!is.null(par$obsm_spatial_coordinates) && 
-      length(par$obsm_spatial_coordinates) > 0) {
-    cat("Reading in spatial coordinates...\n")
-    spatial_coords <- read_spatial_coordinates(sce, 
-                                               par$obsm_spatial_coordinates)
-    reducedDims(sce)[[par$obsm_spatial_coordinates]] <- NULL
-  } else {
-    spatial_coords <- NULL
-  }
+# Convert to SpatialExperiment
+cat("Converting to SingleCellExperiment...")
+sce <- read_h5ad(h5file, as = "SingleCellExperiment")
 
-  # Converting SingleCellExperiment to SpatialExperiment
-  cat("Converting to SpatialExperiment...")
-  spe <- as(sce, "SpatialExperiment")
-  spatialCoords(spe) <- spatial_coords
-
-  # Saving SpatialExperiment object
-  cat("Saving SpatialExperiment object to:", par$output, "\n")
-  saveRDS(spe, file = par$output, compress = FALSE)
+# Extract spatial coordinates if specified
+if (
+  !is.null(par$obsm_spatial_coordinates) &&
+    length(par$obsm_spatial_coordinates) > 0
+) {
+  cat("Reading in spatial coordinates...")
+  spatial_coords <- read_spatial_coordinates(sce, par$obsm_spatial_coordinates)
+  reducedDims(sce)[[par$obsm_spatial_coordinates]] <- NULL
+} else {
+  spatial_coords <- NULL
 }
 
-main()
+# Converting SingleCellExperiment to SpatialExperiment
+cat("Converting to SpatialExperiment...")
+spe <- as(sce, "SpatialExperiment")
+spatialCoords(spe) <- spatial_coords
+
+# Saving SpatialExperiment object
+cat("Saving SpatialExperiment object to:", par$output, "\n")
+saveRDS(spe, file = par$output, compress = FALSE)
