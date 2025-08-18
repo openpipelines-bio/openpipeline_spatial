@@ -80,11 +80,14 @@ main <- function() {
   sce <- read_h5ad(h5file, as = "SingleCellExperiment")
 
   # Extract spatial coordinates if specified
-  if (!is.null(par$obsm_spatial_coordinates) && 
-      length(par$obsm_spatial_coordinates) > 0) {
-    cat("Reading in spatial coordinates...\n")
-    spatial_coords <- read_spatial_coordinates(sce, 
-                                               par$obsm_spatial_coordinates)
+  if (
+    !is.null(par$obsm_spatial_coordinates) && 
+      length(par$obsm_spatial_coordinates) > 0
+  ) {
+    cat("Reading in spatial coordinates...")
+    spatial_coords <- read_spatial_coordinates(
+      sce, par$obsm_spatial_coordinates
+    )
     reducedDims(sce)[[par$obsm_spatial_coordinates]] <- NULL
   } else {
     spatial_coords <- NULL
@@ -96,7 +99,7 @@ main <- function() {
   spatialCoords(spe) <- spatial_coords
 
   # Saving SpatialExperiment object
-  cat("Saving SpatialExperiment object to:", par$output, "\n")
+  cat("Saving SpatialExperiment object to:", par$output)
   saveRDS(spe, file = par$output, compress = FALSE)
 }
 
