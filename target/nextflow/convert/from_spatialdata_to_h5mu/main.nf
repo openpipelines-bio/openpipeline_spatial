@@ -3330,7 +3330,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spatialdata_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "46b97b56724d241439f09d3748315a26f03a300d",
+    "git_commit" : "d71eecd677602f44e3d0b1e9beb8eaf681aab935",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

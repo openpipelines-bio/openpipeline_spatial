@@ -1,4 +1,4 @@
-name: "from_spatialdata_to_h5mu"
+name: "from_xenium_to_h5mu"
 namespace: "convert"
 version: "build_main"
 authors:
@@ -15,14 +15,6 @@ authors:
     - name: "Data Intuitive"
       href: "https://www.data-intuitive.com"
       role: "Data Scientist"
-- name: "Weiwei Schultz"
-  roles:
-  - "contributor"
-  info:
-    role: "Contributor"
-    organizations:
-    - name: "Janssen R&D US"
-      role: "Associate Director Data Sciences"
 argument_groups:
 - name: "Arguments"
   arguments:
@@ -30,22 +22,13 @@ argument_groups:
     name: "--input"
     alternatives:
     - "-i"
-    description: "Input zarr folder where the SpatialData object is stored."
+    description: "Input folder. Must contain the output from a Xenium run."
     info: null
     example:
-    - "input.zarr"
+    - "xenium_output_bundle"
     must_exist: true
     create_parent: true
     required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--modality"
-    info: null
-    default:
-    - "rna"
-    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -53,10 +36,10 @@ argument_groups:
     name: "--output"
     alternatives:
     - "-o"
-    description: "The output h5mu file."
+    description: "Output .h5mu file."
     info: null
     example:
-    - "output.h5mu"
+    - "xenium.h5mu"
     must_exist: true
     create_parent: true
     required: false
@@ -64,7 +47,40 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
   - type: "string"
+    name: "--obsm_coordinates"
+    description: "Name of the .obsm slot under which to store the cell centroid coordinates."
+    info: null
+    default:
+    - "spatial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--uns_experiment"
+    description: "Name of the .uns slot under which to store the Xenium experiment\
+      \ specifications."
+    info: null
+    default:
+    - "xenium_experiment"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--uns_metrics"
+    description: "Name of the .uns slot under which to store the summary QC metrics."
+    info: null
+    default:
+    - "xenium_metrics"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
     name: "--output_compression"
+    description: "Compression format to use for the output AnnData and/or Mudata objects.\n\
+      By default no compression is applied.\n"
     info: null
     example:
     - "gzip"
@@ -84,14 +100,16 @@ resources:
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Reads in the Tables field stored in a SpatialData object and converts\
-  \ it to an h5mu file.\n  \n"
+description: "Converts the output from Xenium to a single .h5mu file, where the count\
+  \ matrix is written to the `rna` modality.\nThe following files are expected to\
+  \ be present in the Xenium output bundle:\n├── cell_feature_matrix.h5\n├── cells.parquet\n\
+  ├── experiment.xenium\n└── metrics_summary.csv\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
   is_executable: true
 - type: "file"
-  path: "xenium_tiny.zarr"
+  path: "xenium_tiny"
 info: null
 status: "enabled"
 scope:
@@ -194,31 +212,26 @@ engines:
     packages:
     - "anndata~=0.11.1"
     - "mudata~=0.3.1"
-    - "spatialdata~=0.4.1rc"
+    - "scanpy~=1.10.4"
+    - "pyarrow"
     script:
     - "exec(\"try:\\n  import awkward\\nexcept ModuleNotFoundError:\\n  exit(0)\\\
       nelse:  exit(1)\")"
     upgrade: true
   test_setup:
-  - type: "apt"
-    packages:
-    - "git"
-    interactive: false
   - type: "python"
     user: false
     packages:
     - "viashpy==0.9.0"
-    github:
-    - "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
     upgrade: true
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/convert/from_spatialdata_to_h5mu/config.vsh.yaml"
+  config: "src/convert/from_xenium_to_h5mu/config.vsh.yaml"
   runner: "executable"
   engine: "docker"
-  output: "target/executable/convert/from_spatialdata_to_h5mu"
-  executable: "target/executable/convert/from_spatialdata_to_h5mu/from_spatialdata_to_h5mu"
+  output: "target/executable/convert/from_xenium_to_h5mu"
+  executable: "target/executable/convert/from_xenium_to_h5mu/from_xenium_to_h5mu"
   viash_version: "0.9.4"
   git_commit: "d71eecd677602f44e3d0b1e9beb8eaf681aab935"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
