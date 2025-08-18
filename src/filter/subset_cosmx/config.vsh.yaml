@@ -62,16 +62,8 @@ engines:
         packages: 
           - procps
       - type: python
-        packages:
-          - squidpy~=1.6.5
-    test_setup:
-    - type: apt
-      packages:
-        - git
-    - type: python
-      packages:
-        - viashpy==0.8.0
-      github: openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils
+        __merge__: [ /src/base/requirements/squidpy.yaml ]
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 runners:
   - type: executable
   - type: nextflow

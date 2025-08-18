@@ -5,7 +5,10 @@ par <- list(
   input = "resources_test/xenium/xenium_tiny",
   add_experiment_xenium = TRUE,
   add_parquet_paths = TRUE,
-  alternative_experiment_features = c("NegControlProbe", "UnassignedCodeword", "NegControlCodeword", "antisense", "BLANK"),
+  alternative_experiment_features = c(
+    "NegControlProbe", "UnassignedCodeword",
+    "NegControlCodeword", "antisense", "BLANK"
+  ),
   output = "spe_test.rds"
 )
 ### VIASH END
