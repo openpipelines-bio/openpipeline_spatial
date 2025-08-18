@@ -3292,8 +3292,13 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "squidpy~=1.6.5",
-            "mudata~=0.3.1"
+            "anndata~=0.11.1",
+            "mudata~=0.3.1",
+            "spatialdata~=0.4.1rc",
+            "squidpy~=1.6.5"
+          ],
+          "script" : [
+            "exec(\\"try:\\\\n  import awkward\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  exit(1)\\")"
           ],
           "upgrade" : true
         }
@@ -3310,7 +3315,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "viashpy==0.8.0"
+            "viashpy==0.9.0"
           ],
           "github" : [
             "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
@@ -3326,7 +3331,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "d72254a0361ee3536d7ce87d7ceed5045a03352d",
+    "git_commit" : "46b97b56724d241439f09d3748315a26f03a300d",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
