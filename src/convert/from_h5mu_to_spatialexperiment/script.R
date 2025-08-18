@@ -62,9 +62,11 @@ read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
     # Set proper column names for spatial coordinates
     colnames(spatial_coords) <- c("x", "y")
   } else {
-    warning("Spatial coordinates '", par$obsm_spatial_coordinates,
-            "' not found in reducedDims. Available dimensions: ",
-            paste(names(reducedDims(sce)), collapse = ", "))
+    warning(
+      "Spatial coordinates '", par$obsm_spatial_coordinates,
+      "' not found in reducedDims. Available dimensions: ",
+      paste(names(reducedDims(sce)), collapse = ", ")
+    )
     spatial_coords <- NULL
   }
   spatial_coords
@@ -81,7 +83,7 @@ main <- function() {
 
   # Extract spatial coordinates if specified
   if (
-    !is.null(par$obsm_spatial_coordinates) && 
+    !is.null(par$obsm_spatial_coordinates) &&
       length(par$obsm_spatial_coordinates) > 0
   ) {
     cat("Reading in spatial coordinates...")
