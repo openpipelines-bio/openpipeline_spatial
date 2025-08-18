@@ -45,6 +45,11 @@ def _format_cell_id_column(cell_id_column: pd.Series) -> pd.Series:
 
 # Read data from Xenium output bundle
 logger.info("Reading input data...")
+
+assert all([file.exists() for file in input_data.values()]), (
+    f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
+)
+
 adata = sc.read_10x_h5(input_data["count_matrix"])
 metadata = pd.read_parquet(input_data["cells_metadata"], engine="pyarrow")
 with open(input_data["experiment"], "r") as f:
