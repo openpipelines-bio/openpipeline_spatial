@@ -80,7 +80,7 @@ if os.path.exists(src_path):
 
     dest_path = os.path.join(dest_dir, "Cytoprofiling", "Instrument")
     os.makedirs(dest_path, exist_ok=True)
-    dest_file = os.path.join(dest_path, "RawCellStats_subset.parquet")
+    dest_file = os.path.join(dest_path, "RawCellStats.parquet")
     df.to_parquet(dest_file, engine="pyarrow")
     print(f"Saved processed count matrix to {dest_file}")
 else:
