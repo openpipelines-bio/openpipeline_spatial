@@ -1,6 +1,7 @@
 library(SpatialExperiment)
 library(SingleCellExperiment)
-library(anndataR)
+library(hdf5r)
+library(Matrix)
 library(hdf5r)
 
 ## VIASH START
@@ -12,6 +13,7 @@ par <- list(
 )
 ## VIASH END
 
+globalVariables(c("reducedDims", "spatialCoords", "read_h5ad"))
 
 h5mu_to_h5ad <- function(h5mu_path, modality_name) {
   tmp_path <- tempfile(fileext = ".h5ad")
@@ -51,6 +53,7 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
 }
 
 read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
+  # Check if the specified spatial coordinates exist in reducedDims
   if (par$obsm_spatial_coordinates %in% names(reducedDims(sce))) {
     spatial_coords <- reducedDims(sce)[[par$obsm_spatial_coordinates]]
     if (ncol(spatial_coords) != 2) {
