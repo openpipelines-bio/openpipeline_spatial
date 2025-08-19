@@ -1,5 +1,6 @@
 library(testthat)
 library(SpatialExperiment)
+library(SingleCellExperiment)
 library(hdf5r)
 library(Matrix)
 library(reticulate)
@@ -7,7 +8,7 @@ library(reticulate)
 ## VIASH START
 meta <- list(
   resources_dir = "resources_test",
-  executable = "./target/executable/convert/from_h5mu_to_spatialexperiment/from_h5mu_to_spatialexperiment",
+  executable = "./from_h5mu_to_spatialexperiment",
   config = "./src/convert/from_h5mu_to_spatialexperiment/config.vsh.yaml"
 )
 ## VIASH END
@@ -17,14 +18,13 @@ ad <- reticulate::import("anndata")
 
 # Helper function to create mock H5MU test data
 create_mock_h5mu <- function(path) {
-
   n_obs <- 5
   n_var_mod1 <- 4
   n_var_mod2 <- 3
 
   # ============== MOD1 MODALITY ==============
 
-  mod1_X_data <- matrix(c(
+  mod1_x_data <- matrix(c(
     1, 2, 3, 0,
     4, 5, 6, 2,
     0, 1, 2, 3,
@@ -52,7 +52,7 @@ create_mock_h5mu <- function(path) {
 
   # Create layers
   mod1_layers <- list(
-    counts = mod1_X_data * 2
+    counts = mod1_x_data * 2
   )
 
   # Create obsm
@@ -84,7 +84,7 @@ create_mock_h5mu <- function(path) {
 
   # Create AnnData object for mod1 using AnnDataR
   ad_mod1 <- ad$AnnData(
-    X = mod1_X_data,
+    X = mod1_x_data,
     obs = mod1_obs,
     var = mod1_var,
     layers = mod1_layers,
@@ -95,7 +95,7 @@ create_mock_h5mu <- function(path) {
   # ============== MOD2 MODALITY ==============
 
   # Create expression matrix
-  mod2_X_data <- matrix(c(
+  mod2_x_data <- matrix(c(
     10, 20, 15,
     25, 30, 18,
     12, 22, 20,
@@ -119,7 +119,7 @@ create_mock_h5mu <- function(path) {
 
   # Create AnnData object for mod2
   ad_mod2 <- ad$AnnData(
-    X = mod2_X_data,
+    X = mod2_x_data,
     obs = mod2_obs,
     var = mod2_var
   )
