@@ -8,7 +8,7 @@ library(reticulate)
 ## VIASH START
 meta <- list(
   resources_dir = "resources_test",
-  executable = "./from_h5mu_to_spatialexperiment",
+  executable = "./target/executable/convert/from_h5mu_to_spatialexperiment/from_h5mu_to_spatialexperiment",
   config = "./src/convert/from_h5mu_to_spatialexperiment/config.vsh.yaml"
 )
 ## VIASH END

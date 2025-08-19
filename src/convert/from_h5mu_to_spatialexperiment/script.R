@@ -13,7 +13,6 @@ par <- list(
 )
 ## VIASH END
 
-globalVariables(c("reducedDims", "spatialCoords", "read_h5ad"))
 
 h5mu_to_h5ad <- function(h5mu_path, modality_name) {
   tmp_path <- tempfile(fileext = ".h5ad")
@@ -54,8 +53,9 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
 
 read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
   # Check if the specified spatial coordinates exist in reducedDims
-  if (par$obsm_spatial_coordinates %in% names(reducedDims(sce))) {
-    spatial_coords <- reducedDims(sce)[[par$obsm_spatial_coordinates]]
+  reduced_dims <- SingleCellExperiment::reducedDims(sce)
+  if (par$obsm_spatial_coordinates %in% names(reduced_dims)) {
+    spatial_coords <- reduced_dims[[par$obsm_spatial_coordinates]]
     if (ncol(spatial_coords) != 2) {
       stop(
         "Spatial coordinates must have 2 columns, but found ",
@@ -68,7 +68,7 @@ read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
     warning(
       "Spatial coordinates '", par$obsm_spatial_coordinates,
       "' not found in reducedDims. Available dimensions: ",
-      paste(names(reducedDims(sce)), collapse = ", ")
+      paste(names(reduced_dims), collapse = ", ")
     )
     spatial_coords <- NULL
   }
@@ -82,7 +82,7 @@ main <- function() {
 
   # Convert to SpatialExperiment
   cat("Converting to SingleCellExperiment...\n")
-  sce <- read_h5ad(h5file, as = "SingleCellExperiment")
+  sce <- anndataR::read_h5ad(h5file, as = "SingleCellExperiment")
 
   # Extract spatial coordinates if specified
   if (
@@ -93,7 +93,9 @@ main <- function() {
     spatial_coords <- read_spatial_coordinates(
       sce, par$obsm_spatial_coordinates
     )
-    reducedDims(sce)[[par$obsm_spatial_coordinates]] <- NULL
+    SingleCellExperiment::reducedDims(sce)[[
+      par$obsm_spatial_coordinates
+    ]] <- NULL
   } else {
     spatial_coords <- NULL
   }
@@ -101,7 +103,7 @@ main <- function() {
   # Converting SingleCellExperiment to SpatialExperiment
   cat("Converting to SpatialExperiment...\n")
   spe <- as(sce, "SpatialExperiment")
-  spatialCoords(spe) <- spatial_coords
+  SpatialExperiment::spatialCoords(spe) <- spatial_coords
 
   # Saving SpatialExperiment object
   cat("Saving SpatialExperiment object to:", par$output, "\n")
