@@ -6,9 +6,9 @@ library(hdf5r)
 ## VIASH START
 par <- list(
   input = "resources_test/xenium/xenium_tiny.h5mu",
-  output = "sc_test.rds",
+  output = "xenium_test.rds",
   modality = "rna",
-  obsm_spatial_coordinates = NULL
+  obsm_spatial_coordinates = "spatial"
 )
 ## VIASH END
 
@@ -74,11 +74,11 @@ read_spatial_coordinates <- function(sce, spatial_coordinates_name) {
 
 main <- function() {
   # Convert to AnnData
-  cat("Converting H5MU file to H5AD...")
+  cat("Converting H5MU file to H5AD...\n")
   h5file <- h5mu_to_h5ad(par$input, par$modality)
 
   # Convert to SpatialExperiment
-  cat("Converting to SingleCellExperiment...")
+  cat("Converting to SingleCellExperiment...\n")
   sce <- read_h5ad(h5file, as = "SingleCellExperiment")
 
   # Extract spatial coordinates if specified
@@ -86,7 +86,7 @@ main <- function() {
     !is.null(par$obsm_spatial_coordinates) &&
       length(par$obsm_spatial_coordinates) > 0
   ) {
-    cat("Reading in spatial coordinates...")
+    cat("Reading in spatial coordinates...\n")
     spatial_coords <- read_spatial_coordinates(
       sce, par$obsm_spatial_coordinates
     )
@@ -96,12 +96,12 @@ main <- function() {
   }
 
   # Converting SingleCellExperiment to SpatialExperiment
-  cat("Converting to SpatialExperiment...")
+  cat("Converting to SpatialExperiment...\n")
   spe <- as(sce, "SpatialExperiment")
   spatialCoords(spe) <- spatial_coords
 
   # Saving SpatialExperiment object
-  cat("Saving SpatialExperiment object to:", par$output)
+  cat("Saving SpatialExperiment object to:", par$output, "\n")
   saveRDS(spe, file = par$output, compress = FALSE)
 }
 

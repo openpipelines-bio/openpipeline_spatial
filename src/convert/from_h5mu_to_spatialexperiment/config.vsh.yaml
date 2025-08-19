@@ -38,9 +38,10 @@ resources:
 test_resources:
   - type: r_script
     path: test.R
+
 engines:
   - type: docker
-    image: rocker/r2u:24.04
+    image: rocker/r2u:22.04
     setup:
       - type: apt
         packages: 
@@ -50,8 +51,20 @@ engines:
         cran: [ hdf5r, SpatialExperiment ]
         github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
     test_setup:
+      - type: docker
+        env: 
+          - RETICULATE_PYTHON=/usr/bin/python
+      - type: apt
+        packages:
+          - python3
+          - python3-pip
+          - python3-dev
+          - python-is-python3
       - type: r
-        cran: [ testthat ]
+        cran: [ reticulate, testthat ]
+      - type: python
+        __merge__: /src/base/requirements/anndata_mudata.yaml
+
 runners:
   - type: executable
   - type: nextflow
