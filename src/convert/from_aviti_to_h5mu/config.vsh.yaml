@@ -1,0 +1,123 @@
+name: from_aviti_to_h5mu
+namespace: convert
+scope: public
+description: |
+  Convert spatial data resulting from Aviti Teton sequencers that have been processed by the Element Biosciences cells2stats workflow to H5MU format.
+  
+  This component processes AVITI output data including count matrices, run statistics,
+  and panel information to create a standardized H5MU file for downstream analysis.
+  
+  The component reads:
+  - Count matrix and metadata Parquet files
+  - Panel.json with target and batch information
+  
+  And outputs an H5MU file with:
+  - Count data as the main .X matrix
+  - Spatial coordinates in obsm
+  - Cell Paint intensities in obsm (optional)
+  - Nuclear count data as a layer (optional)
+  - CellProfiler morphology metrics in obsm (optional)
+  - Unassigned targets in obsm (optional)
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        direction: input
+        required: true
+        description: |
+          Path to the cells2stats output bundle. 
+          Expected folder structure (showing required files only):
+          ├── Cytoprofiling/
+          │   └── Instrument/
+          │       └── RawCellStats.parquet
+          └── Panel.json containing:
+        example: path/to/aviti_output/
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file path.
+        example: output.h5mu
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+  - name: Options
+    arguments:
+      - name: --obsm_coordinates
+        type: string
+        required: true
+        description: |
+          Key name to store the spatial coordinates (in pixels) in obsm. 
+          If present, spatial coordinates in micrometers will be stored under {obsm_coordinates}_um.
+        default: spatial
+      - name: --layer_nuclear_counts
+        type: string
+        description: |
+          Name for nuclear counts layer. If specified, nuclear count data 
+          will be stored as a separate layer in the AnnData object.
+        example: nuclear_counts
+      - name: --obsm_cell_paint
+        type: string
+        description: |
+          Key name for storing Cell Paint target intensities in obsm. 
+          If provided, Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
+        example: cell_paint
+
+      - name: --obsm_cell_paint_nuclear
+        type: string
+        description: |
+          Key name for storing Nuclear Cell Paint target intensities in obsm. 
+          If provided, Nuclear Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
+        example: cell_paint_nuclear
+      - name: --obsm_cell_profiler
+        type: string
+        description: |
+          Key name for storing CellProfiler morphology metrics in obsm. 
+          If provided, CellProfiler morphology metrics will be stored as a separate matrix in the obsm field.
+        example: cell_profiler
+      - name: --obsm_unassigned_targets
+        type: string
+        description: |
+          Key name for storing any unassigned target data in obsm. 
+          If provided, unassigned target data will be stored as a separate matrix in the obsm field.
+        example: cell_profiler
+
+resources:
+  - type: python_script
+    path: script.py
+
+test_resources:
+  - type: file
+    path: test.py
+  - type: file
+    path: test_data
+    dest: resources_test/aviti/
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: 
+          - procps
+      - type: python
+        __merge__: [/src/base/requirements/anndata_mudata.yaml, .]
+        packages:
+          - pyarrow
+    test_setup:
+      - type: python
+        __merge__: [ /src/base/requirements/viashpy.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midmem, midcpu]

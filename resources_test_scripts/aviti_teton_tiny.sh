@@ -17,10 +17,9 @@ TINY_OUT=$OUT/aviti_teton_tiny/
 [ -d "$TINY_OUT" ] || mkdir -p "$TINY_OUT"
 
 echo "> Downloading Aviti Teton data"
-# TODO: Replace with actual download URL when available
-# wget "https://example.com/aviti_teton_data.tar.gz?download=1" -O "${OUT}/PLUT-0105.tar.gz"
-# tar -xzf "${OUT}/PLUT-0105.tar.gz" -C "$OUT" --strip-components=1
-# rm "${OUT}/PLUT-0105.tar.gz"
+wget "https://go.elementbiosciences.com/l/938263/28kddnj7/d59cp" -O "${OUT}/PLUT-0105.tar.gz"
+tar -xzf "${OUT}/PLUT-0105.tar.gz" -C "$OUT" --strip-components=1
+rm "${OUT}/PLUT-0105.tar.gz"
 
 echo "> Processing and subsetting Aviti Teton data"
 python <<HEREDOC
@@ -94,70 +93,17 @@ if os.path.exists(panel_src_path):
     print(f"Copied Panel.json")
 else:
     print(f"Warning: Panel.json not found at {panel_src_path}")
-
-# Subset & Copy Run Manifest Metadata
-manifest_src_path = os.path.join(src_dir, "RunManifest.json")
-if os.path.exists(manifest_src_path):
-    with open(manifest_src_path, 'r') as f:
-        manifest_data = json.load(f)
-
-    filtered_wells = [
-        well for well in manifest_data["Wells"] 
-        if well["WellLocation"] in wells_to_keep
-    ]
-
-    filtered_manifest = {
-        "Wells": filtered_wells,
-        "RunValues": manifest_data.get("RunValues", {})
-    }
-    manifest_dest_path = os.path.join(dest_dir, "RunManifest.json")
-    with open(manifest_dest_path, 'w') as f:
-        json.dump(filtered_manifest, f, indent=4)
-    
-    print(f"Filtered manifest: kept {len(filtered_wells)} wells out of {len(manifest_data['Wells'])}")
-else:
-    print(f"Warning: RunManifest.json not found at {manifest_src_path}")
-
-# Subset & Copy Run Parameters metadata
-run_params_src_path = os.path.join(src_dir, "RunParameters.json")
-if os.path.exists(run_params_src_path):
-    with open(run_params_src_path, 'r') as f:
-        run_params_data = json.load(f)
-
-    # Filter wells to keep only those specified in wells_to_keep
-    filtered_wells = [
-        well for well in run_params_data["Wells"] 
-        if well["WellLocation"] in wells_to_keep
-    ]
-
-    # Extract tile names from filtered wells
-    tiles_to_keep = []
-    for well in filtered_wells:
-        tiles_to_keep.extend([tile["Name"] for tile in well["Tiles"]])
-
-    # Filter Tiles and RawTiles arrays
-    filtered_tiles = [tile for tile in run_params_data["Tiles"] if tile in tiles_to_keep]
-    filtered_raw_tiles = [tile for tile in run_params_data["RawTiles"] if tile in tiles_to_keep]
-
-    # Create new filtered run parameters
-    filtered_run_params = run_params_data.copy()
-    filtered_run_params["Wells"] = filtered_wells
-    filtered_run_params["Tiles"] = filtered_tiles
-    filtered_run_params["RawTiles"] = filtered_raw_tiles
-
-    # Save filtered run parameters
-    run_params_dest_path = os.path.join(dest_dir, "RunParameters.json")
-    with open(run_params_dest_path, 'w') as f:
-        json.dump(filtered_run_params, f, indent=2)
-    
-    print(f"Filtered RunParameters: kept {len(filtered_wells)} wells, {len(filtered_tiles)} tiles")
-else:
-    print(f"Warning: RunParameters.json not found at {run_params_src_path}")
-
 print("Processing complete!")
 HEREDOC
 
-# echo "> Removing original aviti_teton folder"
-# rm -rf "$OUT"
+echo "> Removing original aviti_teton folder"
+rm -rf "$OUT/PLUT-0105"
 
 echo "> Aviti Teton tiny dataset created successfully at $TINY_OUT"
+
+aws s3 sync \
+    --profile di \
+    "$TINY_OUT" \
+    s3://openpipelines-bio/openpipeline_spatial/resources_test/aviti \
+    --delete \
+    --dryrun
