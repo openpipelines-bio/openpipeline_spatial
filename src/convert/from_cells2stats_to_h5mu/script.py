@@ -18,7 +18,7 @@ par = {
     "obsm_cell_paint": "cell_paint",
     "obsm_cell_paint_nuclear": "cell_paint_nuclear",
     "obsm_cell_profiler": "cell_profiler",
-    "obsm_unassigned_targets": "unassigned_targets"
+    "obsm_unassigned_targets": "unassigned_targets",
 }
 meta = {"resources_dir": "src/utils"}
 ## VIASH END
@@ -38,17 +38,27 @@ def assert_matching_order(var_names, count_columns, split_pattern=None):
 def categorize_columns(column_list, target_panel):
     # Extract imaging and barcoding information from Panel.json
     imaging_batches = [tube["BatchName"] for tube in target_panel["ImagingPrimerTubes"]]
-    barcoding_batches = [tube["BatchName"] for tube in target_panel["BarcodingPrimerTubes"]]
+    barcoding_batches = [
+        tube["BatchName"] for tube in target_panel["BarcodingPrimerTubes"]
+    ]
 
     # Extract target information
     cellpaint_targets = [target["Target"] for target in target_panel["ImagingTargets"]]
-    barcoding_targets = [target["Target"] for target in target_panel["BarcodingTargets"]]
+    barcoding_targets = [
+        target["Target"] for target in target_panel["BarcodingTargets"]
+    ]
 
     # METADATA (for .obs and .obsm)
     # Fixed columns
     columns_fixed = [
-        "Area", "AreaUm", "Cell", "NuclearArea",
-        "NuclearAreaUm", "Tile", "Well", "WellLabel"
+        "Area",
+        "AreaUm",
+        "Cell",
+        "NuclearArea",
+        "NuclearAreaUm",
+        "Tile",
+        "Well",
+        "WellLabel",
     ]
     obs_columns_fixed = list(set(columns_fixed) & set(column_list))
 
@@ -58,66 +68,101 @@ def categorize_columns(column_list, target_panel):
 
     # Cell Paint target intensity columns (format: {cell_paint_target.batch})
     cell_paint_columns = [
-        col for col in column_list
-        if any(col.startswith(f"{target}.") and col.endswith(f".{batch}") for target in cellpaint_targets for batch in imaging_batches)
+        col
+        for col in column_list
+        if any(
+            col.startswith(f"{target}.") and col.endswith(f".{batch}")
+            for target in cellpaint_targets
+            for batch in imaging_batches
+        )
     ]
 
     # Cell Paint nuclear target intensity columns (format: {cell_paint_target_Nuclear.batch})
     cell_paint_nuclear_columns = [
-        col for col in column_list
-        if any(col.startswith(f"{target}_Nuclear") and col.endswith(f".{batch}") for target in cellpaint_targets for batch in imaging_batches)
+        col
+        for col in column_list
+        if any(
+            col.startswith(f"{target}_Nuclear") and col.endswith(f".{batch}")
+            for target in cellpaint_targets
+            for batch in imaging_batches
+        )
     ]
 
     # CellProfiler morphology metrics
     morphology_patterns = [
-        r'^AreaShape_',
-        r'^Granularity_',
-        r'^Texture_',
-        r'^Intensity_',
-        r'^Location_',
-        r'^RadialDistribution_'
+        r"^AreaShape_",
+        r"^Granularity_",
+        r"^Texture_",
+        r"^Intensity_",
+        r"^Location_",
+        r"^RadialDistribution_",
     ]
-    cell_profiler_columns = [col for col in column_list for pattern in morphology_patterns if re.match(pattern, col)]
+    cell_profiler_columns = [
+        col
+        for col in column_list
+        for pattern in morphology_patterns
+        if re.match(pattern, col)
+    ]
 
     # COUNT MATRICES (for .X and layers)
     # Feature Count Matrix - barcoding targets (format: {target.batch})
     # Includes cellular and nuclear counts
     count_columns = [
-        col for col in column_list
-        if any(col.startswith(f"{target}.") and col.endswith(f".{batch}") for target in barcoding_targets for batch in barcoding_batches)
+        col
+        for col in column_list
+        if any(
+            col.startswith(f"{target}.") and col.endswith(f".{batch}")
+            for target in barcoding_targets
+            for batch in barcoding_batches
+        )
     ]
 
     # Nuclear Feature Count Matrix - barcoding targets (format: {target_Nuclear.batch})
     # Includes only nuclear counts
     nuclear_count_columns = [
-        col for col in column_list
-        if any(col.startswith(f"{target}_Nuclear") and col.endswith(f".{batch}") for target in barcoding_targets for batch in barcoding_batches)
+        col
+        for col in column_list
+        if any(
+            col.startswith(f"{target}_Nuclear") and col.endswith(f".{batch}")
+            for target in barcoding_targets
+            for batch in barcoding_batches
+        )
     ]
 
     # Unassigned columns (format: {Unassigned_*.*})
-    unassigned_columns = [
-        col for col in column_list if col.startswith("Unassigned")
-    ]
+    unassigned_columns = [col for col in column_list if col.startswith("Unassigned")]
 
     # Make sure all columns have been categorized and have expected sizes
-    assert len(count_columns) == len(nuclear_count_columns), "Cellular and nuclear count columns do not match."
-    all_categorized_columns = (
-        obs_columns_fixed +
-        obsm_coordinate_columns +
-        cell_paint_columns +
-        cell_paint_nuclear_columns +
-        cell_profiler_columns +
-        count_columns +
-        nuclear_count_columns +
-        unassigned_columns
+    assert len(count_columns) == len(nuclear_count_columns), (
+        "Cellular and nuclear count columns do not match."
     )
-    assert len(column_list) == len(all_categorized_columns), "Column categorization incomplete."
+    all_categorized_columns = (
+        obs_columns_fixed
+        + obsm_coordinate_columns
+        + cell_paint_columns
+        + cell_paint_nuclear_columns
+        + cell_profiler_columns
+        + count_columns
+        + nuclear_count_columns
+        + unassigned_columns
+    )
+    assert len(column_list) == len(all_categorized_columns), (
+        "Column categorization incomplete."
+    )
 
-    return obs_columns_fixed, obsm_coordinate_columns, cell_paint_columns, cell_paint_nuclear_columns, cell_profiler_columns, count_columns, nuclear_count_columns, unassigned_columns
+    return (
+        obs_columns_fixed,
+        obsm_coordinate_columns,
+        cell_paint_columns,
+        cell_paint_nuclear_columns,
+        cell_profiler_columns,
+        count_columns,
+        nuclear_count_columns,
+        unassigned_columns,
+    )
 
 
 def main():
-
     # Read data from Aviti Teton output bundle
     # Expected folder structure (showing only relevant files):
     # ├── Cytoprofiling/
@@ -128,8 +173,11 @@ def main():
     logger.info("Reading input data...")
     input_dir = Path(par["input"])
     input_data = {
-        "count_matrix": input_dir / "Cytoprofiling" / "Instrument" / "RawCellStats.parquet",
-        "target_panel": input_dir / "Panel.json"
+        "count_matrix": input_dir
+        / "Cytoprofiling"
+        / "Instrument"
+        / "RawCellStats.parquet",
+        "target_panel": input_dir / "Panel.json",
     }
 
     assert all([file.exists() for file in input_data.values()]), (
@@ -149,7 +197,7 @@ def main():
         cell_profiler_columns,
         count_columns,
         nuclear_count_columns,
-        unassigned_columns
+        unassigned_columns,
     ) = categorize_columns(df_columns, target_panel)
 
     df = df.set_index(df["Cell"].astype(str), drop=False)
@@ -182,7 +230,7 @@ def main():
     # Spatial coordinates
     coordinate_sets = {
         par["obsm_coordinates"]: ["X", "Y"],
-        f"{par['obsm_coordinates']}_um": ["Xum", "Yum"]
+        f"{par['obsm_coordinates']}_um": ["Xum", "Yum"],
     }
 
     for obsm_key, coord_cols in coordinate_sets.items():
@@ -193,7 +241,9 @@ def main():
             logger.info(f"Added {obsm_key} coordinates ({coord_cols}) to obsm")
         else:
             missing_cols = [col for col in coord_cols if col not in coordinate_columns]
-            logger.warning(f"Skipping {obsm_key}: missing coordinate columns {missing_cols}")
+            logger.warning(
+                f"Skipping {obsm_key}: missing coordinate columns {missing_cols}"
+            )
 
     # Add (optional) .obsm fields
     if par["obsm_cell_paint"]:
@@ -202,7 +252,9 @@ def main():
         adata.uns[par["obsm_cell_paint"]] = cell_paint_columns
     if par["obsm_cell_paint_nuclear"]:
         logger.info(f"Adding {par['obsm_cell_paint_nuclear']} to obsm")
-        adata.obsm[par["obsm_cell_paint_nuclear"]] = df[cell_paint_nuclear_columns].copy()
+        adata.obsm[par["obsm_cell_paint_nuclear"]] = df[
+            cell_paint_nuclear_columns
+        ].copy()
         adata.uns[par["obsm_cell_paint_nuclear"]] = cell_paint_nuclear_columns
     if par["obsm_cell_profiler"]:
         logger.info(f"Adding {par['obsm_cell_profiler']} to obsm")
@@ -215,7 +267,9 @@ def main():
 
     # Add (optional) nuclear count layer
     if par["layer_nuclear_counts"]:
-        assert_matching_order(var_names, nuclear_count_columns, split_pattern="_Nuclear")
+        assert_matching_order(
+            var_names, nuclear_count_columns, split_pattern="_Nuclear"
+        )
         logger.info(f"Adding {par['layer_nuclear_counts']} to layers")
         nuclear_count_df = df[nuclear_count_columns].copy()
         nuclear_count_matrix_sparse = sp.csr_matrix(nuclear_count_df.values)

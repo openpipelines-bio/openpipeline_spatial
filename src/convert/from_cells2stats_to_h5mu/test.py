@@ -5,7 +5,7 @@ import mudata as mu
 ## VIASH START
 meta = {
     "executable": "./target/executable/convert/from_cells2stats_to_h5mu/from_cells2stats_to_h5mu",
-    "resources_dir": "resources_test/aviti/"
+    "resources_dir": "resources_test/aviti/",
 }
 ## VIASH END
 
@@ -35,7 +35,7 @@ def test_simple_execution(run_component, tmp_path):
         "Well",
         "Cell",
         "NuclearAreaUm",
-        "NuclearArea"
+        "NuclearArea",
     ]
     assert all([obs in expected_obs_keys for obs in adata.obs.columns])
     obs_counts = ["Area", "Cell", "NuclearArea"]
@@ -95,7 +95,7 @@ def test_extended_parameters(run_component, tmp_path):
         "cell_profiler",
         "coords",
         "coords_um",
-        "unassigned_targets"
+        "unassigned_targets",
     ]
 
     assert list(adata.uns.keys()) == expected_obsm_keys
