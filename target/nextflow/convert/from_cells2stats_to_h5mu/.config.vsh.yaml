@@ -1,4 +1,4 @@
-name: "from_xenium_to_spatialdata"
+name: "from_cells2stats_to_h5mu"
 namespace: "convert"
 version: "build_main"
 authors:
@@ -15,154 +15,131 @@ authors:
     - name: "Data Intuitive"
       href: "https://www.data-intuitive.com"
       role: "Data Scientist"
-- name: "Weiwei Schultz"
-  roles:
-  - "contributor"
-  info:
-    role: "Contributor"
-    organizations:
-    - name: "Janssen R&D US"
-      role: "Associate Director Data Sciences"
 argument_groups:
-- name: "Arguments"
+- name: "Inputs"
   arguments:
   - type: "file"
     name: "--input"
-    alternatives:
-    - "-i"
-    description: "Input folder. Must contain the output from a xenium run."
+    description: "Path to the cells2stats output bundle. \nExpected folder structure\
+      \ (showing required files only):\n├── Cytoprofiling/\n│   └── Instrument/\n│\
+      \       └── RawCellStats.parquet\n└── Panel.json\n"
     info: null
     example:
-    - "xenium_data"
+    - "path/to/aviti_output"
     must_exist: true
     create_parent: true
     required: true
     direction: "input"
     multiple: false
     multiple_sep: ";"
+- name: "Outputs"
+  arguments:
   - type: "file"
     name: "--output"
-    alternatives:
-    - "-o"
-    description: "Zarr directory where the SpatialData object will be stored"
+    description: "Output H5MU file path."
     info: null
     example:
-    - "xenium_data.zarr"
+    - "output.h5mu"
     must_exist: true
     create_parent: true
-    required: false
+    required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--cells_boundaries"
-    description: "Whether to read cell boundaries (polygons)."
+  - type: "string"
+    name: "--output_compression"
+    description: "Compression format to use for the output AnnData and/or Mudata objects.\n\
+      By default no compression is applied.\n"
+    info: null
+    example:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Options"
+  arguments:
+  - type: "string"
+    name: "--modality"
+    description: "The modality to which the processed data will be written to in the\
+      \ H5MU file."
     info: null
     default:
-    - true
+    - "rna"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--nucleus_boundaries"
-    description: "Whether to read nucleus boundaries (polygons)."
+  - type: "string"
+    name: "--obsm_coordinates"
+    description: "Key name to store the spatial coordinates (in pixels) in obsm.\n\
+      If present, spatial coordinates in micrometers will be stored under {obsm_coordinates}_um.\n\
+      The column names will be stored in uns.\n"
     info: null
     default:
-    - true
+    - "spatial"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean_true"
-    name: "--cells_as_circles"
-    description: "Whether to read cells also as circles (the center and the radius\
-      \ of each circle is computed from the corresponding labels cell)."
+  - type: "string"
+    name: "--layer_nuclear_counts"
+    description: "Name for nuclear counts layer. If specified, nuclear count data\
+      \ \nwill be stored as a separate layer in the AnnData object.\n"
     info: null
-    direction: "input"
-  - type: "boolean"
-    name: "--cells_labels"
-    description: "Whether to read cell labels (raster). The polygonal version of the\
-      \ cell labels are simplified for visualization purposes, and using the raster\
-      \ version is recommended for analysis."
-    info: null
-    default:
-    - true
+    example:
+    - "nuclear_counts"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--transcripts"
-    description: "Whether to read transcripts."
+  - type: "string"
+    name: "--obsm_cell_paint"
+    description: "Key name for storing Cell Paint target intensities in obsm. \nIf\
+      \ provided, Cell Paint target intensity data will be stored as a separate matrix\
+      \ in the obsm field.\nThe column names will be stored in uns.\n"
     info: null
-    default:
-    - true
+    example:
+    - "cell_paint"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--nucleus_labels"
-    description: "Whether to read nucleus labels (raster). The polygonal version of\
-      \ the nucleus labels are simplified for visualization purposes, and using the\
-      \ raster version is recommended for analysis."
+  - type: "string"
+    name: "--obsm_cell_paint_nuclear"
+    description: "Key name for storing Nuclear Cell Paint target intensities in obsm.\n\
+      If provided, Nuclear Cell Paint target intensity data will be stored as a separate\
+      \ matrix in the obsm field.\nThe column names will be stored in uns.\n"
     info: null
-    default:
-    - true
+    example:
+    - "cell_paint_nuclear"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--morphology_mip"
-    description: "Whether to read the morphology mip image (available in versions\
-      \ < 2.0.0)."
+  - type: "string"
+    name: "--obsm_cell_profiler"
+    description: "Key name for storing CellProfiler morphology metrics in obsm.\n\
+      If provided, CellProfiler morphology metrics will be stored as a separate matrix\
+      \ in the obsm field.\nThe column names will be stored in uns.\n"
     info: null
-    default:
-    - true
+    example:
+    - "cell_profiler"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--morphology_focus"
-    description: "Whether to read the morphology focus image."
+  - type: "string"
+    name: "--obsm_unassigned_targets"
+    description: "Key name for storing any unassigned target data in obsm.\nIf provided,\
+      \ unassigned target data will be stored as a separate matrix in the obsm field.\n\
+      The column names will be stored in uns.\n"
     info: null
-    default:
-    - true
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "boolean"
-    name: "--aligned_images"
-    description: "Whether to also parse, when available, additional H&E or IF aligned\
-      \ images. For more control over the aligned images being read, in particular,\
-      \ to specify the axes of the aligned images, please set this parameter to False\
-      \ and use the xenium_aligned_image function directly."
-    info: null
-    default:
-    - true
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "boolean"
-    name: "--cells_table"
-    description: "Whether to read the cell annotations in the AnnData table."
-    info: null
-    default:
-    - true
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "integer"
-    name: "--n_jobs"
-    info: null
-    default:
-    - 1
+    example:
+    - "cell_profiler"
     required: false
     direction: "input"
     multiple: false
@@ -176,20 +153,21 @@ resources:
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Converts the output from 10X Genomics Xenium dataset into a SpatialData\
-  \ objcet.\nBy default, the following files will be converted:\n  - `experiment.xenium`:\
-  \ File containing specifications.\n  - `nucleus_boundaries.parquet`: Polygons of\
-  \ nucleus boundaries.\n  - `cell_boundaries.parquet`: Polygons of cell boundaries.\n\
-  \  - `transcripts.parquet`: File containing transcripts.\n  - `cell_feature_matrix.h5`:\
-  \ File containing cell feature matrix.\n  - `cells.parquet`: File containing cell\
-  \ metadata.\n  - `morphology_mip.ome.tif`: File containing morphology mip.\n  -\
-  \ `morphology_focus.ome.tif`: File containing morphology focus.\n  \n"
+description: "Convert spatial data resulting from Aviti Teton sequencers that have\
+  \ been processed by the Element Biosciences cells2stats workflow to H5MU format.\n\
+  \nThis component processes cells2stats count matrices to create a standardized H5MU\
+  \ file for downstream analysis.\n\nThe component reads:\n- Parquet file containing\
+  \ the count matrix and metadata\n- Panel.json with target and batch information\n\
+  \nAnd outputs an H5MU file with:\n- Count data as the main .X matrix\n- Spatial\
+  \ coordinates in obsm\n- Cell Paint intensities in obsm (optional)\n- Nuclear count\
+  \ data as a layer (optional)\n- CellProfiler morphology metrics in obsm (optional)\n\
+  - Unassigned targets in obsm (optional)\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
   is_executable: true
 - type: "file"
-  path: "xenium_tiny"
+  path: "aviti"
 info: null
 status: "enabled"
 scope:
@@ -216,7 +194,7 @@ runners:
   directives:
     label:
     - "lowmem"
-    - "singlecpu"
+    - "lowcpu"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -280,7 +258,7 @@ runners:
 engines:
 - type: "docker"
   id: "docker"
-  image: "python:3.12-slim"
+  image: "python:3.13-slim"
   namespace_separator: "/"
   setup:
   - type: "apt"
@@ -290,29 +268,27 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "spatialdata~=0.4.1rc"
-    - "spatialdata-io~=0.2.0"
+    - "anndata~=0.11.1"
+    - "mudata~=0.3.1"
+    - "pyarrow"
+    script:
+    - "exec(\"try:\\n  import awkward\\nexcept ModuleNotFoundError:\\n  exit(0)\\\
+      nelse:  exit(1)\")"
     upgrade: true
   test_setup:
-  - type: "apt"
-    packages:
-    - "git"
-    interactive: false
   - type: "python"
     user: false
     packages:
     - "viashpy==0.9.0"
-    github:
-    - "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
     upgrade: true
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/convert/from_xenium_to_spatialdata/config.vsh.yaml"
-  runner: "executable"
+  config: "src/convert/from_cells2stats_to_h5mu/config.vsh.yaml"
+  runner: "nextflow"
   engine: "docker"
-  output: "target/executable/convert/from_xenium_to_spatialdata"
-  executable: "target/executable/convert/from_xenium_to_spatialdata/from_xenium_to_spatialdata"
+  output: "target/nextflow/convert/from_cells2stats_to_h5mu"
+  executable: "target/nextflow/convert/from_cells2stats_to_h5mu/main.nf"
   viash_version: "0.9.4"
   git_commit: "595b7db03ab2dd1bd0de16f217e3e634ef016c59"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"

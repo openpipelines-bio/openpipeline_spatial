@@ -3331,7 +3331,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "a14a97d04951b3cd02cf6a5dff6ee4c539b3aae8",
+    "git_commit" : "595b7db03ab2dd1bd0de16f217e3e634ef016c59",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

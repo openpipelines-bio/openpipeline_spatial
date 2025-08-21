@@ -12,6 +12,8 @@
 
 * `convert/from_xenium_to_spatialexperiment`, `convert/from_cosmx_to_spatialexperiment`: Added converter components for Xenium or CosMx data to SpatialExperiment objects (PR #9).
 
+* `convert/from_cells2stats_to_h5mu`: Added a component to convert data resulting from Aviti Teton sequencers processed by Cells2Stats into an H5MU file (PR #15).
+
 * `workflows/qc/qc`: Added a pipeline for calculating qc metrics of spatial omics samples (PR #5).
 
 * `workflows/multiomics/spatial_process_samples`: Added a pipeline to pre-process multiple spatial omics samples (PR #7).
