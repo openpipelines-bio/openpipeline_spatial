@@ -35,7 +35,7 @@ argument_groups:
           ├── Cytoprofiling/
           │   └── Instrument/
           │       └── RawCellStats.parquet
-          └── Panel.json containing:
+          └── Panel.json
         example: path/to/aviti_output/
 
   - name: Outputs
@@ -70,26 +70,30 @@ argument_groups:
       - name: --obsm_cell_paint
         type: string
         description: |
-          Key name for storing Cell Paint target intensities in obsm. The column names will be stored in uns. 
+          Key name for storing Cell Paint target intensities in obsm. 
           If provided, Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
+          The column names will be stored in uns.
         example: cell_paint
       - name: --obsm_cell_paint_nuclear
         type: string
         description: |
-          Key name for storing Nuclear Cell Paint target intensities in obsm. The column names will be stored in uns.
+          Key name for storing Nuclear Cell Paint target intensities in obsm.
           If provided, Nuclear Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
+          The column names will be stored in uns.
         example: cell_paint_nuclear
       - name: --obsm_cell_profiler
         type: string
         description: |
-          Key name for storing CellProfiler morphology metrics in obsm. The column names will be stored in uns.
+          Key name for storing CellProfiler morphology metrics in obsm.
           If provided, CellProfiler morphology metrics will be stored as a separate matrix in the obsm field.
+          The column names will be stored in uns.
         example: cell_profiler
       - name: --obsm_unassigned_targets
         type: string
         description: |
-          Key name for storing any unassigned target data in obsm. The column names will be stored in uns.
+          Key name for storing any unassigned target data in obsm.
           If provided, unassigned target data will be stored as a separate matrix in the obsm field.
+          The column names will be stored in uns.
         example: cell_profiler
 
 resources:
@@ -104,7 +108,7 @@ test_resources:
 
 engines:
   - type: docker
-    image: python:3.12-slim
+    image: python:3.13-slim
     setup:
       - type: apt
         packages: 
