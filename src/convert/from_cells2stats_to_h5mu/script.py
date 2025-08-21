@@ -10,6 +10,7 @@ import json
 ## VIASH START
 par = {
     "input": "./resources_test/aviti/aviti_teton_tiny_2",
+    "modality": "rna",
     "output": "aviti_tiny_test.h5mu",
     "output_compression": "gzip",
     "layer_nuclear_counts": "nuclear_counts",
@@ -188,6 +189,7 @@ def main():
         if all(col in coordinate_columns for col in coord_cols):
             coordinates = df[coord_cols].copy()
             adata.obsm[obsm_key] = coordinates.values
+            adata.uns[obsm_key] = coord_cols
             logger.info(f"Added {obsm_key} coordinates ({coord_cols}) to obsm")
         else:
             missing_cols = [col for col in coord_cols if col not in coordinate_columns]
@@ -197,15 +199,19 @@ def main():
     if par["obsm_cell_paint"]:
         logger.info(f"Adding {par['obsm_cell_paint']} to obsm")
         adata.obsm[par["obsm_cell_paint"]] = df[cell_paint_columns].copy()
+        adata.uns[par["obsm_cell_paint"]] = cell_paint_columns
     if par["obsm_cell_paint_nuclear"]:
         logger.info(f"Adding {par['obsm_cell_paint_nuclear']} to obsm")
         adata.obsm[par["obsm_cell_paint_nuclear"]] = df[cell_paint_nuclear_columns].copy()
+        adata.uns[par["obsm_cell_paint_nuclear"]] = cell_paint_nuclear_columns
     if par["obsm_cell_profiler"]:
         logger.info(f"Adding {par['obsm_cell_profiler']} to obsm")
         adata.obsm[par["obsm_cell_profiler"]] = df[cell_profiler_columns].copy()
+        adata.uns[par["obsm_cell_profiler"]] = cell_profiler_columns
     if par["obsm_unassigned_targets"]:
         logger.info(f"Adding {par['obsm_unassigned_targets']} to obsm")
         adata.obsm["unassigned_targets"] = df[unassigned_columns].copy()
+        adata.uns["unassigned_targets"] = unassigned_columns
 
     # Add (optional) nuclear count layer
     if par["layer_nuclear_counts"]:
@@ -217,7 +223,7 @@ def main():
 
     # Write output MuData
     logger.info("Writing MuData object...")
-    mdata = mu.MuData({"rna": adata})
+    mdata = mu.MuData({par["modality"]: adata})
     mdata.write_h5mu(par["output"], compression=par["output_compression"])
 
 

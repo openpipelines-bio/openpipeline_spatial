@@ -9,17 +9,17 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 ID=aviti
-OUT=resources_test/$ID/
-TINY_OUT=$OUT/aviti_teton_tiny/
+DIR=resources_test/$ID/
+OUT=$DIR/teton_cells2stats_tiny/
 
 # Create directories
+[ -d "$DIR" ] || mkdir -p "$DIR"
 [ -d "$OUT" ] || mkdir -p "$OUT"
-[ -d "$TINY_OUT" ] || mkdir -p "$TINY_OUT"
 
 echo "> Downloading Aviti Teton data"
-wget "https://go.elementbiosciences.com/l/938263/28kddnj7/d59cp" -O "${OUT}/PLUT-0105.tar.gz"
-tar -xzf "${OUT}/PLUT-0105.tar.gz" -C "$OUT" --strip-components=1
-rm "${OUT}/PLUT-0105.tar.gz"
+wget "https://go.elementbiosciences.com/l/938263/28kddnj7/d59cp" -O "${DIR}/PLUT-0105.tar.gz"
+tar -xzf "${DIR}/PLUT-0105.tar.gz" -C "$DIR"
+rm "${DIR}/PLUT-0105.tar.gz"
 
 echo "> Processing and subsetting Aviti Teton data"
 python <<HEREDOC
@@ -29,8 +29,8 @@ import pandas as pd
 import glob
 import json
 
-src_dir = "${OUT}/PLUT-0105"
-dest_dir = "${TINY_OUT}/"
+src_dir = "${DIR}/PLUT-0105"
+dest_dir = "${OUT}"
 subset_image_dirs = False
 wells_to_keep = ["A1"]
 max_cells_per_well = 1000
@@ -97,13 +97,20 @@ print("Processing complete!")
 HEREDOC
 
 echo "> Removing original aviti_teton folder"
-rm -rf "$OUT/PLUT-0105"
+rm -rf "$DIR/PLUT-0105"
 
-echo "> Aviti Teton tiny dataset created successfully at $TINY_OUT"
+echo "> Aviti Teton tiny dataset created successfully at $OUT"
+
+viash run src/convert/from_cells2stats_to_h5mu/config.vsh.yaml -- \
+    --input "${OUT}" \
+    --output "$DIR/aviti_teton_tiny.h5mu" \
+    --output_compression "gzip"
+
+echo "> Conversion to H5MU complete"
 
 aws s3 sync \
     --profile di \
-    "$TINY_OUT" \
+    "$DIR" \
     s3://openpipelines-bio/openpipeline_spatial/resources_test/aviti \
     --delete \
     --dryrun

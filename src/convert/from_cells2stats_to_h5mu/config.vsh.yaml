@@ -1,14 +1,13 @@
-name: from_aviti_to_h5mu
+name: from_cells2stats_to_h5mu
 namespace: convert
 scope: public
 description: |
   Convert spatial data resulting from Aviti Teton sequencers that have been processed by the Element Biosciences cells2stats workflow to H5MU format.
   
-  This component processes AVITI output data including count matrices, run statistics,
-  and panel information to create a standardized H5MU file for downstream analysis.
+  This component processes cells2stats count matrices to create a standardized H5MU file for downstream analysis.
   
   The component reads:
-  - Count matrix and metadata Parquet files
+  - Parquet file containing the count matrix and metadata
   - Panel.json with target and batch information
   
   And outputs an H5MU file with:
@@ -51,12 +50,16 @@ argument_groups:
 
   - name: Options
     arguments:
+      - name: --modality
+        type: string
+        default: rna
+        description: The modality to which the processed data will be written to in the H5MU file.
       - name: --obsm_coordinates
         type: string
-        required: true
         description: |
-          Key name to store the spatial coordinates (in pixels) in obsm. 
+          Key name to store the spatial coordinates (in pixels) in obsm.
           If present, spatial coordinates in micrometers will be stored under {obsm_coordinates}_um.
+          The column names will be stored in uns.
         default: spatial
       - name: --layer_nuclear_counts
         type: string
@@ -67,39 +70,37 @@ argument_groups:
       - name: --obsm_cell_paint
         type: string
         description: |
-          Key name for storing Cell Paint target intensities in obsm. 
+          Key name for storing Cell Paint target intensities in obsm. The column names will be stored in uns. 
           If provided, Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
         example: cell_paint
-
       - name: --obsm_cell_paint_nuclear
         type: string
         description: |
-          Key name for storing Nuclear Cell Paint target intensities in obsm. 
+          Key name for storing Nuclear Cell Paint target intensities in obsm. The column names will be stored in uns.
           If provided, Nuclear Cell Paint target intensity data will be stored as a separate matrix in the obsm field.
         example: cell_paint_nuclear
       - name: --obsm_cell_profiler
         type: string
         description: |
-          Key name for storing CellProfiler morphology metrics in obsm. 
+          Key name for storing CellProfiler morphology metrics in obsm. The column names will be stored in uns.
           If provided, CellProfiler morphology metrics will be stored as a separate matrix in the obsm field.
         example: cell_profiler
       - name: --obsm_unassigned_targets
         type: string
         description: |
-          Key name for storing any unassigned target data in obsm. 
+          Key name for storing any unassigned target data in obsm. The column names will be stored in uns.
           If provided, unassigned target data will be stored as a separate matrix in the obsm field.
         example: cell_profiler
 
 resources:
   - type: python_script
     path: script.py
+  - path: /src/utils/setup_logger.py
 
 test_resources:
-  - type: file
+  - type: python_script
     path: test.py
-  - type: file
-    path: test_data
-    dest: resources_test/aviti/
+  - path: /resources_test/aviti/
 
 engines:
   - type: docker
@@ -120,4 +121,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [midmem, midcpu]
+      label: [lowmem, lowcpu]
