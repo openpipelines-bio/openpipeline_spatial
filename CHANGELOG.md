@@ -17,3 +17,5 @@
 * `workflows/qc/qc`: Added a pipeline for calculating qc metrics of spatial omics samples (PR #5).
 
 * `workflows/multiomics/spatial_process_samples`: Added a pipeline to pre-process multiple spatial omics samples (PR #7).
+
+* `convert/from_h5mu_to_spatialexperiment`: Added converter component for H5MU data to SpatialExperiment objects (PR #15).
