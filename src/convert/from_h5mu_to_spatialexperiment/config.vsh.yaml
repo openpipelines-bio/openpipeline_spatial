@@ -1,0 +1,75 @@
+name: "from_h5mu_to_spatialexperiment"
+namespace: "convert"
+scope: "public"
+description: |
+  Converts an h5mu file into a SpatialExperiment object.
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input h5mu file
+    direction: input
+    required: true
+    example: input.h5mu
+  - name: "--modality"
+    type: string
+    required: true
+    default: "rna"
+    description: Name of the modality to be converted.
+  - name: "--obsm_spatial_coordinates"
+    type: string
+    required: false
+    description: |
+      Key in the .obsm field that contains the spatial coordinates. 
+      Will be mapped to spatialCoords in the SpatialExperiment object.
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: Output SpatialExperiment file
+    direction: output
+    required: true
+    example: output.rds
+resources:
+  - type: r_script
+    path: script.R
+test_resources:
+  - type: r_script
+    path: test.R
+  - path: /resources_test/aviti/aviti_teton_tiny.h5mu
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
+  - path: /resources_test/xenium/xenium_tiny.h5mu
+
+engines:
+  - type: docker
+    image: rocker/r2u:22.04
+    setup:
+      - type: apt
+        packages: 
+          - libhdf5-dev
+          - libgeos-dev
+      - type: r
+        cran: [ hdf5r, SpatialExperiment ]
+        github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
+    test_setup:
+      - type: docker
+        env: 
+          - RETICULATE_PYTHON=/usr/bin/python
+      - type: apt
+        packages:
+          - python3
+          - python3-pip
+          - python3-dev
+          - python-is-python3
+      - type: r
+        cran: [ reticulate, testthat ]
+      - type: python
+        __merge__: /src/base/requirements/anndata_mudata.yaml
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]

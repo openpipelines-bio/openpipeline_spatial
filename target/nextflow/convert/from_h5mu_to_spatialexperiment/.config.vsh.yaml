@@ -1,10 +1,10 @@
-name: "from_xenium_to_h5mu"
+name: "from_h5mu_to_spatialexperiment"
 namespace: "convert"
 version: "build_main"
 authors:
 - name: "Dorien Roosen"
   roles:
-  - "maintainer"
+  - "author"
   info:
     role: "Core Team Member"
     links:
@@ -22,13 +22,32 @@ argument_groups:
     name: "--input"
     alternatives:
     - "-i"
-    description: "Input folder. Must contain the output from a Xenium run."
+    description: "Input h5mu file"
     info: null
     example:
-    - "xenium_output_bundle"
+    - "input.h5mu"
     must_exist: true
     create_parent: true
     required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Name of the modality to be converted."
+    info: null
+    default:
+    - "rna"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obsm_spatial_coordinates"
+    description: "Key in the .obsm field that contains the spatial coordinates. \n\
+      Will be mapped to spatialCoords in the SpatialExperiment object.\n"
+    info: null
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -36,80 +55,34 @@ argument_groups:
     name: "--output"
     alternatives:
     - "-o"
-    description: "Output .h5mu file."
+    description: "Output SpatialExperiment file"
     info: null
     example:
-    - "xenium.h5mu"
+    - "output.rds"
     must_exist: true
     create_parent: true
-    required: false
+    required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--obsm_coordinates"
-    description: "Name of the .obsm slot under which to store the cell centroid coordinates."
-    info: null
-    default:
-    - "spatial"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--uns_experiment"
-    description: "Name of the .uns slot under which to store the Xenium experiment\
-      \ specifications."
-    info: null
-    default:
-    - "xenium_experiment"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--uns_metrics"
-    description: "Name of the .uns slot under which to store the summary QC metrics."
-    info: null
-    default:
-    - "xenium_metrics"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--output_compression"
-    description: "Compression format to use for the output AnnData and/or Mudata objects.\n\
-      By default no compression is applied.\n"
-    info: null
-    example:
-    - "gzip"
-    required: false
-    choices:
-    - "gzip"
-    - "lzf"
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
 resources:
-- type: "python_script"
-  path: "script.py"
+- type: "r_script"
+  path: "script.R"
   is_executable: true
-- type: "file"
-  path: "setup_logger.py"
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Converts the output from Xenium to a single .h5mu file, where the count\
-  \ matrix is written to the `rna` modality.\nThe following files are expected to\
-  \ be present in the Xenium output bundle:\n├── cell_feature_matrix.h5\n├── cells.parquet\n\
-  ├── experiment.xenium\n└── metrics_summary.csv\n"
+description: "Converts an h5mu file into a SpatialExperiment object.\n"
 test_resources:
-- type: "python_script"
-  path: "test.py"
+- type: "r_script"
+  path: "test.R"
   is_executable: true
 - type: "file"
-  path: "xenium_tiny"
+  path: "aviti_teton_tiny.h5mu"
+- type: "file"
+  path: "Lung5_Rep2_tiny.h5mu"
+- type: "file"
+  path: "xenium_tiny.h5mu"
 info: null
 status: "enabled"
 scope:
@@ -196,38 +169,56 @@ runners:
 engines:
 - type: "docker"
   id: "docker"
-  image: "python:3.12-slim"
+  image: "rocker/r2u:22.04"
   namespace_separator: "/"
   setup:
   - type: "apt"
     packages:
-    - "procps"
+    - "libhdf5-dev"
+    - "libgeos-dev"
     interactive: false
+  - type: "r"
+    cran:
+    - "hdf5r"
+    - "SpatialExperiment"
+    github:
+    - "scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a"
+    bioc_force_install: false
+    warnings_as_errors: true
+  test_setup:
+  - type: "docker"
+    env:
+    - "RETICULATE_PYTHON=/usr/bin/python"
+  - type: "apt"
+    packages:
+    - "python3"
+    - "python3-pip"
+    - "python3-dev"
+    - "python-is-python3"
+    interactive: false
+  - type: "r"
+    cran:
+    - "reticulate"
+    - "testthat"
+    bioc_force_install: false
+    warnings_as_errors: true
   - type: "python"
     user: false
     packages:
     - "anndata~=0.11.1"
     - "mudata~=0.3.1"
-    - "scanpy~=1.10.4"
-    - "pyarrow"
     script:
     - "exec(\"try:\\n  import awkward\\nexcept ModuleNotFoundError:\\n  exit(0)\\\
       nelse:  exit(1)\")"
     upgrade: true
-  test_setup:
-  - type: "python"
-    user: false
-    packages:
-    - "viashpy==0.9.0"
-    upgrade: true
   entrypoint: []
   cmd: null
 build_info:
-  config: "src/convert/from_xenium_to_h5mu/config.vsh.yaml"
+  config: "src/convert/from_h5mu_to_spatialexperiment/config.vsh.yaml"
   runner: "nextflow"
   engine: "docker"
-  output: "target/nextflow/convert/from_xenium_to_h5mu"
-  executable: "target/nextflow/convert/from_xenium_to_h5mu/main.nf"
+  output: "target/nextflow/convert/from_h5mu_to_spatialexperiment"
+  executable: "target/nextflow/convert/from_h5mu_to_spatialexperiment/main.nf"
   viash_version: "0.9.4"
   git_commit: "5fc3bcd8432928c148e8f27d6ae49214a91add67"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
