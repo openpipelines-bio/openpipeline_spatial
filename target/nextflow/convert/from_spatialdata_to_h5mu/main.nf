@@ -3181,12 +3181,6 @@ meta = [
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
       "tag" : "2.1.2"
-    },
-    {
-      "type" : "vsh",
-      "name" : "openpipeline_incubator",
-      "repo" : "openpipeline_incubator",
-      "tag" : "build/main"
     }
   ],
   "links" : {
@@ -3330,7 +3324,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spatialdata_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "595b7db03ab2dd1bd0de16f217e3e634ef016c59",
+    "git_commit" : "1caa96d9de9a6decd32f44c56ea33f7b9aff9791",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3351,12 +3345,6 @@ meta = [
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
         "tag" : "2.1.2"
-      },
-      {
-        "type" : "vsh",
-        "name" : "openpipeline_incubator",
-        "repo" : "openpipeline_incubator",
-        "tag" : "build/main"
       }
     ],
     "viash_version" : "0.9.4",

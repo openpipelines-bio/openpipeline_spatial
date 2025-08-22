@@ -11,10 +11,6 @@ repositories:
     repo: openpipelines-bio/openpipeline
     type: github
     tag: 2.1.2
-  - name: openpipeline_incubator
-    repo: openpipeline_incubator
-    type: vsh
-    tag: build/main
 info:
   test_resources:
     - type: s3
