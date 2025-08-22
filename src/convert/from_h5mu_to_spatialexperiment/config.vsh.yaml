@@ -38,6 +38,9 @@ resources:
 test_resources:
   - type: r_script
     path: test.R
+  - path: resources_test/aviti/aviti_teton_tiny.h5mu
+  - path: resources_test/cosmx/Lung5_Rep2_tiny.h5mu
+  - path: resources_test/xenium/xenium_tiny.h5mu
 
 engines:
   - type: docker
@@ -49,7 +52,7 @@ engines:
           - libgeos-dev
       - type: r
         cran: [ hdf5r, SpatialExperiment ]
-        github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
+        github: scverse/anndataR@v0.99.0
     test_setup:
       - type: docker
         env: 
