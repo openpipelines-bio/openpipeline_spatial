@@ -8,6 +8,12 @@ library(reticulate)
 mu <- reticulate::import("mudata")
 ad <- reticulate::import("anndata")
 
+## VIASH START
+meta <- list(
+  resources_dir = "resources_test"
+)
+## VIASH END
+
 # Helper function to create mock H5MU test data
 create_mock_h5mu <- function(path) {
   n_obs <- 5
@@ -154,12 +160,12 @@ test_simple_execution <- function() {
   )
 
   cat("> Checking execution status\n")
-  expect_equal(out$status, 0)
-  expect_true(file.exists(out_rds))
+  testthat::expect_equal(out$status, 0)
+  testthat::expect_true(file.exists(out_rds))
 
   cat("> Reading output file\n")
   spe <- readRDS(file = out_rds)
-  expect_s4_class(spe, "SpatialExperiment")
+  testthat::expect_s4_class(spe, "SpatialExperiment")
 
   cat("> Opening input file for comparison\n")
   mod1 <- mu$read_h5ad(test_h5mu, mod = "mod1")
@@ -168,65 +174,71 @@ test_simple_execution <- function() {
   dim_spe <- dim(spe)
   dim_h5mu <- dim(mod1$X)
 
-  expect_equal(dim_spe[1], dim_h5mu[2])
-  expect_equal(dim_spe[2], dim_h5mu[1])
-  expect_equal(nrow(spe), 4)
-  expect_equal(ncol(spe), 5)
+  testthat::expect_equal(dim_spe[1], dim_h5mu[2])
+  testthat::expect_equal(dim_spe[2], dim_h5mu[1])
+  testthat::expect_equal(nrow(spe), 4)
+  testthat::expect_equal(ncol(spe), 5)
 
   cat("> Testing colData (obs) transfer and data types\n")
-  col_data <- colData(spe)
+  col_data <- SummarizedExperiment::colData(spe)
   coldata_cols <- colnames(col_data)
   obs_cols <- colnames(mod1$obs)
-  expect_true(all(obs_cols %in% coldata_cols))
+  testthat::expect_true(all(obs_cols %in% coldata_cols))
 
   # Test data types in colData
-  expect_true(is.factor(col_data$Obs1))
-  expect_true(is.numeric(col_data$Obs2))
-  expect_true(is.logical(col_data$Obs3))
+  testthat::expect_true(is.factor(col_data$Obs1))
+  testthat::expect_true(is.numeric(col_data$Obs2))
+  testthat::expect_true(is.logical(col_data$Obs3))
 
   cat("> Testing rowData (var) transfer and data types\n")
-  row_data <- rowData(spe)
+  row_data <- SummarizedExperiment::rowData(spe)
   row_names <- colnames(row_data)
   var_cols <- colnames(mod1$var)
-  expect_true(all(var_cols %in% row_names))
+  testthat::expect_true(all(var_cols %in% row_names))
 
   # Test data types in rowData
-  expect_true(is.character(row_data$Feat1))
-  expect_true(is.logical(row_data$Feat2))
-  expect_true(is.numeric(row_data$Feat3))
+  testthat::expect_true(is.character(row_data$Feat1))
+  testthat::expect_true(is.logical(row_data$Feat2))
+  testthat::expect_true(is.numeric(row_data$Feat3))
 
   cat("> Testing spatialCoords\n")
-  spatial_coords <- spatialCoords(spe)
-  expect_false(is.null(spatial_coords))
-  expect_equal(ncol(spatial_coords), 2)
-  expect_equal(nrow(spatial_coords), ncol(spe))
-  expect_identical(colnames(spatial_coords), c("x", "y"))
+  spatial_coords <- SpatialExperiment::spatialCoords(spe)
+  testthat::expect_false(is.null(spatial_coords))
+  testthat::expect_equal(ncol(spatial_coords), 2)
+  testthat::expect_equal(nrow(spatial_coords), ncol(spe))
+  testthat::expect_identical(colnames(spatial_coords), c("x", "y"))
 
   # Test spatial coordinate data types and values
-  expect_true(is.numeric(spatial_coords[, "x"]))
-  expect_true(is.numeric(spatial_coords[, "y"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "x"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "y"]))
 
   # Compare with original spatial coordinates
   original_spatial <- mod1$obsm[["Obsm1"]]
-  expect_equal(as.numeric(original_spatial), as.numeric(spatial_coords))
+  testthat::expect_equal(
+    as.numeric(original_spatial),
+    as.numeric(spatial_coords)
+  )
 
   cat("> Testing assay data\n")
-  counts_matrix <- assays(spe)[["counts"]]
-  expect_true(is(counts_matrix, "Matrix") || is.matrix(counts_matrix))
-  expect_true(all(counts_matrix >= 0))
-  expect_equal(dim(counts_matrix), c(4, 5))
+  counts_matrix <- SummarizedExperiment::assays(spe)[["counts"]]
+  testthat::expect_true(is(counts_matrix, "Matrix") || is.matrix(counts_matrix))
+  testthat::expect_true(all(counts_matrix >= 0))
+  testthat::expect_equal(dim(counts_matrix), c(4, 5))
 
   cat("> Testing reducedDims\n")
   # PCA should not be in reducedDims since we only specified spatial
-  red_dims <- reducedDims(spe)
-  expect_false(is.null(red_dims))
-  expect_equal(names(red_dims), c("Obsm2"))
-  expect_equal(dim(red_dims$Obsm2), c(5, 3))
-  expect_true(is.numeric(red_dims$Obsm2))
+  red_dims <- SingleCellExperiment::reducedDims(spe)
+  testthat::expect_false(is.null(red_dims))
+  testthat::expect_equal(names(red_dims), c("Obsm2"))
+  testthat::expect_equal(dim(red_dims$Obsm2), c(5, 3))
+  testthat::expect_true(is.numeric(red_dims$Obsm2))
 
   # Compare with original spatial coordinates
   original_dimred <- mod1$obsm[["Obsm2"]]
-  expect_equal(as.numeric(red_dims$Obsm2), as.numeric(original_dimred))
+  testthat::expect_equal(
+    as.numeric(red_dims$Obsm2),
+    as.numeric(original_dimred)
+  )
 
   # Clean up
   unlink(c(test_h5mu, out_rds))
@@ -255,12 +267,12 @@ test_xenium_execution <- function() {
   )
 
   cat("> Checking execution status\n")
-  expect_equal(out$status, 0)
-  expect_true(file.exists(out_rds))
+  testthat::expect_equal(out$status, 0)
+  testthat::expect_true(file.exists(out_rds))
 
   cat("> Reading output file\n")
   xenium_spe <- readRDS(file = out_rds)
-  expect_s4_class(xenium_spe, "SpatialExperiment")
+  testthat::expect_s4_class(xenium_spe, "SpatialExperiment")
 
   cat("> Opening input file for comparison\n")
   rna_mod <- mu$read_h5ad(xenium_h5mu, mod = "rna")
@@ -269,35 +281,38 @@ test_xenium_execution <- function() {
   dim_spe <- dim(xenium_spe)
   dim_h5mu <- dim(rna_mod$X)
 
-  expect_equal(dim_spe[1], dim_h5mu[2])
-  expect_equal(dim_spe[2], dim_h5mu[1])
+  testthat::expect_equal(dim_spe[1], dim_h5mu[2])
+  testthat::expect_equal(dim_spe[2], dim_h5mu[1])
 
   cat("> Testing colData (obs) transfer and data types\n")
-  col_data <- colData(xenium_spe)
+  col_data <- SummarizedExperiment::colData(xenium_spe)
   coldata_cols <- colnames(col_data)
   obs_cols <- colnames(rna_mod$obs)
-  expect_true(all(obs_cols %in% coldata_cols))
+  testthat::expect_true(all(obs_cols %in% coldata_cols))
 
   cat("> Testing rowData (var) transfer and data types\n")
-  row_data <- rowData(xenium_spe)
+  row_data <- SummarizedExperiment::rowData(xenium_spe)
   row_names <- colnames(row_data)
   var_cols <- colnames(rna_mod$var)
-  expect_true(all(var_cols %in% row_names))
+  testthat::expect_true(all(var_cols %in% row_names))
 
   cat("> Testing spatialCoords\n")
-  spatial_coords <- spatialCoords(xenium_spe)
-  expect_false(is.null(spatial_coords))
-  expect_equal(ncol(spatial_coords), 2)
-  expect_equal(nrow(spatial_coords), ncol(xenium_spe))
-  expect_identical(colnames(spatial_coords), c("x", "y"))
+  spatial_coords <- SpatialExperiment::spatialCoords(xenium_spe)
+  testthat::expect_false(is.null(spatial_coords))
+  testthat::expect_equal(ncol(spatial_coords), 2)
+  testthat::expect_equal(nrow(spatial_coords), ncol(xenium_spe))
+  testthat::expect_identical(colnames(spatial_coords), c("x", "y"))
 
   # Test spatial coordinate data types and values
-  expect_true(is.numeric(spatial_coords[, "x"]))
-  expect_true(is.numeric(spatial_coords[, "y"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "x"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "y"]))
 
   # Compare with original spatial coordinates
   original_spatial <- rna_mod$obsm[["spatial"]]
-  expect_equal(as.numeric(original_spatial), as.numeric(spatial_coords))
+  testthat::expect_equal(
+    as.numeric(original_spatial),
+    as.numeric(spatial_coords)
+  )
 
   # Clean up
   unlink(c(xenium_h5mu, out_rds))
@@ -326,12 +341,12 @@ test_aviti_execution <- function() {
   )
 
   cat("> Checking execution status\n")
-  expect_equal(out$status, 0)
-  expect_true(file.exists(out_rds))
+  testthat::expect_equal(out$status, 0)
+  testthat::expect_true(file.exists(out_rds))
 
   cat("> Reading output file\n")
   aviti_spe <- readRDS(file = out_rds)
-  expect_s4_class(aviti_spe, "SpatialExperiment")
+  testthat::expect_s4_class(aviti_spe, "SpatialExperiment")
 
   cat("> Opening input file for comparison\n")
   rna_mod <- mu$read_h5ad(aviti_h5mu, mod = "rna")
@@ -340,35 +355,38 @@ test_aviti_execution <- function() {
   dim_spe <- dim(aviti_spe)
   dim_h5mu <- dim(rna_mod$X)
 
-  expect_equal(dim_spe[1], dim_h5mu[2])
-  expect_equal(dim_spe[2], dim_h5mu[1])
+  testthat::expect_equal(dim_spe[1], dim_h5mu[2])
+  testthat::expect_equal(dim_spe[2], dim_h5mu[1])
 
   cat("> Testing colData (obs) transfer and data types\n")
-  col_data <- colData(aviti_spe)
+  col_data <- SummarizedExperiment::colData(aviti_spe)
   coldata_cols <- colnames(col_data)
   obs_cols <- colnames(rna_mod$obs)
-  expect_true(all(obs_cols %in% coldata_cols))
+  testthat::expect_true(all(obs_cols %in% coldata_cols))
 
   cat("> Testing rowData (var) transfer and data types\n")
-  row_data <- rowData(aviti_spe)
+  row_data <- SummarizedExperiment::rowData(aviti_spe)
   row_names <- colnames(row_data)
   var_cols <- colnames(rna_mod$var)
-  expect_true(all(var_cols %in% row_names))
+  testthat::expect_true(all(var_cols %in% row_names))
 
   cat("> Testing spatialCoords\n")
-  spatial_coords <- spatialCoords(aviti_spe)
-  expect_false(is.null(spatial_coords))
-  expect_equal(ncol(spatial_coords), 2)
-  expect_equal(nrow(spatial_coords), ncol(aviti_spe))
-  expect_identical(colnames(spatial_coords), c("x", "y"))
+  spatial_coords <- SpatialExperiment::spatialCoords(aviti_spe)
+  testthat::expect_false(is.null(spatial_coords))
+  testthat::expect_equal(ncol(spatial_coords), 2)
+  testthat::expect_equal(nrow(spatial_coords), ncol(aviti_spe))
+  testthat::expect_identical(colnames(spatial_coords), c("x", "y"))
 
   # Test spatial coordinate data types and values
-  expect_true(is.numeric(spatial_coords[, "x"]))
-  expect_true(is.numeric(spatial_coords[, "y"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "x"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "y"]))
 
   # Compare with original spatial coordinates
   original_spatial <- rna_mod$obsm[["spatial"]]
-  expect_equal(as.numeric(original_spatial), as.numeric(spatial_coords))
+  testthat::expect_equal(
+    as.numeric(original_spatial),
+    as.numeric(spatial_coords)
+  )
 
   # Clean up
   unlink(c(aviti_h5mu, out_rds))
@@ -397,12 +415,12 @@ test_cosmx_execution <- function() {
   )
 
   cat("> Checking execution status\n")
-  expect_equal(out$status, 0)
-  expect_true(file.exists(out_rds))
+  testthat::expect_equal(out$status, 0)
+  testthat::expect_true(file.exists(out_rds))
 
   cat("> Reading output file\n")
   cosmx_spe <- readRDS(file = out_rds)
-  expect_s4_class(cosmx_spe, "SpatialExperiment")
+  testthat::expect_s4_class(cosmx_spe, "SpatialExperiment")
 
   cat("> Opening input file for comparison\n")
   rna_mod <- mu$read_h5ad(cosmx_h5mu, mod = "rna")
@@ -411,35 +429,38 @@ test_cosmx_execution <- function() {
   dim_spe <- dim(cosmx_spe)
   dim_h5mu <- dim(rna_mod$X)
 
-  expect_equal(dim_spe[1], dim_h5mu[2])
-  expect_equal(dim_spe[2], dim_h5mu[1])
+  testthat::expect_equal(dim_spe[1], dim_h5mu[2])
+  testthat::expect_equal(dim_spe[2], dim_h5mu[1])
 
   cat("> Testing colData (obs) transfer and data types\n")
-  col_data <- colData(cosmx_spe)
+  col_data <- SummarizedExperiment::colData(cosmx_spe)
   coldata_cols <- colnames(col_data)
   obs_cols <- colnames(rna_mod$obs)
-  expect_true(all(obs_cols %in% coldata_cols))
+  testthat::expect_true(all(obs_cols %in% coldata_cols))
 
   cat("> Testing rowData (var) transfer and data types\n")
-  row_data <- rowData(cosmx_spe)
+  row_data <- SummarizedExperiment::rowData(cosmx_spe)
   row_names <- colnames(row_data)
   var_cols <- colnames(rna_mod$var)
-  expect_true(all(var_cols %in% row_names))
+  testthat::expect_true(all(var_cols %in% row_names))
 
   cat("> Testing spatialCoords\n")
-  spatial_coords <- spatialCoords(cosmx_spe)
-  expect_false(is.null(spatial_coords))
-  expect_equal(ncol(spatial_coords), 2)
-  expect_equal(nrow(spatial_coords), ncol(cosmx_spe))
-  expect_identical(colnames(spatial_coords), c("x", "y"))
+  spatial_coords <- SpatialExperiment::spatialCoords(cosmx_spe)
+  testthat::expect_false(is.null(spatial_coords))
+  testthat::expect_equal(ncol(spatial_coords), 2)
+  testthat::expect_equal(nrow(spatial_coords), ncol(cosmx_spe))
+  testthat::expect_identical(colnames(spatial_coords), c("x", "y"))
 
   # Test spatial coordinate data types and values
-  expect_true(is.numeric(spatial_coords[, "x"]))
-  expect_true(is.numeric(spatial_coords[, "y"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "x"]))
+  testthat::expect_true(is.numeric(spatial_coords[, "y"]))
 
   # Compare with original spatial coordinates
   original_spatial <- rna_mod$obsm[["spatial"]]
-  expect_equal(as.numeric(original_spatial), as.numeric(spatial_coords))
+  testthat::expect_equal(
+    as.numeric(original_spatial),
+    as.numeric(spatial_coords)
+  )
 
   # Clean up
   unlink(c(cosmx_h5mu, out_rds))
