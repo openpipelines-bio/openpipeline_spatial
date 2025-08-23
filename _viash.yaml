@@ -13,9 +13,9 @@ links:
 
 repositories:
   - name: openpipeline
-    repo: openpipelines-bio/openpipeline
-    type: github
-    tag: 2.1.2
+    repo: openpipeline
+    type: vsh
+    tag: v3.0.0
 
 info:
   test_resources:
