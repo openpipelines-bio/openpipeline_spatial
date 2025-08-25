@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "clr",
+  "description": "Perform CLR normalization on CITE-seq data (Stoeckius et al., 2017).\n",
+  "type": "object",
+  "$defs": {
+    "arguments": {
+      "title": "Arguments",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "Input h5mu file",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"input.h5mu\"`. "
+        },
+        "modality": {
+          "type": "string",
+          "description": "Which modality from the input MuData file to process.\n",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"prot\"`. ",
+          "default": "prot"
+        },
+        "output": {
+          "type": "string",
+          "format": "path",
+          "description": "Output h5mu file.",
+          "help_text": "Type: `file`, multiple: `False`, required, default: `\"output.h5mu\"`, direction: `output`. ",
+          "default": "output.h5mu"
+        },
+        "input_layer": {
+          "type": "string",
+          "description": "Input layer to use",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "output_layer": {
+          "type": "string",
+          "description": "Output layer to use",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "axis": {
+          "type": "integer",
+          "description": "Axis across which CLR is performed",
+          "help_text": "Type: `integer`, multiple: `False`, default: `0`, choices: ``0`, `1``. ",
+          "enum": [
+            0,
+            1
+          ],
+          "default": 0
+        },
+        "output_compression": {
+          "type": "string",
+          "description": "Compression format to use for the output AnnData and/or Mudata objects.\nBy default no compression is applied.\n",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"gzip\"`, choices: ``gzip`, `lzf``. ",
+          "enum": [
+            "gzip",
+            "lzf"
+          ]
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/arguments"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}

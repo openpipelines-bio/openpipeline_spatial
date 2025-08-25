@@ -3705,24 +3705,18 @@ meta = [
       "name" : "workflows/multiomics/process_samples",
       "alias" : "spatial_sample_processing",
       "repository" : {
-        "type" : "github",
-        "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "disable-scrublet_build"
+        "type" : "vsh",
+        "repo" : "openpipeline",
+        "tag" : "v3.0.0"
       }
     }
   ],
   "repositories" : [
     {
-      "type" : "github",
+      "type" : "vsh",
       "name" : "openpipeline",
-      "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "2.1.2"
-    },
-    {
-      "type" : "github",
-      "name" : "openpipeline_scrublet",
-      "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "disable-scrublet_build"
+      "repo" : "openpipeline",
+      "tag" : "v3.0.0"
     }
   ],
   "links" : {
@@ -3813,7 +3807,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/multiomics/spatial_process_samples",
     "viash_version" : "0.9.4",
-    "git_commit" : "5fc3bcd8432928c148e8f27d6ae49214a91add67",
+    "git_commit" : "420b610b045c138f07475a1af39529f233d9af5a",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3830,10 +3824,10 @@ meta = [
     },
     "repositories" : [
       {
-        "type" : "github",
+        "type" : "vsh",
         "name" : "openpipeline",
-        "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "repo" : "openpipeline",
+        "tag" : "v3.0.0"
       }
     ],
     "viash_version" : "0.9.4",
@@ -3853,7 +3847,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/disable-scrublet_build/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v3.0.0/nextflow/workflows/multiomics/process_samples/main.nf"
 spatial_sample_processing = spatial_sample_processing_viashalias.run(key: "spatial_sample_processing")
 
 // inner workflow
@@ -3918,7 +3912,7 @@ workflow run_wf {
           "output": state.workflow_output
         ]},
         args: [
-          "skip_scrublet_filtering": "true",
+          "skip_scrublet_doublet_detection": "true",
         ],
         toState: [
           "output": "output"

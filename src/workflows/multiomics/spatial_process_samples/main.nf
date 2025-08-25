@@ -58,7 +58,7 @@ workflow run_wf {
           "output": state.workflow_output
         ]},
         args: [
-          "skip_scrublet_filtering": "true",
+          "skip_scrublet_doublet_detection": "true",
         ],
         toState: [
           "output": "output"

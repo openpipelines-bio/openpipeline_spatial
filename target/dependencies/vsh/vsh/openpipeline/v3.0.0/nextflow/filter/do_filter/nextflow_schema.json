@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "do_filter",
+  "description": "Remove observations and variables based on specified .obs and .var columns.\n",
+  "type": "object",
+  "$defs": {
+    "arguments": {
+      "title": "Arguments",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "Input h5mu file",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"input.h5mu\"`. "
+        },
+        "modality": {
+          "type": "string",
+          "description": "Which modality from the input MuData file to process.\n",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"rna\"`. ",
+          "default": "rna"
+        },
+        "obs_filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Which .obs columns to use to filter the observations by.",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"filter_with_x\"]`. "
+        },
+        "var_filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Which .var columns to use to filter the observations by.",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"filter_with_x\"]`. "
+        },
+        "output": {
+          "type": "string",
+          "format": "path",
+          "description": "Output h5mu file.",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.output.h5mu\"`, direction: `output`, example: `\"output.h5mu\"`. ",
+          "default": "$id.$key.output.h5mu"
+        },
+        "output_compression": {
+          "type": "string",
+          "description": "Compression format to use for the output AnnData and/or Mudata objects.\nBy default no compression is applied.\n",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"gzip\"`, choices: ``gzip`, `lzf``. ",
+          "enum": [
+            "gzip",
+            "lzf"
+          ]
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/arguments"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}
