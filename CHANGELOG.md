@@ -1,4 +1,4 @@
-# openpipeline_spatial 0.1.0
+# openpipeline_spatial 0.0.0
 
 ## NEW FUNCTIONALITY
 
