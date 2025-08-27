@@ -51,6 +51,7 @@ arguments:
 resources:
   - type: r_script
     path: script.R
+  - path: /src/utils/unzip_archived_folder.R
 test_resources:
   - type: r_script
     path: test.R

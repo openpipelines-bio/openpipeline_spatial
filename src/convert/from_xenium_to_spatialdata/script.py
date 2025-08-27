@@ -28,11 +28,13 @@ from unzip_archived_folder import unzip_archived_folder
 logger = setup_logger()
 
 logger.info("Reading in Xenium data...")
-if zipfile.is_zipfile(par["input"]):
-    par["input"] = unzip_archived_folder(par["input"])
 
+if zipfile.is_zipfile(par["input"]):
+    xenium_output_bundle = unzip_archived_folder(par["input"])
+else:
+    xenium_output_bundle = par["input"]
 sdata = xenium(
-    par["input"],
+    xenium_output_bundle,
     cells_boundaries=par["cells_boundaries"],
     nucleus_boundaries=par["nucleus_boundaries"],
     cells_as_circles=par["cells_as_circles"],

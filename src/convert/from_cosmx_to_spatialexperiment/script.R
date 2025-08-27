@@ -2,7 +2,7 @@ library(SpatialExperimentIO)
 
 ### VIASH START
 par <- list(
-  input = "resources_test/cosmx/Lung5_Rep2_tiny",
+  input = "resources_test/cosmx/test2.zip",
   add_tx_path = TRUE,
   add_polygon_path = FALSE,
   add_fov_positions = TRUE,
@@ -11,7 +11,12 @@ par <- list(
   ),
   output = "spe_cosmx_test.rds"
 )
+meta <- list(
+  resources_dir = "src/utils/"
+)
 ### VIASH END
+
+source(paste0(meta$resources_dir, "/unzip_archived_folder.R"))
 
 if (par$add_polygon_path == FALSE && par$add_tx_path == FALSE) {
   add_parquet_paths <- FALSE
@@ -19,8 +24,21 @@ if (par$add_polygon_path == FALSE && par$add_tx_path == FALSE) {
   add_parquet_paths <- TRUE
 }
 
+cosmx_output_bundle <- par$input
+if (grepl("\\.zip$", cosmx_output_bundle)) {
+  expected_file_patterns <- c(
+    "*.csv",
+    "*.parquet"
+  )
+
+  cosmx_output_bundle <- extract_selected_files(
+    cosmx_output_bundle,
+    members = expected_file_patterns
+  )
+}
+
 spe <- readCosmxSXE(
-  dirName = par$input,
+  dirName = cosmx_output_bundle,
   returnType = "SPE",
   countMatPattern = "exprMat_file.csv",
   metaDataPattern = "metadata_file.csv",
