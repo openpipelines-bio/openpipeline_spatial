@@ -3325,7 +3325,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "5f4e7b122a163b4b416b3f12548469a457f148d2",
+    "git_commit" : "c8ac218bd7894261048499595fc768655b6f1d45",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
