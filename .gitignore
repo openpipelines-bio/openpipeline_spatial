@@ -61,3 +61,4 @@ trace*.txt
 ruff.toml
 renv.lock
 .Rprofile
+renv/
