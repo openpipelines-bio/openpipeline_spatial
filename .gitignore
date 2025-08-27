@@ -57,3 +57,8 @@ trace*.txt
 # vscode
 .vscode/launch.json
 .vscode/settings.json
+
+# linting
+ruff.toml
+renv.lock
+.Rprofile
