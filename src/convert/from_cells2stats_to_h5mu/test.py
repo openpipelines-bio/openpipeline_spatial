@@ -56,15 +56,18 @@ def test_compressed_input(run_component, tmp_path):
     output = tmp_path / "aviti.h5mu"
     zipped_input = tmp_path / "aviti.zip"
 
-    subprocess.run(
-        ["zip", "-r", str(zipped_input), "."],
-        cwd=input,
-        check=True
-    )
+    subprocess.run(["zip", "-r", str(zipped_input), "."], cwd=input, check=True)
 
     # run component
     run_component(
-        ["--input", zipped_input, "--output", str(output), "--output_compression", "gzip"]
+        [
+            "--input",
+            zipped_input,
+            "--output",
+            str(output),
+            "--output_compression",
+            "gzip",
+        ]
     )
 
     assert output.is_file(), "output file was not created"

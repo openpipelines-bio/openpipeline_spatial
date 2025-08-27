@@ -5,9 +5,7 @@ from pathlib import Path
 from typing import Union
 
 
-def unzip_archived_folder(
-  archived_folder: Union[str, Path]
-) -> Union[str, Path]:
+def unzip_archived_folder(archived_folder: Union[str, Path]) -> Union[str, Path]:
     """
     Extracts a ZIP archive to a temporary directory and returns the path to the extracted folder.
 
@@ -26,8 +24,7 @@ def unzip_archived_folder(
 
 
 def extract_selected_files_from_zip(
-    zip_path: Union[str, Path],
-    members: list[Union[str, Path]]
+    zip_path: Union[str, Path], members: list[Union[str, Path]]
 ) -> Union[str, Path]:
     """
     Extracts selected files (supports glob patterns) from a ZIP archive to a temporary directory.

@@ -173,23 +173,23 @@ def retrieve_input_data(cells2stats_output_bundle):
     # │       └── RawCellStats.parquet
     # └── Panel.json
 
-    required_files = [
-        "Panel.json",
-        "Cytoprofiling/Instrument/RawCellStats.parquet"
-    ]
+    required_files = ["Panel.json", "Cytoprofiling/Instrument/RawCellStats.parquet"]
 
     if zipfile.is_zipfile(cells2stats_output_bundle):
         cells2stats_output_bundle = extract_selected_files_from_zip(
-            cells2stats_output_bundle,
-            members=required_files
+            cells2stats_output_bundle, members=required_files
         )
 
-    assert os.path.isdir(cells2stats_output_bundle), "Input is expected to be a (compressed) directory."
+    assert os.path.isdir(cells2stats_output_bundle), (
+        "Input is expected to be a (compressed) directory."
+    )
     input_dir = Path(cells2stats_output_bundle)
-    input_data = dict(zip(
-        ["target_panel", "count_matrix"],
-        [input_dir / file for file in required_files]
-    ))
+    input_data = dict(
+        zip(
+            ["target_panel", "count_matrix"],
+            [input_dir / file for file in required_files],
+        )
+    )
 
     assert all([file.exists() for file in input_data.values()]), (
         f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
@@ -199,7 +199,6 @@ def retrieve_input_data(cells2stats_output_bundle):
 
 
 def main():
-
     logger.info("Reading input data...")
     input_data = retrieve_input_data(par["input"])
     with open(input_data["target_panel"], "r") as f:

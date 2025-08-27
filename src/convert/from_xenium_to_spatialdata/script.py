@@ -1,5 +1,6 @@
 import sys
 from spatialdata_io import xenium
+import zipfile
 
 ## VIASH START
 par = {
@@ -22,10 +23,14 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from unzip_archived_folder import unzip_archived_folder
 
 logger = setup_logger()
 
 logger.info("Reading in Xenium data...")
+if zipfile.is_zipfile(par["input"]):
+    par["input"] = unzip_archived_folder(par["input"])
+
 sdata = xenium(
     par["input"],
     cells_boundaries=par["cells_boundaries"],

@@ -3,6 +3,7 @@ import sys
 import mudata as mu
 import subprocess
 
+
 def test_simple_execution(run_component, tmp_path):
     output = tmp_path / "cosmx_tiny.h5mu"
 
@@ -57,13 +58,9 @@ def test_compressed_input(run_component, tmp_path):
     output = tmp_path / "cosmx_tiny.h5mu"
     zipped_input = tmp_path / "xenium_tiny.zip"
     input = meta["resources_dir"] + "/Lung5_Rep2_tiny"
-    
-    subprocess.run(
-        ["zip", "-r", str(zipped_input), "."],
-        cwd=input,
-        check=True
-    )
-    
+
+    subprocess.run(["zip", "-r", str(zipped_input), "."], cwd=input, check=True)
+
     run_component(
         [
             "--input",

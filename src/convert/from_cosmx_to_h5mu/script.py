@@ -4,7 +4,6 @@ import squidpy as sq
 import mudata as mu
 import glob
 import zipfile
-import os
 
 ## VIASH START
 par = {
@@ -38,19 +37,29 @@ def retrieve_input_data(cosmx_output_bundle):
     # ├── *_fov_positions_file.csv
     # └── *_metadata_file.csv
 
-    expected_file_patterns = ["exprMat_file.csv", "fov_positions_file.csv", "metadata_file.csv"]
+    expected_file_patterns = [
+        "exprMat_file.csv",
+        "fov_positions_file.csv",
+        "metadata_file.csv",
+    ]
     if zipfile.is_zipfile(cosmx_output_bundle):
         cosmx_output_bundle = extract_selected_files_from_zip(
-            cosmx_output_bundle,
-            members=["*" + file for file in expected_file_patterns]
+            cosmx_output_bundle, members=["*" + file for file in expected_file_patterns]
         )
 
-    assert os.path.isdir(cosmx_output_bundle), "Input is expected to be a (compressed) directory."
+    assert os.path.isdir(cosmx_output_bundle), (
+        "Input is expected to be a (compressed) directory."
+    )
 
-    input_data = dict(zip(
-        ["counts_file", "fov_file", "meta_file"],
-        [find_cosmx_files(cosmx_output_bundle, glob_pattern) for glob_pattern in expected_file_patterns]
-    ))
+    input_data = dict(
+        zip(
+            ["counts_file", "fov_file", "meta_file"],
+            [
+                find_cosmx_files(cosmx_output_bundle, glob_pattern)
+                for glob_pattern in expected_file_patterns
+            ],
+        )
+    )
 
     return input_data
 
@@ -63,7 +72,7 @@ def main():
         path=par["input"],
         counts_file=input_data["counts_file"],
         meta_file=input_data["meta_file"],
-        fov_file=input_data["fov_file"]
+        fov_file=input_data["fov_file"],
     )
 
     logger.info("Writing output MuData object...")

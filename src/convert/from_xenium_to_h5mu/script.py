@@ -37,22 +37,25 @@ def _retrieve_input_data(xenium_output_bundle):
         "cell_feature_matrix.h5",
         "cells.parquet",
         "experiment.xenium",
-        "metrics_summary.csv"
+        "metrics_summary.csv",
     ]
 
     if zipfile.is_zipfile(xenium_output_bundle):
         xenium_output_bundle = extract_selected_files_from_zip(
-            xenium_output_bundle,
-            members=required_files
+            xenium_output_bundle, members=required_files
         )
 
-    assert os.path.isdir(xenium_output_bundle), f"Input is expected to be a (compressed) directory."
+    assert os.path.isdir(xenium_output_bundle), (
+        "Input is expected to be a (compressed) directory."
+    )
     input_dir = Path(xenium_output_bundle)
 
-    input_data = dict(zip(
-        ["count_matrix", "cells_metadata", "experiment", "metrics_summary"],
-        [input_dir / file for file in required_files]
-    ))
+    input_data = dict(
+        zip(
+            ["count_matrix", "cells_metadata", "experiment", "metrics_summary"],
+            [input_dir / file for file in required_files],
+        )
+    )
 
     assert all([file.exists() for file in input_data.values()]), (
         f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
