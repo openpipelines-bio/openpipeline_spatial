@@ -459,9 +459,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_cosmx_to_h5mu"
-LABEL org.opencontainers.image.created="2025-08-27T16:30:39Z"
+LABEL org.opencontainers.image.created="2025-08-28T07:06:39Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="bbebaa1a26a30c55af33fa6818c12123f9fe4824"
+LABEL org.opencontainers.image.revision="139fe45ee3cfdc8e114997e3c33d337ffe03d61e"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -58,7 +58,6 @@ trace*.txt
 .vscode/settings.json
 
 # linting
-ruff.toml
 renv.lock
 .Rprofile
 renv/
