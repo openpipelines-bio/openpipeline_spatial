@@ -33,33 +33,31 @@ def _retrieve_input_data(xenium_output_bundle):
     # ├── experiment.xenium
     # └── metrics_summary.csv
 
-    required_files = [
-        "cell_feature_matrix.h5",
-        "cells.parquet",
-        "experiment.xenium",
-        "metrics_summary.csv",
-    ]
+    required_file_patterns = {
+        "count_matrix": "**/cell_feature_matrix.h5",
+        "cells_metadata": "**/cells.parquet",
+        "experiment": "**/experiment.xenium",
+        "metrics_summary": "**/metrics_summary.csv",
+    }
 
     if zipfile.is_zipfile(xenium_output_bundle):
         xenium_output_bundle = extract_selected_files_from_zip(
-            xenium_output_bundle, members=required_files
+            xenium_output_bundle,
+            members=[pattern for pattern in required_file_patterns.values()]
         )
+    else:
+        xenium_output_bundle = Path(par["input"])
 
     assert os.path.isdir(xenium_output_bundle), (
         "Input is expected to be a (compressed) directory."
     )
-    input_dir = Path(xenium_output_bundle)
 
-    input_data = dict(
-        zip(
-            ["count_matrix", "cells_metadata", "experiment", "metrics_summary"],
-            [input_dir / file for file in required_files],
-        )
-    )
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(xenium_output_bundle.glob(pattern))
+        assert len(file) == 1, f"Expected exactly one file matching pattern {pattern}."
+        input_data[key] = file[0]
 
-    assert all([file.exists() for file in input_data.values()]), (
-        f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
-    )
     return input_data
 
 
