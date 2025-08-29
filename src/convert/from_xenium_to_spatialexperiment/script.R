@@ -2,7 +2,7 @@ library(SpatialExperimentIO)
 
 ### VIASH START
 par <- list(
-  input = "resources_test/xenium/xenium_tiny",
+  input = "resources_test/xenium/temp_dir.zip",
   add_experiment_xenium = TRUE,
   add_parquet_paths = TRUE,
   alternative_experiment_features = c(
@@ -18,20 +18,26 @@ meta <- list(
 
 source(paste0(meta$resources_dir, "/unzip_archived_folder.R"))
 
-xenium_output_bundle <- par$input
-if (grepl("\\.zip$", xenium_output_bundle)) {
-  expected_file_patterns <- c(
-    "cell_feature_matrix.h5",
-    "*.parquet",
-    "experiment.xenium"
+cat("Reading input data...")
+if (tools::file_ext(par$input) == "zip") {
+  required_file_patterns <- c(
+    "**/cell_feature_matrix.h5",
+    "**/*.parquet",
+    "**/experiment.xenium"
   )
-
-  xenium_output_bundle <- extract_selected_files(
-    xenium_output_bundle,
-    members = expected_file_patterns
+  tmp_dir <- extract_selected_files(
+    par$input,
+    members = required_file_patterns
   )
+  xenium_output_bundle <- file.path(
+    tmp_dir,
+    tools::file_path_sans_ext(basename(par$input))
+  )
+} else {
+  xenium_output_bundle <- par$input
 }
 
+cat("Converting to SpatialExperiment")
 spe <- readXeniumSXE(
   dirName = xenium_output_bundle,
   returnType = "SPE",
@@ -43,4 +49,5 @@ spe <- readXeniumSXE(
   altExps = par$alternative_experiment_features
 )
 
+cat("Saving output...")
 saveRDS(spe, file = par$output)

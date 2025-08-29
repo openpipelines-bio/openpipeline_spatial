@@ -71,7 +71,6 @@ dim_input <- dim(input)
 expect_equal(dim_rds, dim_input)
 
 
-
 cat("> Checking execution with compressed input\n")
 
 spe <- paste0(
@@ -80,15 +79,17 @@ spe <- paste0(
 )
 out_rds <- "output.rds"
 
-create_folder_archive <- function(folder_path, archive = "temp_dir.zip") {
+create_folder_archive <- function(folder_path, archive = "xenium_tiny.zip") {
   old_wd <- getwd()
   on.exit(setwd(old_wd))
-  setwd(folder_path)
-  system2("zip", c("-r", archive, "."))
-  paste0(folder_path, "/", archive)
+  setwd(meta$resources_dir)
+  system2("zip", c("-r", archive, "xenium_tiny"))
+  paste0(meta$resources_dir, "/", archive)
 }
 
 zipped_spe <- create_folder_archive(spe)
+
+cat(zipped_spe)
 
 cat("> Running ", meta[["name"]], "\n", sep = "")
 out <- processx::run(

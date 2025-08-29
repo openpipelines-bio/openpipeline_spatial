@@ -43,10 +43,10 @@ def _retrieve_input_data(xenium_output_bundle):
     if zipfile.is_zipfile(xenium_output_bundle):
         xenium_output_bundle = extract_selected_files_from_zip(
             xenium_output_bundle,
-            members=[pattern for pattern in required_file_patterns.values()]
+            members=[pattern for pattern in required_file_patterns.values()],
         )
     else:
-        xenium_output_bundle = Path(par["input"])
+        xenium_output_bundle = Path(xenium_output_bundle)
 
     assert os.path.isdir(xenium_output_bundle), (
         "Input is expected to be a (compressed) directory."
@@ -55,7 +55,9 @@ def _retrieve_input_data(xenium_output_bundle):
     input_data = {}
     for key, pattern in required_file_patterns.items():
         file = list(xenium_output_bundle.glob(pattern))
-        assert len(file) == 1, f"Expected exactly one file matching pattern {pattern}."
+        assert len(file) == 1, (
+            f"Expected exactly one file matching pattern {pattern}, found {len(file)}."
+        )
         input_data[key] = file[0]
 
     return input_data

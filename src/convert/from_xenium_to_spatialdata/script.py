@@ -5,7 +5,7 @@ from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "output-XETG00324__0052678__Region_6__20241121__172932.zip",
+    "input": "xenium_tiny.zip",
     "output": "./test/xenium_tiny.zarr",
     "cells_boundaries": True,
     "nucleus_boundaries": True,
@@ -39,11 +39,9 @@ if zipfile.is_zipfile(par["input"]):
         "**/cell_feature_matrix.h5",
         "**/cells.parquet",
         "**/morphology_mip.ome.tif",
-        "**/morphology_focus.ome.tif"
+        "**/morphology_focus.ome.tif",
     ]
-    xenium_output_bundle = unzip_archived_folder(
-        par["input"]
-    )
+    xenium_output_bundle = unzip_archived_folder(par["input"])
 else:
     xenium_output_bundle = Path(par["input"])
 

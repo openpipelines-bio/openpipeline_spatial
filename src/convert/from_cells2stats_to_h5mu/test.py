@@ -56,7 +56,9 @@ def test_compressed_input(run_component, tmp_path):
     output = tmp_path / "aviti.h5mu"
     zipped_input = tmp_path / "aviti.zip"
 
-    subprocess.run(["zip", "-r", str(zipped_input), "."], cwd=input, check=True)
+    subprocess.run(
+        ["zip", "-r", str(zipped_input), "aviti"], cwd=meta["resources_dir"], check=True
+    )
 
     # run component
     run_component(

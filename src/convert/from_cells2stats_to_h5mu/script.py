@@ -173,27 +173,29 @@ def retrieve_input_data(cells2stats_output_bundle):
     # │       └── RawCellStats.parquet
     # └── Panel.json
 
-    required_files = ["Panel.json", "Cytoprofiling/Instrument/RawCellStats.parquet"]
+    required_file_patterns = {
+        "target_panel": "**/Panel.json",
+        "count_matrix": "**/Cytoprofiling/Instrument/RawCellStats.parquet",
+    }
 
     if zipfile.is_zipfile(cells2stats_output_bundle):
         cells2stats_output_bundle = extract_selected_files_from_zip(
-            cells2stats_output_bundle, members=required_files
+            cells2stats_output_bundle, members=required_file_patterns.values()
         )
+    else:
+        cells2stats_output_bundle = Path(cells2stats_output_bundle)
 
     assert os.path.isdir(cells2stats_output_bundle), (
         "Input is expected to be a (compressed) directory."
     )
-    input_dir = Path(cells2stats_output_bundle)
-    input_data = dict(
-        zip(
-            ["target_panel", "count_matrix"],
-            [input_dir / file for file in required_files],
-        )
-    )
 
-    assert all([file.exists() for file in input_data.values()]), (
-        f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
-    )
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(cells2stats_output_bundle.glob(pattern))
+        assert len(file) == 1, (
+            f"Expected exactly one file matching pattern {pattern}, found {len(file)}."
+        )
+        input_data[key] = file[0]
 
     return input_data
 

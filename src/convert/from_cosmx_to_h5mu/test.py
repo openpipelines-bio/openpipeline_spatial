@@ -56,10 +56,13 @@ def test_simple_execution(run_component, tmp_path):
 
 def test_compressed_input(run_component, tmp_path):
     output = tmp_path / "cosmx_tiny.h5mu"
-    zipped_input = tmp_path / "xenium_tiny.zip"
-    input = meta["resources_dir"] + "/Lung5_Rep2_tiny"
+    zipped_input = tmp_path / "Lung5_Rep2_tiny.zip"
 
-    subprocess.run(["zip", "-r", str(zipped_input), "."], cwd=input, check=True)
+    subprocess.run(
+        ["zip", "-r", str(zipped_input), "Lung5_Rep2_tiny"],
+        cwd=meta["resources_dir"],
+        check=True,
+    )
 
     run_component(
         [

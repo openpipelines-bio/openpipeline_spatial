@@ -2,8 +2,8 @@ import sys
 import os
 import squidpy as sq
 import mudata as mu
-import glob
 import zipfile
+from pathlib import Path
 
 ## VIASH START
 par = {
@@ -22,44 +22,33 @@ from unzip_archived_folder import extract_selected_files_from_zip
 logger = setup_logger()
 
 
-def find_cosmx_files(cosmx_output_bundle, suffix):
-    pattern = os.path.join(cosmx_output_bundle, f"*{suffix}")
-    files = glob.glob(pattern)
-    assert len(files) == 1, (
-        f"Only one file matching pattern {pattern} should be present"
-    )
-    return files[0]
-
-
 def retrieve_input_data(cosmx_output_bundle):
     # Expected folder structure (showing only relevant files):
     # ├── *_exprMat_file.csv
     # ├── *_fov_positions_file.csv
     # └── *_metadata_file.csv
 
-    expected_file_patterns = [
-        "exprMat_file.csv",
-        "fov_positions_file.csv",
-        "metadata_file.csv",
-    ]
+    required_file_patterns = {
+        "counts_file": "**/*exprMat_file.csv",
+        "fov_file": "**/*fov_positions_file.csv",
+        "meta_file": "**/*metadata_file.csv",
+    }
     if zipfile.is_zipfile(cosmx_output_bundle):
         cosmx_output_bundle = extract_selected_files_from_zip(
-            cosmx_output_bundle, members=["*" + file for file in expected_file_patterns]
+            cosmx_output_bundle, members=required_file_patterns.values()
         )
+    else:
+        cosmx_output_bundle = Path(cosmx_output_bundle)
 
     assert os.path.isdir(cosmx_output_bundle), (
         "Input is expected to be a (compressed) directory."
     )
 
-    input_data = dict(
-        zip(
-            ["counts_file", "fov_file", "meta_file"],
-            [
-                find_cosmx_files(cosmx_output_bundle, glob_pattern)
-                for glob_pattern in expected_file_patterns
-            ],
-        )
-    )
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(cosmx_output_bundle.glob(pattern))
+        assert len(file) == 1, f"Expected one file for {key}, found {len(file)}."
+        input_data[key] = file[0]
 
     return input_data
 
