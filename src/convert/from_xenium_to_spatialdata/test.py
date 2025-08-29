@@ -34,10 +34,9 @@ def test_simple_execution(run_component, tmp_path):
 
 def test_compressed_input(run_component, tmp_path):
     output_sd_path = tmp_path / "sd"
-    input = meta["resources_dir"] + "/xenium_tiny"
     zipped_input = tmp_path / "xenium_tiny.zip"
 
-    subprocess.run(["zip", "-r", str(zipped_input), "."], cwd=input, check=True)
+    subprocess.run(["zip", "-r", str(zipped_input), "xenium_tiny"], cwd=meta["resources_dir"], check=True)
     run_component(
         [
             "--input",

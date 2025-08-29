@@ -1,10 +1,11 @@
 import sys
 from spatialdata_io import xenium
 import zipfile
+from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "./resources_test/xenium_tiny",
+    "input": "output-XETG00324__0052678__Region_6__20241121__172932.zip",
     "output": "./test/xenium_tiny.zarr",
     "cells_boundaries": True,
     "nucleus_boundaries": True,
@@ -30,9 +31,22 @@ logger = setup_logger()
 logger.info("Reading in Xenium data...")
 
 if zipfile.is_zipfile(par["input"]):
-    xenium_output_bundle = unzip_archived_folder(par["input"])
+    required_file_patterns = [
+        "**/experiment.xenium",
+        "**/nucleus_boundaries.parquet",
+        "**/cell_boundaries.parquet",
+        "**/transcripts.parquet",
+        "**/cell_feature_matrix.h5",
+        "**/cells.parquet",
+        "**/morphology_mip.ome.tif",
+        "**/morphology_focus.ome.tif"
+    ]
+    xenium_output_bundle = unzip_archived_folder(
+        par["input"]
+    )
 else:
-    xenium_output_bundle = par["input"]
+    xenium_output_bundle = Path(par["input"])
+
 sdata = xenium(
     xenium_output_bundle,
     cells_boundaries=par["cells_boundaries"],

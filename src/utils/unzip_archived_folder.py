@@ -20,7 +20,7 @@ def unzip_archived_folder(archived_folder: Union[str, Path]) -> Union[str, Path]
     with zipfile.ZipFile(archived_folder, "r") as archive:
         archive.extractall(temp_dir)
 
-    return temp_dir
+    return temp_dir / Path(archived_folder).stem
 
 
 def extract_selected_files_from_zip(
