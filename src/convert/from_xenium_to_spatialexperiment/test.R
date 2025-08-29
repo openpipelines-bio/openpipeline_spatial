@@ -89,8 +89,6 @@ create_folder_archive <- function(folder_path, archive = "xenium_tiny.zip") {
 
 zipped_spe <- create_folder_archive(spe)
 
-cat(zipped_spe)
-
 cat("> Running ", meta[["name"]], "\n", sep = "")
 out <- processx::run(
   meta[["executable"]],
