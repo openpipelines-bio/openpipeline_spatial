@@ -3160,6 +3160,10 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "/src/utils/unzip_archived_folder.R"
+    },
+    {
+      "type" : "file",
       "path" : "/src/workflows/utils/labels.config",
       "dest" : "nextflow_labels.config"
     }
@@ -3316,7 +3320,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "139fe45ee3cfdc8e114997e3c33d337ffe03d61e",
+    "git_commit" : "096168ec97507572dbb41b96a52fc8c6e17067e1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3409,14 +3413,36 @@ rm(.viash_orig_warn)
 
 ### VIASH END
 
+source(paste0(meta\\$resources_dir, "/unzip_archived_folder.R"))
+
+cat("Reading input data...")
+if (tools::file_ext(par\\$input) == "zip") {
+  expected_file_patterns <- c(
+    "*.csv",
+    "*.parquet"
+  )
+  tmp_dir <- extract_selected_files(
+    par\\$input,
+    members = expected_file_patterns
+  )
+  cosmx_output_bundle <- file.path(
+    tmp_dir,
+    tools::file_path_sans_ext(basename(par\\$input))
+  )
+} else {
+  cosmx_output_bundle <- par\\$input
+}
+
+cat("Setting parameters...")
 if (par\\$add_polygon_path == FALSE && par\\$add_tx_path == FALSE) {
   add_parquet_paths <- FALSE
 } else {
   add_parquet_paths <- TRUE
 }
 
+cat("Converting to SpatialExperiment...")
 spe <- readCosmxSXE(
-  dirName = par\\$input,
+  dirName = cosmx_output_bundle,
   returnType = "SPE",
   countMatPattern = "exprMat_file.csv",
   metaDataPattern = "metadata_file.csv",
@@ -3429,6 +3455,7 @@ spe <- readCosmxSXE(
   altExps = par\\$alternative_experiment_features
 )
 
+cat("Saving output...")
 saveRDS(spe, file = par\\$output)
 VIASHMAIN
 Rscript "$tempscript"

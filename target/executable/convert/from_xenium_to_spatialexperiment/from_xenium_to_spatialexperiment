@@ -457,9 +457,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialexperiment"
-LABEL org.opencontainers.image.created="2025-08-28T07:06:39Z"
+LABEL org.opencontainers.image.created="2025-09-05T13:05:43Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="139fe45ee3cfdc8e114997e3c33d337ffe03d61e"
+LABEL org.opencontainers.image.revision="096168ec97507572dbb41b96a52fc8c6e17067e1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1184,9 +1184,30 @@ rm(.viash_orig_warn)
 
 ### VIASH END
 
+source(paste0(meta\$resources_dir, "/unzip_archived_folder.R"))
 
+cat("Reading input data...")
+if (tools::file_ext(par\$input) == "zip") {
+  required_file_patterns <- c(
+    "**/cell_feature_matrix.h5",
+    "**/*.parquet",
+    "**/experiment.xenium"
+  )
+  tmp_dir <- extract_selected_files(
+    par\$input,
+    members = required_file_patterns
+  )
+  xenium_output_bundle <- file.path(
+    tmp_dir,
+    tools::file_path_sans_ext(basename(par\$input))
+  )
+} else {
+  xenium_output_bundle <- par\$input
+}
+
+cat("Converting to SpatialExperiment")
 spe <- readXeniumSXE(
-  dirName = par\$input,
+  dirName = xenium_output_bundle,
   returnType = "SPE",
   countMatPattern = "cell_feature_matrix.h5",
   metaDataPattern = "cells.parquet",
@@ -1196,6 +1217,7 @@ spe <- readXeniumSXE(
   altExps = par\$alternative_experiment_features
 )
 
+cat("Saving output...")
 saveRDS(spe, file = par\$output)
 VIASHMAIN
 Rscript "\$tempscript" &

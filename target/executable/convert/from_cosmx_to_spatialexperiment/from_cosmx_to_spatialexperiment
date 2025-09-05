@@ -457,9 +457,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_cosmx_to_spatialexperiment"
-LABEL org.opencontainers.image.created="2025-08-28T07:06:40Z"
+LABEL org.opencontainers.image.created="2025-09-05T13:05:43Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="139fe45ee3cfdc8e114997e3c33d337ffe03d61e"
+LABEL org.opencontainers.image.revision="096168ec97507572dbb41b96a52fc8c6e17067e1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1210,14 +1210,36 @@ rm(.viash_orig_warn)
 
 ### VIASH END
 
+source(paste0(meta\$resources_dir, "/unzip_archived_folder.R"))
+
+cat("Reading input data...")
+if (tools::file_ext(par\$input) == "zip") {
+  expected_file_patterns <- c(
+    "*.csv",
+    "*.parquet"
+  )
+  tmp_dir <- extract_selected_files(
+    par\$input,
+    members = expected_file_patterns
+  )
+  cosmx_output_bundle <- file.path(
+    tmp_dir,
+    tools::file_path_sans_ext(basename(par\$input))
+  )
+} else {
+  cosmx_output_bundle <- par\$input
+}
+
+cat("Setting parameters...")
 if (par\$add_polygon_path == FALSE && par\$add_tx_path == FALSE) {
   add_parquet_paths <- FALSE
 } else {
   add_parquet_paths <- TRUE
 }
 
+cat("Converting to SpatialExperiment...")
 spe <- readCosmxSXE(
-  dirName = par\$input,
+  dirName = cosmx_output_bundle,
   returnType = "SPE",
   countMatPattern = "exprMat_file.csv",
   metaDataPattern = "metadata_file.csv",
@@ -1230,6 +1252,7 @@ spe <- readCosmxSXE(
   altExps = par\$alternative_experiment_features
 )
 
+cat("Saving output...")
 saveRDS(spe, file = par\$output)
 VIASHMAIN
 Rscript "\$tempscript" &

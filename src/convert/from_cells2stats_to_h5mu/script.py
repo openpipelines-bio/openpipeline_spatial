@@ -6,6 +6,8 @@ import mudata as mu
 import anndata as ad
 import re
 import json
+import zipfile
+import os
 
 ## VIASH START
 par = {
@@ -25,6 +27,8 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from unzip_archived_folder import extract_selected_files_from_zip
+
 
 logger = setup_logger()
 
@@ -162,27 +166,43 @@ def categorize_columns(column_list, target_panel):
     )
 
 
-def main():
-    # Read data from Aviti Teton output bundle
+def retrieve_input_data(cells2stats_output_bundle):
     # Expected folder structure (showing only relevant files):
     # ├── Cytoprofiling/
     # │   └── Instrument/
     # │       └── RawCellStats.parquet
     # └── Panel.json
 
-    logger.info("Reading input data...")
-    input_dir = Path(par["input"])
-    input_data = {
-        "count_matrix": input_dir
-        / "Cytoprofiling"
-        / "Instrument"
-        / "RawCellStats.parquet",
-        "target_panel": input_dir / "Panel.json",
+    required_file_patterns = {
+        "target_panel": "**/Panel.json",
+        "count_matrix": "**/Cytoprofiling/Instrument/RawCellStats.parquet",
     }
 
-    assert all([file.exists() for file in input_data.values()]), (
-        f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
+    if zipfile.is_zipfile(cells2stats_output_bundle):
+        cells2stats_output_bundle = extract_selected_files_from_zip(
+            cells2stats_output_bundle, members=required_file_patterns.values()
+        )
+    else:
+        cells2stats_output_bundle = Path(cells2stats_output_bundle)
+
+    assert os.path.isdir(cells2stats_output_bundle), (
+        "Input is expected to be a (compressed) directory."
     )
+
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(cells2stats_output_bundle.glob(pattern))
+        assert len(file) == 1, (
+            f"Expected exactly one file matching pattern {pattern}, found {len(file)}."
+        )
+        input_data[key] = file[0]
+
+    return input_data
+
+
+def main():
+    logger.info("Reading input data...")
+    input_data = retrieve_input_data(par["input"])
     with open(input_data["target_panel"], "r") as f:
         target_panel = json.load(f)
     df = pd.read_parquet(input_data["count_matrix"], engine="pyarrow")

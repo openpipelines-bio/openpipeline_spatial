@@ -69,6 +69,74 @@ dim_input <- dim(input)
 expect_equal(dim_rds, dim_input)
 
 
+cat("> Checking execution with compressed input\n")
+
+spe <- paste0(meta[["resources_dir"]], "/Lung5_Rep2_tiny")
+out_rds <- "output.rds"
+
+create_folder_archive <- function(
+    folder_path,
+    archive = "Lung5_Rep2_tiny.zip") {
+  old_wd <- getwd()
+  on.exit(setwd(old_wd))
+  setwd(meta$resources_dir)
+  system2("zip", c("-r", archive, "Lung5_Rep2_tiny"))
+  paste0(meta$resources_dir, "/", archive)
+}
+
+zipped_spe <- create_folder_archive(spe)
+
+cat("> Running ", meta[["name"]], "\n", sep = "")
+out <- processx::run(
+  meta[["executable"]],
+  c(
+    "--input", zipped_spe,
+    "--add_tx_path", TRUE,
+    "--add_polygon_path", FALSE,
+    "--output", out_rds
+  )
+)
+
+cat("> Checking whether output file exists\n")
+expect_equal(out$status, 0)
+expect_true(file.exists(out_rds))
+
+cat("> Reading output file\n")
+obj <- readRDS(file = out_rds)
+
+cat("> Checking whether Seurat object is in the right format\n")
+# Object type
+expect_is(obj, "SpatialExperiment")
+# Assay structure
+expect_equal(names(slot(obj, "assays")), "counts")
+# Spatial coordinates
+expect_equal(
+  spatialCoordsNames(obj),
+  c("CenterX_global_px", "CenterY_global_px")
+)
+# Alternative experiments
+expect_equal(altExpNames(obj), c("NegPrb"))
+# Metadata components
+expect_named(
+  metadata(obj),
+  c("fov_positions", "transcripts"),
+  ignore.order = TRUE
+)
+# Parquet paths
+expect_true(grepl("\\.parquet$", metadata(obj)[["transcripts"]]))
+# Dimensions
+input <- readCosmxSXE(
+  dirName = spe,
+  addParquetPaths = FALSE,
+  returnType = "SPE"
+)
+
+dim_rds <- dim(obj)
+dim_input <- dim(input)
+
+expect_equal(dim_rds, dim_input)
+
+
 cat("> Checking parameter functionality\n")
 
 out_rds_ext <- "output_ext.rds"

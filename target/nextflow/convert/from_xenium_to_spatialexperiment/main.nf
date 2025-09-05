@@ -3149,6 +3149,10 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "/src/utils/unzip_archived_folder.R"
+    },
+    {
+      "type" : "file",
       "path" : "/src/workflows/utils/labels.config",
       "dest" : "nextflow_labels.config"
     }
@@ -3305,7 +3309,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "139fe45ee3cfdc8e114997e3c33d337ffe03d61e",
+    "git_commit" : "096168ec97507572dbb41b96a52fc8c6e17067e1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3397,9 +3401,30 @@ rm(.viash_orig_warn)
 
 ### VIASH END
 
+source(paste0(meta\\$resources_dir, "/unzip_archived_folder.R"))
 
+cat("Reading input data...")
+if (tools::file_ext(par\\$input) == "zip") {
+  required_file_patterns <- c(
+    "**/cell_feature_matrix.h5",
+    "**/*.parquet",
+    "**/experiment.xenium"
+  )
+  tmp_dir <- extract_selected_files(
+    par\\$input,
+    members = required_file_patterns
+  )
+  xenium_output_bundle <- file.path(
+    tmp_dir,
+    tools::file_path_sans_ext(basename(par\\$input))
+  )
+} else {
+  xenium_output_bundle <- par\\$input
+}
+
+cat("Converting to SpatialExperiment")
 spe <- readXeniumSXE(
-  dirName = par\\$input,
+  dirName = xenium_output_bundle,
   returnType = "SPE",
   countMatPattern = "cell_feature_matrix.h5",
   metaDataPattern = "cells.parquet",
@@ -3409,6 +3434,7 @@ spe <- readXeniumSXE(
   altExps = par\\$alternative_experiment_features
 )
 
+cat("Saving output...")
 saveRDS(spe, file = par\\$output)
 VIASHMAIN
 Rscript "$tempscript"
