@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union
 import zipfile_deflate64 as zipfile
 
+
 def unzip_archived_folder(archived_folder: Union[str, Path]) -> Union[str, Path]:
     """
     Extracts a ZIP archive to a temporary directory and returns the path to the extracted folder.
