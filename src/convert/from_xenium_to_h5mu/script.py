@@ -9,7 +9,7 @@ import os
 
 ## VIASH START
 par = {
-    "input": "output-XETG00392__0030543__8073578310-01-02__20250206__204225.zip",
+    "input": "test/xenium_tiny.zip",
     "output": "xenium_tiny_test.h5mu",
     "output_compression": "gzip",
     "obsm_coordinates": "spatial",
