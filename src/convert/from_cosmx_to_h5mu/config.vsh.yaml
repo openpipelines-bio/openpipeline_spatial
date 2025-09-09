@@ -53,8 +53,15 @@ engines:
       - type: apt
         packages: 
           - procps
+          - build-essential
+          - zlib1g-dev
       - type: python
-        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/squidpy.yaml]
+        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/scanpy.yaml, .]
+        packages:
+          # Windows explorer uses DEFLATE64 compression for large ZIP files,
+          # which is not supported by most standard library zipfile module
+          - zipfile_deflate64 
+          - pyarrow
     test_setup:
       - type: apt
         packages:
