@@ -2,6 +2,8 @@
 
 Extensible spatial single cell analysis pipelines for reproducible and large-scale spatial single cell processing using Viash and Nextflow.
 
+OpenPipeline Spatial extends the OpenPipeline ecosystem with specialized workflows and components for spatial transcriptomics analysis. It provides standardized, reproducible pipelines that are technology-agnostic and can be used for processing spatial omics data from various technologies and platforms, including 10x Genomics Xenium, NanoString CosMx and AtoMx, and Element Biosciences Aviti.
+
 [![ViashHub](https://img.shields.io/badge/ViashHub-openpipeline-7a4baa.svg)](https://www.viash-hub.com/packages/openpipeline_spatial)
 [![GitHub](https://img.shields.io/badge/GitHub-viash--hub%2Fopenpipeline-blue.svg)](https://github.com/openpipelines-bio/openpipeline_spatial)
 [![GitHub
@@ -10,10 +12,6 @@ License](https://img.shields.io/github/license/openpipelines-bio/openpipeline.sv
 Issues](https://img.shields.io/github/issues/openpipelines-bio/openpipeline.svg)](https://github.com/openpipelines-bio/openpipeline_spatial/issues)
 [![Viash
 version](https://img.shields.io/badge/Viash-v0.9.3-blue.svg)](https://viash.io)
-
-## Overview
-
-OpenPipeline Spatial extends the OpenPipeline ecosystem with specialized workflows and components for spatial transcriptomics analysis. It provides standardized, reproducible pipelines that are technology-agnostic and can be used for processing spatial omics data from various technologies and platforms, including 10x Genomics Xenium, NanoString CosMx and AtoMx, and Element Biosciences Aviti.
 
 ## Functionality
 
