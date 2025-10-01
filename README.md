@@ -2,14 +2,14 @@
 
 Extensible spatial single cell analysis pipelines for reproducible and large-scale spatial single cell processing using Viash and Nextflow.
 
-OpenPipeline Spatial extends the OpenPipeline ecosystem with specialized workflows and components for spatial transcriptomics analysis. It provides standardized, reproducible pipelines that are technology-agnostic and can be used for processing spatial omics data from various technologies and platforms, including 10x Genomics Xenium, NanoString CosMx and AtoMx, and Element Biosciences Aviti.
+OpenPipeline Spatial extends the [OpenPipeline](https://github.com/openpipelines-bio/openpipeline/) ecosystem with specialized workflows and components for spatial transcriptomics analysis. It provides standardized, reproducible pipelines that are technology-agnostic and can be used for processing spatial omics data from various technologies and platforms.
 
-[![ViashHub](https://img.shields.io/badge/ViashHub-openpipeline-7a4baa.svg)](https://www.viash-hub.com/packages/openpipeline_spatial)
-[![GitHub](https://img.shields.io/badge/GitHub-viash--hub%2Fopenpipeline-blue.svg)](https://github.com/openpipelines-bio/openpipeline_spatial)
+[![ViashHub](https://img.shields.io/badge/ViashHub-openpipeline_spatial-7a4baa.svg)](https://www.viash-hub.com/packages/openpipeline_spatial)
+[![GitHub](https://img.shields.io/badge/GitHub-viash--hub%2Fopenpipeline_spatial-blue.svg)](https://github.com/openpipelines-bio/openpipeline_spatial)
 [![GitHub
-License](https://img.shields.io/github/license/openpipelines-bio/openpipeline.svg)](https://github.com/openpipelines-bio/openpipeline_spatial/blob/main/LICENSE)
+License](https://img.shields.io/github/license/openpipelines-bio/openpipeline_spatial.svg)](https://github.com/openpipelines-bio/openpipeline_spatial/blob/main/LICENSE)
 [![GitHub
-Issues](https://img.shields.io/github/issues/openpipelines-bio/openpipeline.svg)](https://github.com/openpipelines-bio/openpipeline_spatial/issues)
+Issues](https://img.shields.io/github/issues/openpipelines-bio/openpipeline_spatial.svg)](https://github.com/openpipelines-bio/openpipeline_spatial/issues)
 [![Viash
 version](https://img.shields.io/badge/Viash-v0.9.3-blue.svg)](https://viash.io)
 
@@ -20,13 +20,13 @@ OpenPipeline Spatial executes a list of predefined tasks specifically designed f
 The following spatial-specific workflows are provided:
 
 - [Ingestion](https://www.viash-hub.com/packages/openpipeline_spatial/latest/components?search=mapping): Whereas many technologies generate count matrices on-instrument, functionality is provided for the mapping & quantification of 10X Visum data.
-- [Interoperability](https://www.viash-hub.com/packages/openpipeline_spatial/latest/components?search=convert): To make sure all spatial workflows are technology-agnostic, functionality is provided to convert count matrices from different technologies into a common format (H5Mu). In addition, functionality is provided to convert between various Spatial data formats (e.g. Seurat, SpatialExperiment, MuData, SpatialData).
+- [Interoperability](https://www.viash-hub.com/packages/openpipeline_spatial/latest/components?search=convert): To make sure all spatial workflows are technology-agnostic, functionality is provided to convert count matrices from different technologies (e.g. Xenium, CosMx, AtoMx, Aviti) into a common format (H5MU). In addition, functionality is provided to convert between various Spatial data formats (e.g. Seurat, SpatialExperiment, MuData, SpatialData).
 - [QC](https://www.viash-hub.com/packages/openpipeline_spatial/latest/components?search=spatial_qc): Calculation of comprehensive quality control metrics.
 - [Sample Processing](https://www.viash-hub.com/packages/openpipeline_spatial/latest/components?search=spatial_process_samples): Batch processing of multiple spatial samples, including count-based filtering, normalisation and dimensionality reduction.
 
 ## Extended functionality
 
-Whereas this package only provides spatial-specific functionality, it is designed to work seamlessly with the core OpenPipeline package. This means that all core OpenPipeline workflows and components can be used in conjunction with the spatial-specific ones. For example, the **integration** and **cell type annotation** workflows can be applied to spatial data after it has been processed using the spatial-specific workflows.
+Whereas this package only provides spatial-specific functionality, it is designed to work seamlessly with the core [OpenPipeline package](https://github.com/openpipelines-bio/openpipeline/). This means that all core OpenPipeline workflows and components can be used in conjunction with the spatial-specific ones. For example, the [**integration**](https://www.viash-hub.com/packages/openpipeline/latest/components?search=workflows%2Fintegration) and [**cell type annotation**](https://www.viash-hub.com/packages/openpipeline/latest/components?search=workflows%2Fannotation) workflows can be applied to spatial data after it has been processed using the spatial-specific workflows.
 
 ``` mermaid lang="mermaid"
 flowchart LR
@@ -52,4 +52,4 @@ It’s possible to run the workflow directly from Seqera Cloud. The necessary Ne
 * Fill in the form with the required parameters and launch the workflow.
 
 ## Support
-For issues specific to spatial analysis, please use the GitHub issues tracker. For general OpenPipeline questions, refer to the main OpenPipeline documentation.
+For issues specific to spatial analysis, please use the [GitHub issues tracker](https://github.com/openpipelines-bio/openpipeline_spatial/issues). For general OpenPipeline questions, refer to the main [OpenPipeline documentation](https://openpipelines.bio/).
