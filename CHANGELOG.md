@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## MINOR CHANGES
+
+* Add a README (PR #21).
+
 ## NEW FUNCTIONALITY
 
 * `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19).
