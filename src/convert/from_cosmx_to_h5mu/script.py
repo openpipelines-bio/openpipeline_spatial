@@ -2,11 +2,12 @@ import sys
 import os
 import squidpy as sq
 import mudata as mu
-import glob
+import zipfile
+from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "./resources_test/cosmx/Lung5_Rep2_tiny",
+    "input": "./resources_test/cosmx/Lung5_Rep2_tiny.zip",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
     "modality": "rna",
     "output_compression": None,
@@ -16,28 +17,57 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from unzip_archived_folder import extract_selected_files_from_zip
 
 logger = setup_logger()
 
 
-def find_matrix_file(suffix):
-    pattern = os.path.join(par["input"], f"*{suffix}")
-    files = glob.glob(pattern)
-    assert len(files) == 1, (
-        f"Only one file matching pattern {pattern} should be present"
+def retrieve_input_data(cosmx_output_bundle):
+    # Expected folder structure (showing only relevant files):
+    # ├── *_exprMat_file.csv
+    # ├── *_fov_positions_file.csv
+    # └── *_metadata_file.csv
+
+    required_file_patterns = {
+        "counts_file": "**/*exprMat_file.csv",
+        "fov_file": "**/*fov_positions_file.csv",
+        "meta_file": "**/*metadata_file.csv",
+    }
+    if zipfile.is_zipfile(cosmx_output_bundle):
+        cosmx_output_bundle = extract_selected_files_from_zip(
+            cosmx_output_bundle, members=required_file_patterns.values()
+        )
+    else:
+        cosmx_output_bundle = Path(cosmx_output_bundle)
+
+    assert os.path.isdir(cosmx_output_bundle), (
+        "Input is expected to be a (compressed) directory."
     )
-    return files[0]
+
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(cosmx_output_bundle.glob(pattern))
+        assert len(file) == 1, f"Expected one file for {key}, found {len(file)}."
+        input_data[key] = file[0]
+
+    return input_data
 
 
-counts_file = find_matrix_file("exprMat_file.csv")
-fov_file = find_matrix_file("fov_positions_file.csv")
-meta_file = find_matrix_file("metadata_file.csv")
+def main():
+    logger.info("Reading in CosMx data...")
+    input_data = retrieve_input_data(par["input"])
 
-logger.info("Reading in CosMx data...")
-adata = sq.read.nanostring(
-    path=par["input"], counts_file=counts_file, meta_file=meta_file, fov_file=fov_file
-)
+    adata = sq.read.nanostring(
+        path=par["input"],
+        counts_file=input_data["counts_file"],
+        meta_file=input_data["meta_file"],
+        fov_file=input_data["fov_file"],
+    )
 
-logger.info("Writing output MuData object...")
-mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"], compression=par["output_compression"])
+    logger.info("Writing output MuData object...")
+    mdata = mu.MuData({par["modality"]: adata})
+    mdata.write_h5mu(par["output"], compression=par["output_compression"])
+
+
+if __name__ == "__main__":
+    main()

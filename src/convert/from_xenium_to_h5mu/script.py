@@ -3,11 +3,13 @@ from pathlib import Path
 import scanpy as sc
 import pandas as pd
 import mudata as mu
+import zipfile
 import json
+import os
 
 ## VIASH START
 par = {
-    "input": "./resources_test/xenium/xenium_tiny",
+    "input": "test/xenium_tiny.zip",
     "output": "xenium_tiny_test.h5mu",
     "output_compression": "gzip",
     "obsm_coordinates": "spatial",
@@ -19,21 +21,46 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from unzip_archived_folder import extract_selected_files_from_zip
 
 logger = setup_logger()
 
-# Expected folder structure (showing only relevant files):
-# ├── cell_feature_matrix.h5
-# ├── cells.parquet
-# ├── experiment.xenium
-# └── metrics_summary.csv
-input_dir = Path(par["input"])
-input_data = {
-    "count_matrix": input_dir / "cell_feature_matrix.h5",
-    "cells_metadata": input_dir / "cells.parquet",
-    "experiment": input_dir / "experiment.xenium",
-    "metrics_summary": input_dir / "metrics_summary.csv",
-}
+
+def _retrieve_input_data(xenium_output_bundle):
+    # Expected folder structure (showing only relevant files):
+    # ├── cell_feature_matrix.h5
+    # ├── cells.parquet
+    # ├── experiment.xenium
+    # └── metrics_summary.csv
+
+    required_file_patterns = {
+        "count_matrix": "**/cell_feature_matrix.h5",
+        "cells_metadata": "**/cells.parquet",
+        "experiment": "**/experiment.xenium",
+        "metrics_summary": "**/metrics_summary.csv",
+    }
+
+    if zipfile.is_zipfile(xenium_output_bundle):
+        xenium_output_bundle = extract_selected_files_from_zip(
+            xenium_output_bundle,
+            members=[pattern for pattern in required_file_patterns.values()],
+        )
+    else:
+        xenium_output_bundle = Path(xenium_output_bundle)
+
+    assert os.path.isdir(xenium_output_bundle), (
+        "Input is expected to be a (compressed) directory."
+    )
+
+    input_data = {}
+    for key, pattern in required_file_patterns.items():
+        file = list(xenium_output_bundle.glob(pattern))
+        assert len(file) == 1, (
+            f"Expected exactly one file matching pattern {pattern}, found {len(file)}."
+        )
+        input_data[key] = file[0]
+
+    return input_data
 
 
 def _format_cell_id_column(cell_id_column: pd.Series) -> pd.Series:
@@ -46,9 +73,7 @@ def _format_cell_id_column(cell_id_column: pd.Series) -> pd.Series:
 # Read data from Xenium output bundle
 logger.info("Reading input data...")
 
-assert all([file.exists() for file in input_data.values()]), (
-    f"Not all required input files are found. Make sure that {par['input']} contains {input_data.values()}."
-)
+input_data = _retrieve_input_data(par["input"])
 
 adata = sc.read_10x_h5(input_data["count_matrix"])
 metadata = pd.read_parquet(input_data["cells_metadata"], engine="pyarrow")
