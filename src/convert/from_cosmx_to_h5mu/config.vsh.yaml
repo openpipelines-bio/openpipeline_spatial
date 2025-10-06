@@ -1,5 +1,6 @@
 name: "from_cosmx_to_h5mu"
 namespace: "convert"
+scope: "public"
 description: |
   Converts the output from NanoString experiment into a MuData objcet.
     - `<dataset_id>_exprMat_file.csv`: File containing the counts.
