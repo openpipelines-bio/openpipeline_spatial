@@ -1,4 +1,5 @@
 name: "subset_cosmx"
+scope: private
 namespace: "filter"
 description: |
   Filters the output from NanoString experiment to keep only a subset of the fields of view.
