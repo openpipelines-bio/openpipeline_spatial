@@ -1,6 +1,6 @@
 library(anndataR)
 library(hdf5r)
-# library(Seurat)
+library(Seurat)
 
 ### VIASH START
 par <- list(
@@ -72,9 +72,22 @@ map_obs_to_metadata <- function(adata, seurat_obj, mod, assay) {
   seurat_obj <- AddMetaData(seurat_obj, mod_meta)
 }
 
-map_modality_to_assay <- function(adata, seurat_obj, mod, assay) {
+map_modality_to_assay <- function(adata, seurat_obj, assay) {
+  temp_seurat <- read_h5ad(
+    adata,
+    mode = "r",
+    as = "Seurat",
+    assay_name = assay
+  )
 
-
+  # If this is the first modality, initialize the main Seurat object
+  if (is.null(seurat_obj)) {
+    seurat_obj <- temp_seurat
+  } else {
+    # Add as additional assay to existing Seurat object
+    seurat_obj[[assay]] <- temp_seurat[[assay]]
+  }
+  seurat_obj
 }
 
 # Initialize seurat object
@@ -88,43 +101,31 @@ if (length(par$modality) != length(par$assay)) {
 
 # Loop through modalities and assays
 for (i in seq_along(par$modality)) {
-  cat("Processing modality:", par$modality[i], "as assay:", par$assay[i], "\n")
+  mod <- par$modality[i]
+  assay <- par$assay[i]
+  cat("Processing modality:", mod, "as assay:", assay, "\n")
 
   # Read the specific modality from h5mu file
-  adata_path <- h5mu_to_h5ad(par$input, par$modality[i])
-  adata <- read_h5ad(adata_path, mode = "r+")
+  adata_path <- h5mu_to_h5ad(par$input, mod)
+  adata <- read_h5ad(adata_path, mode = "r")
 
-  # Check dimensions
-  # Modalities with dimension 0 will be added later
+  # Check dimensions: modalities with dimension 0 will be added later
   if (has_zero_dimension(adata)) {
     if (adata$shape()[1] == 0) {
-      cat("Skipping modality", par$modality[i], "- has zero observations\n")
+      cat("Skipping modality", mod, "- has zero observations\n")
     } else {
       cat(
         "Modality",
-        par$modality[i],
+        mod,
         "has zero features - moving to metadata\n"
       )
-      modalities_to_metadata[[par$modality[i]]] <- par$assay[i]
+      modalities_to_metadata[[mod]] <- assay
     }
     next
   }
 
   # Convert to Seurat assay
-  temp_seurat <- read_h5ad(
-    adata_path,
-    mode = "r",
-    as = "Seurat",
-    assay_name = par$assay[i]
-  )
-
-  # If this is the first modality, initialize the main Seurat object
-  if (is.null(seurat_obj)) {
-    seurat_obj <- temp_seurat
-  } else {
-    # Add as additional assay to existing Seurat object
-    seurat_obj[[par$assay[i]]] <- temp_seurat[[par$assay[i]]]
-  }
+  seurat_obj <- map_modality_to_assay(adata_path, seurat_obj, assay)
 }
 
 if (is.null(seurat_obj)) {
