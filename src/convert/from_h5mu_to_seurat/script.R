@@ -63,8 +63,7 @@ map_obs_to_metadata <- function(adata, seurat_obj, mod, assay) {
     stop(paste0(
       "Not all cells in the adata modality", mod,
       "are present in the Seurat object."
-    )
-    )
+    ))
   }
   mod_meta <- mod_meta[match(cells, obs_names), , drop = FALSE]
   rownames(mod_meta) <- cells
