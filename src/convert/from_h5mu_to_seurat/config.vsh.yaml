@@ -1,0 +1,65 @@
+name: "from_h5mu_to_seurat"
+namespace: "convert"
+scope: "public"
+description: |
+  Converts an h5ad file or a single modality of an h5mu file into a Seurat file.
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ author, maintainer ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input h5ad or h5mu file
+    direction: input
+    required: true
+    example: input.h5ad
+  - name: "--modality"
+    type: string
+    default: ["rna"]
+    multiple: true
+    example: ["rna", "prot", "vdj"]
+    required: false
+    description: Modality to be converted if the input file is an h5mu file.
+  - name: "--assay"
+    type: string
+    default: ["RNA"]
+    multiple: true
+    example: ["RNA", "ADT", "VDJ"]
+    description: |
+      Name of the assay to be created.
+      Order should match the order of the --modalities.
+      If layer dimensions of a modality are 0, the modality will be moved to the metadata instead of an assay.
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: Output Seurat file
+    direction: output
+    required: true
+    example: output.rds
+resources:
+  - type: r_script
+    path: script.R
+test_resources:
+  - type: r_script
+    path: test.R
+  - path: /resources_test_sc/pbmc_1k_protein_v3/
+  - path: /resources_test_sc/10x_5k_anticmv/
+engines:
+  - type: docker
+    image: rocker/r2u:22.04
+    setup:
+      - type: apt
+        packages: [ libhdf5-dev, libgeos-dev, hdf5-tools ]
+      - type: r
+        cran: [ anndata, hdf5r, Seurat, SeuratObject ]
+        github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
+        bioc: [ rhdf5]
+    test_setup:
+      - type: r
+        cran: [ testthat ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
