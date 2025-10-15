@@ -25,6 +25,7 @@ out/
 output*
 output_log/
 resources_test
+resources_test_sc
 /viash_tools/
 /test/
 
