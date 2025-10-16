@@ -100,11 +100,12 @@ vdj_t_cols <- c(
   "TCR_IR_VJ_1_j_call", "TCR_IR_VJ_2_j_call", "TCR_IR_VDJ_1_j_call",
   "TCR_IR_VDJ_2_j_call", "TCR_IR_VJ_1_junction", "TCR_IR_VJ_2_junction",
   "TCR_IR_VDJ_1_junction", "TCR_IR_VDJ_2_junction", "TCR_IR_VJ_1_junction_aa",
-  "TCR_IR_VJ_2_junction_aa", "TCR_IR_VDJ_1_junction_aa", "TCR_IR_VDJ_2_junction_aa",
-  "TCR_IR_VJ_1_locus", "TCR_IR_VJ_2_locus", "TCR_IR_VDJ_1_locus",
-  "TCR_IR_VDJ_2_locus", "TCR_IR_VJ_1_productive", "TCR_IR_VJ_2_productive",
-  "TCR_IR_VDJ_1_productive", "TCR_IR_VDJ_2_productive", "TCR_IR_VJ_1_v_call",
-  "TCR_IR_VJ_2_v_call", "TCR_IR_VDJ_1_v_call", "TCR_IR_VDJ_2_v_call", "TCR_has_ir"
+  "TCR_IR_VJ_2_junction_aa", "TCR_IR_VDJ_1_junction_aa",
+  "TCR_IR_VDJ_2_junction_aa", "TCR_IR_VJ_1_locus", "TCR_IR_VJ_2_locus",
+  "TCR_IR_VDJ_1_locus", "TCR_IR_VDJ_2_locus", "TCR_IR_VJ_1_productive",
+  "TCR_IR_VJ_2_productive", "TCR_IR_VDJ_1_productive",
+  "TCR_IR_VDJ_2_productive", "TCR_IR_VJ_1_v_call", "TCR_IR_VJ_2_v_call",
+  "TCR_IR_VDJ_1_v_call", "TCR_IR_VDJ_2_v_call", "TCR_has_ir"
 )
 obs_cols <- c("orig.ident", "nCount_RNA", "nFeature_RNA")
 

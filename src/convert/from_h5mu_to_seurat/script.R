@@ -72,7 +72,7 @@ map_obs_to_metadata <- function(adata, seurat_obj, mod, assay) {
 }
 
 map_modality_to_assay <- function(adata, seurat_obj, assay) {
-  temp_seurat <- anndatar::read_h5ad(
+  temp_seurat <- anndataR::read_h5ad(
     adata,
     mode = "r",
     as = "Seurat",
