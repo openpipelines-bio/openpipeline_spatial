@@ -3,7 +3,7 @@ from pathlib import Path
 import scanpy as sc
 import pandas as pd
 import mudata as mu
-import zipfile
+import zipfile_inflate64 as zipfile
 import json
 import os
 

@@ -2,7 +2,7 @@ import sys
 import os
 import squidpy as sq
 import mudata as mu
-import zipfile
+import zipfile_inflate64 as zipfile
 from pathlib import Path
 
 ## VIASH START
