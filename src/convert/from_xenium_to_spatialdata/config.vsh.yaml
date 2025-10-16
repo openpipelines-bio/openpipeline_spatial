@@ -92,11 +92,11 @@ engines:
           - procps
           - build-essential
           - zlib1g-dev
+          - git
       - type: python
-        packages:
-          # Windows explorer uses DEFLATE64 compression for large ZIP files,
-          # which is not supported by most standard library zipfile module
-          - zipfile_deflate64 
+        # Windows explorer uses DEFLATE64 compression for large ZIP files,
+        # which is not supported by most standard library zipfile module
+        git: [ https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2 ]
         __merge__: [ /src/base/requirements/spatialdata-io.yaml, . ]
     test_setup:
       - type: apt

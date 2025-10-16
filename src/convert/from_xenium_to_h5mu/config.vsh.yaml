@@ -58,6 +58,7 @@ engines:
           - procps
           - build-essential
           - zlib1g-dev
+          - git
       - type: python
         __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/scanpy.yaml, .]
         packages: [ pyarrow ]
