@@ -23,7 +23,7 @@ info:
       dest: resources_test
     - type: s3
       path: s3://openpipelines-data
-      dest: resources_test_sc
+      dest: resources_test
 
 config_mods: |
   .resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}

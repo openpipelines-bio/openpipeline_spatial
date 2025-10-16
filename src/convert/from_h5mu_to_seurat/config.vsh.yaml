@@ -43,8 +43,8 @@ resources:
 test_resources:
   - type: r_script
     path: test.R
-  - path: /resources_test_sc/pbmc_1k_protein_v3/
-  - path: /resources_test_sc/10x_5k_anticmv/
+  - path: /resources_test/pbmc_1k_protein_v3/
+  - path: /resources_test/10x_5k_anticmv/
 engines:
   - type: docker
     image: rocker/r2u:22.04

@@ -5,7 +5,7 @@ library(hdf5r)
 ## VIASH START
 meta <- list(
   executable = "target/executable/convert/from_h5ad_to_seurat",
-  resources_dir = "resources_test_sc",
+  resources_dir = "resources_test",
   name = "from_h5ad_to_seurat"
 )
 ## VIASH END

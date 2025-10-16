@@ -4,8 +4,8 @@ library(Seurat)
 
 ### VIASH START
 par <- list(
-  input = "resources_test_sc/10x_5k_anticmv/5k_human_antiCMV_T_TBNK_connect.h5mu",
-  output = "resources_test_sc/10x_5k_anticmv/5k_human_antiCMV_T_TBNK_connect.rds",
+  input = "./5k_human_antiCMV_T_TBNK_connect.h5mu",
+  output = "./5k_human_antiCMV_T_TBNK_connect.rds",
   assay = c("RNA", "ADT", "TCR"),
   modality = c("rna", "prot", "vdj_t")
 )
@@ -68,11 +68,11 @@ map_obs_to_metadata <- function(adata, seurat_obj, mod, assay) {
   mod_meta <- mod_meta[match(cells, obs_names), , drop = FALSE]
   rownames(mod_meta) <- cells
 
-  seurat_obj <- AddMetaData(seurat_obj, mod_meta)
+  seurat_obj <- Seurat::AddMetaData(seurat_obj, mod_meta)
 }
 
 map_modality_to_assay <- function(adata, seurat_obj, assay) {
-  temp_seurat <- read_h5ad(
+  temp_seurat <- anndatar::read_h5ad(
     adata,
     mode = "r",
     as = "Seurat",
@@ -128,7 +128,10 @@ for (i in seq_along(par$modality)) {
 }
 
 if (is.null(seurat_obj)) {
-  stop("No valid modalities found to create a Seurat object. At least one modality must have non-zero dimensions.")
+  stop(
+    "No valid modalities found to create a Seurat object.",
+    "At least one modality must have non-zero dimensions."
+  )
 }
 
 for (mod in names(modalities_to_metadata)) {
