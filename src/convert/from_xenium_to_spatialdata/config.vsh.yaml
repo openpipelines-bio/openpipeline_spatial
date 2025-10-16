@@ -1,5 +1,6 @@
 name: "from_xenium_to_spatialdata"
 namespace: "convert"
+scope: "public"
 description: |
   Converts the output from 10X Genomics Xenium dataset into a SpatialData objcet.
   By default, the following files will be converted:

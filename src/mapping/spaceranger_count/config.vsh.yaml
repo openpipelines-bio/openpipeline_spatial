@@ -1,5 +1,6 @@
 name: spaceranger_count
 namespace: mapping
+scope: public
 description: Count gene expression and protein expression reads from a single capture area.
 keywords: [spaceranger]
 links:

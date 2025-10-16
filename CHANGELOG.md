@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## MINOR CHANGES
+
+* Add `scope` to component and workflow configurations (PR #22).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
