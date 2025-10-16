@@ -6,7 +6,7 @@ import mudata as mu
 import anndata as ad
 import re
 import json
-import zipfile
+import zipfile_inflate64 as zipfile
 import os
 
 ## VIASH START

@@ -1,6 +1,6 @@
 import sys
 from spatialdata_io import xenium
-import zipfile
+import zipfile_inflate64 as zipfile
 from pathlib import Path
 
 ## VIASH START

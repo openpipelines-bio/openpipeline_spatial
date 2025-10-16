@@ -450,17 +450,18 @@ function ViashDockerfile {
 FROM python:3.12-slim
 ENTRYPOINT []
 RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y procps && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y procps build-essential zlib1g-dev git && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata~=0.4.1rc" "spatialdata-io~=0.2.0"
+  pip install --upgrade --no-cache-dir "spatialdata~=0.4.1rc" "spatialdata-io~=0.2.0" && \
+  pip install --upgrade --no-cache-dir "git+https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2"
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialdata"
-LABEL org.opencontainers.image.created="2025-10-16T08:32:53Z"
+LABEL org.opencontainers.image.created="2025-10-16T08:39:14Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="664c73acb12893a3d412b049ac049c2509b970fe"
+LABEL org.opencontainers.image.revision="0012682a669cfb1e7900136a00c383aef8f34c37"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1329,7 +1330,7 @@ trap interrupt INT SIGINT
 cat > "\$tempscript" << 'VIASHMAIN'
 import sys
 from spatialdata_io import xenium
-import zipfile
+import zipfile_inflate64 as zipfile
 from pathlib import Path
 
 ## VIASH START

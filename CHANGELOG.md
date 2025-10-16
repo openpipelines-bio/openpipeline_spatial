@@ -12,7 +12,7 @@
 
 ## NEW FUNCTIONALITY
 
-* `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19).
+* `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
 
 # openpipeline_spatial 0.1.0
 

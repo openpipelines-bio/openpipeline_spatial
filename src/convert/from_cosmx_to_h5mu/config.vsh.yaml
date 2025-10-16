@@ -54,8 +54,15 @@ engines:
       - type: apt
         packages: 
           - procps
+          - build-essential
+          - zlib1g-dev
+          - git
       - type: python
-        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/squidpy.yaml]
+        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/squidpy.yaml, .]
+        packages: [ pyarrow ]
+        # Windows explorer uses DEFLATE64 compression for large ZIP files,
+        # which is not supported by most standard library zipfile module
+        git: [ https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2 ]
     test_setup:
       - type: apt
         packages:
