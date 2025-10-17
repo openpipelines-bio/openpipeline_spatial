@@ -2,49 +2,73 @@ name: "from_h5mu_to_seurat"
 namespace: "convert"
 scope: "public"
 description: |
-  Converts an h5ad file or a single modality of an h5mu file into a Seurat file.
+  Converts an h5ad file or a single modality of an h5mu file into a Seurat file with a Field of View (FOV) field, 
+  storing coordinates of spatially-resolved single cells based on centroid coordinates.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ author, maintainer ]
-arguments:
-  - name: "--input"
-    alternatives: ["-i"]
-    type: file
-    description: Input h5ad or h5mu file
-    direction: input
-    required: true
-    example: input.h5ad
-  - name: "--modality"
-    type: string
-    default: ["rna"]
-    multiple: true
-    example: ["rna", "prot", "vdj"]
-    required: false
-    description: Modality to be converted if the input file is an h5mu file.
-  - name: "--assay"
-    type: string
-    default: ["RNA"]
-    multiple: true
-    example: ["RNA", "ADT", "VDJ"]
-    description: |
-      Name of the assay to be created.
-      Order should match the order of the --modalities.
-      If layer dimensions of a modality are 0, the modality will be moved to the metadata instead of an assay.
-  - name: "--output"
-    alternatives: ["-o"]
-    type: file
-    description: Output Seurat file
-    direction: output
-    required: true
-    example: output.rds
+argument_groups:
+  - name: Inputs
+    arguments:
+    - name: "--input"
+      alternatives: ["-i"]
+      type: file
+      description: Input h5ad or h5mu file
+      direction: input
+      required: true
+      example: input.h5ad
+    - name: "--modality"
+      type: string
+      default: "rna"
+      required: true
+      description: Modality to be converted if the input file is an h5mu file.
+    - name: "--obsm_centroid_coordinates"
+      type: string
+      description: |
+        Key name of the .obsm slot in the input file that contains the spatial (centroid) coordinates.
+        If not provided, no Field of View (FOV) will be created in the Seurat object.
+  - name: Centroid arguments
+    arguments:
+    - name: "--centroid_nsides"
+      type: integer
+      required: false
+      description: |
+        Number of sides of the polygon to be created around each centroid coordinate to represent the cell shape.
+        If not provided, circles will be created.
+    - name: "--centroid_radius"
+      type: double
+      required: false
+      description: |
+        Radius of the shape around each centroid coordinate to represent the cell shape.
+        If not provided, a default radius will be calculated based on the provided centroid coordinates.
+    - name: "--centroid_theta"
+      type: double
+      required: false
+      description: |
+        Angle to adjust the shapes around each centroid when plotting.
+        If not provided, no adjustment will be made (theta = 0)
+  - name: Outputs
+    arguments:
+    - name: "--output"
+      alternatives: ["-o"]
+      type: file
+      description: Output Seurat file
+      direction: output
+      required: true
+      example: output.rds
+    - name: "--assay"
+      type: string
+      default: "RNA"
+      description: Name of the assay to be created.
 resources:
   - type: r_script
     path: script.R
 test_resources:
   - type: r_script
     path: test.R
-  - path: /resources_test_op/pbmc_1k_protein_v3/
-  - path: /resources_test_op/10x_5k_anticmv/
+  - path: /resources_test/aviti/aviti_teton_tiny.h5mu
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
+  - path: /resources_test/xenium/xenium_tiny_processed.h5mu
 engines:
   - type: docker
     image: rocker/r2u:22.04
@@ -52,9 +76,8 @@ engines:
       - type: apt
         packages: [ libhdf5-dev, libgeos-dev, hdf5-tools ]
       - type: r
-        cran: [ anndata, hdf5r, Matrix, SeuratObject, Seurat ]
+        cran: [ anndata, hdf5r, Seurat, SeuratObject ]
         github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
-        bioc: [ rhdf5]
     test_setup:
       - type: r
         cran: [ testthat ]

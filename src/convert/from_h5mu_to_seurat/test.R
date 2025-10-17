@@ -1,21 +1,22 @@
 library(testthat, warn.conflicts = FALSE)
 library(hdf5r)
-
+library(Seurat)
 
 ## VIASH START
 meta <- list(
-  executable = "target/executable/convert/from_h5ad_to_seurat",
-  resources_dir = "op_resources_test",
-  name = "from_h5ad_to_seurat"
+  executable = "target/executable/convert/from_h5ad_to_spatial_seurat",
+  resources_dir = "resources_test",
+  name = "from_h5ad_to_spatial_seurat"
 )
 ## VIASH END
 
-## Simple conversion
-cat("> Checking conversion of single-modality of h5mu file\n")
+
+# ---- No FOV ----------------------------------------------------------
+cat("> Test conversion without adding FOV\n")
 
 in_h5mu <- paste0(
   meta[["resources_dir"]],
-  "/pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu"
+  "/xenium_tiny_processed.h5mu"
 )
 out_rds <- "output.rds"
 
@@ -24,49 +25,9 @@ out <- processx::run(
   meta[["executable"]],
   c(
     "--input", in_h5mu,
-    "--output", out_rds
-  )
-)
-
-cat("> Checking whether output file exists\n")
-expect_equal(out$status, 0)
-expect_true(file.exists(out_rds))
-
-cat("> Reading output file\n")
-obj <- readRDS(file = out_rds)
-
-cat("> Checking whether Seurat object is in the right format\n")
-expect_is(obj, "Seurat")
-expect_equal(names(slot(obj, "assays")), "RNA")
-
-dim_rds <- dim(obj)
-mu_in <- H5File$new(in_h5mu, mode = "r")
-dim_ad <- mu_in[["/mod/rna/X"]]$attr_open("shape")$read()
-
-expect_equal(dim_rds[1], dim_ad[2])
-expect_equal(dim_rds[2], dim_ad[1])
-
-## Multi-modal conversion
-cat("> Checking conversion of multi-modal h5mu file\n")
-
-in_h5mu <- paste0(
-  meta[["resources_dir"]],
-  "/10x_5k_anticmv/5k_human_antiCMV_T_TBNK_connect.h5mu"
-)
-out_rds <- "output.rds"
-
-cat("> Running ", meta[["name"]], "\n", sep = "")
-out <- processx::run(
-  meta[["executable"]],
-  c(
-    "--input", in_h5mu,
+    "--output", out_rds,
     "--modality", "rna",
-    "--modality", "prot",
-    "--modality", "vdj_t",
-    "--assay", "RNA",
-    "--assay", "ADT",
-    "--assay", "TCR",
-    "--output", out_rds
+    "--assay", "Xenium"
   )
 )
 
@@ -76,38 +37,167 @@ expect_true(file.exists(out_rds))
 
 cat("> Reading output file\n")
 obj <- readRDS(file = out_rds)
+adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
 
 cat("> Checking whether Seurat object is in the right format\n")
-expect_is(obj, "Seurat")
-expect_true(all(names(slot(obj, "assays")) %in% c("RNA", "ADT")))
+expect_equal(Assays(obj), "Xenium")
+expect_true(all(Layers(obj) == c("counts", "log_normalized")))
 
 dim_rds <- dim(obj)
-mu_in <- H5File$new(in_h5mu, mode = "r")
-dim_ad <- mu_in[["/mod/rna/X"]]$attr_open("shape")$read()
+dim_ad <- adata$attr_open("shape")$read()
 
 expect_equal(dim_rds[1], dim_ad[2])
 expect_equal(dim_rds[2], dim_ad[1])
 
-vdj_t_cols <- c(
-  "TCR_is_cell", "TCR_high_confidence", "TCR_multi_chain", "TCR_extra_chains",
-  "TCR_IR_VJ_1_c_call", "TCR_IR_VJ_2_c_call", "TCR_IR_VDJ_1_c_call",
-  "TCR_IR_VDJ_2_c_call", "TCR_IR_VJ_1_consensus_count",
-  "TCR_IR_VJ_2_consensus_count", "TCR_IR_VDJ_1_consensus_count",
-  "TCR_IR_VDJ_2_consensus_count", "TCR_IR_VJ_1_d_call",
-  "TCR_IR_VJ_2_d_call", "TCR_IR_VDJ_1_d_call", "TCR_IR_VDJ_2_d_call",
-  "TCR_IR_VJ_1_duplicate_count", "TCR_IR_VJ_2_duplicate_count",
-  "TCR_IR_VDJ_1_duplicate_count", "TCR_IR_VDJ_2_duplicate_count",
-  "TCR_IR_VJ_1_j_call", "TCR_IR_VJ_2_j_call", "TCR_IR_VDJ_1_j_call",
-  "TCR_IR_VDJ_2_j_call", "TCR_IR_VJ_1_junction", "TCR_IR_VJ_2_junction",
-  "TCR_IR_VDJ_1_junction", "TCR_IR_VDJ_2_junction", "TCR_IR_VJ_1_junction_aa",
-  "TCR_IR_VJ_2_junction_aa", "TCR_IR_VDJ_1_junction_aa",
-  "TCR_IR_VDJ_2_junction_aa", "TCR_IR_VJ_1_locus", "TCR_IR_VJ_2_locus",
-  "TCR_IR_VDJ_1_locus", "TCR_IR_VDJ_2_locus", "TCR_IR_VJ_1_productive",
-  "TCR_IR_VJ_2_productive", "TCR_IR_VDJ_1_productive",
-  "TCR_IR_VDJ_2_productive", "TCR_IR_VJ_1_v_call", "TCR_IR_VJ_2_v_call",
-  "TCR_IR_VDJ_1_v_call", "TCR_IR_VDJ_2_v_call", "TCR_has_ir"
-)
-obs_cols <- c("orig.ident", "nCount_RNA", "nFeature_RNA")
+expect_false("fov" %in% names(obj))
 
-expect_true(all(vdj_t_cols %in% colnames(obj@meta.data)))
-expect_true(all(obs_cols %in% colnames(obj@meta.data)))
+# # ---- Xenium ----------------------------------------------------------
+cat("> Test conversion Xenium\n")
+
+in_h5mu <- paste0(
+  meta[["resources_dir"]],
+  "/xenium_tiny_processed.h5mu"
+)
+out_rds <- "output.rds"
+
+cat("> Running ", meta[["name"]], "\n", sep = "")
+out <- processx::run(
+  meta[["executable"]],
+  c(
+    "--input", in_h5mu,
+    "--output", out_rds,
+    "--modality", "rna",
+    "--assay", "Xenium",
+    "--obsm_centroid_coordinates", "spatial"
+  )
+)
+
+cat("> Checking whether output file exists\n")
+expect_equal(out$status, 0)
+expect_true(file.exists(out_rds))
+
+cat("> Reading output file\n")
+obj <- readRDS(file = out_rds)
+adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
+
+cat("> Checking whether Seurat object is in the right format\n")
+expect_equal(Assays(obj), "Xenium")
+expect_true(all(Layers(obj) == c("counts", "log_normalized")))
+
+dim_rds <- dim(obj)
+dim_ad <- adata$attr_open("shape")$read()
+
+expect_equal(dim_rds[1], dim_ad[2])
+expect_equal(dim_rds[2], dim_ad[1])
+
+cat("> Checking FOV object\n")
+expect_true("fov" %in% names(obj))
+expect_true("fov" %in% Images(obj))
+
+fov <- obj[["fov"]]
+expect_equal(fov@assay, "Xenium")
+expect_equal(fov@key, "Xenium_")
+
+centroids <- fov@boundaries$centroids
+expect_equal(nrow(centroids@coords), dim_rds[2])
+
+centroid_coords <- centroids@coords
+expect_true(is.numeric(centroid_coords[, 1]))
+expect_true(is.numeric(centroid_coords[, 2]))
+expect_false(any(is.na(centroid_coords)))
+
+# # ---- Xenium with args-------------------------------------------------
+cat("> Test conversion Xenium with centroid arguments\n")
+
+in_h5mu <- paste0(
+  meta[["resources_dir"]],
+  "/xenium_tiny_processed.h5mu"
+)
+out_rds <- "output.rds"
+
+cat("> Running ", meta[["name"]], "\n", sep = "")
+out <- processx::run(
+  meta[["executable"]],
+  c(
+    "--input", in_h5mu,
+    "--output", out_rds,
+    "--modality", "rna",
+    "--assay", "Xenium",
+    "--obsm_centroid_coordinates", "spatial",
+    "--centroid_nsides", "8",
+    "--centroid_radius", "3",
+    "--centroid_theta", "0.1"
+  )
+)
+
+cat("> Checking whether output file exists\n")
+expect_equal(out$status, 0)
+expect_true(file.exists(out_rds))
+
+cat("> Reading output file\n")
+obj <- readRDS(file = out_rds)
+adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
+
+cat("> Checking FOV object\n")
+fov <- obj[["fov"]]
+centroids <- fov@boundaries$centroids
+expect_equal(centroids@nsides, 8)
+expect_equal(centroids@radius, 3)
+expect_equal(centroids@theta, 0.1)
+
+
+# ---- CosMx ----------------------------------------------------------
+
+cat("> Test conversion CosMx\n")
+
+in_h5mu <- paste0(
+  meta[["resources_dir"]],
+  "/Lung5_Rep2_tiny.h5mu"
+)
+out_rds <- "output.rds"
+
+cat("> Running ", meta[["name"]], "\n", sep = "")
+out <- processx::run(
+  meta[["executable"]],
+  c(
+    "--input", in_h5mu,
+    "--output", out_rds,
+    "--modality", "rna",
+    "--assay", "CosMx",
+    "--obsm_centroid_coordinates", "spatial"
+  )
+)
+
+cat("> Checking whether output file exists\n")
+expect_equal(out$status, 0)
+expect_true(file.exists(out_rds))
+
+cat("> Reading output file\n")
+obj <- readRDS(file = out_rds)
+adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
+
+cat("> Checking whether Seurat object is in the right format\n")
+expect_equal(Assays(obj), "CosMx")
+expect_true(all(Layers(obj) == c("counts")))
+
+dim_rds <- dim(obj)
+dim_ad <- adata$attr_open("shape")$read()
+
+expect_equal(dim_rds[1], dim_ad[2])
+expect_equal(dim_rds[2], dim_ad[1])
+
+cat("> Checking FOV object\n")
+expect_true("fov" %in% names(obj))
+expect_true("fov" %in% Images(obj))
+
+fov <- obj[["fov"]]
+expect_equal(fov@assay, "CosMx")
+expect_equal(fov@key, "CosMx_")
+
+centroids <- fov@boundaries$centroids
+expect_equal(nrow(centroids@coords), dim_rds[2])
+
+centroid_coords <- centroids@coords
+expect_true(is.numeric(centroid_coords[, 1]))
+expect_true(is.numeric(centroid_coords[, 2]))
+expect_false(any(is.na(centroid_coords)))

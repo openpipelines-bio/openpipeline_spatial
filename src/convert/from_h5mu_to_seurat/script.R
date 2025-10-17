@@ -4,12 +4,17 @@ library(Seurat)
 
 ### VIASH START
 par <- list(
-  input = "./5k_human_antiCMV_T_TBNK_connect.h5mu",
-  output = "./5k_human_antiCMV_T_TBNK_connect.rds",
-  assay = c("RNA", "ADT", "TCR"),
-  modality = c("rna", "prot", "vdj_t")
+  input = "resources_test/xenium/xenium_tiny_processed.h5mu",
+  output = "test.rds",
+  obsm_centroid_coordinates = "spatial",
+  assay = "RNA",
+  centroid_nsides = 8,
+  centroid_radius = 3,
+  centroid_theta = 0.1,
+  modality = "rna"
 )
 ### VIASH END
+
 
 h5mu_to_h5ad <- function(h5mu_path, modality_name) {
   tmp_path <- tempfile(fileext = ".h5ad")
@@ -17,8 +22,6 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
   h5src <- hdf5r::H5File$new(h5mu_path, "r")
   h5dest <- hdf5r::H5File$new(tmp_path, "w")
   # Copy over the child objects and the child attributes from root
-  # Root cannot be copied directly because it always exists and
-  # copying does not allow overwriting.
   children <- hdf5r::list.objects(h5src,
     path = mod_location,
     full.names = FALSE, recursive = FALSE
@@ -48,96 +51,43 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
   tmp_path
 }
 
-has_zero_dimension <- function(adata) {
-  adata_dims <- adata$shape()
-  any(adata_dims == 0)
-}
+# Read in H5AD
+h5ad_path <- h5mu_to_h5ad(par$input, par$modality)
 
-map_obs_to_metadata <- function(adata, seurat_obj, mod, assay) {
-  cells <- colnames(seurat_obj)
-  mod_meta <- adata$obs
-  obs_names <- rownames(mod_meta)
-  colnames(mod_meta) <- paste0(assay, "_", make.names(colnames(mod_meta)))
+# Convert to Seurat
+seurat_obj <- read_h5ad(
+  h5ad_path,
+  mode = "r",
+  as = "Seurat",
+  assay_name = par$assay
+)
 
-  if (!all(obs_names %in% cells)) {
-    stop(paste0(
-      "Not all cells in the adata modality", mod,
-      "are present in the Seurat object."
-    ))
+# Create Centroids object
+if (!is.null(par$obsm_centroid_coordinates)) {
+  reductions <- seurat_obj@reductions[[par$obsm_centroid_coordinates]]
+  spatial_coords <- as.data.frame(reductions@cell.embeddings)
+  colnames(spatial_coords) <- c("x_coord", "y_coord")
+
+  if (is.null(par$centroid_nsides)) {
+    par$centroid_nsides <- Inf
   }
-  mod_meta <- mod_meta[match(cells, obs_names), , drop = FALSE]
-  rownames(mod_meta) <- cells
 
-  seurat_obj <- Seurat::AddMetaData(seurat_obj, mod_meta)
-}
+  if (is.null(par$centroid_theta)) {
+    par$centroid_theta <- 0L
+  }
 
-map_modality_to_assay <- function(adata, seurat_obj, assay) {
-  temp_seurat <- anndataR::read_h5ad(
-    adata,
-    mode = "r",
-    as = "Seurat",
-    assay_name = assay
+  centroids <- CreateCentroids(
+    coords = spatial_coords,
+    nsides = par$centroid_nsides,
+    radius = par$centroid_radius,
+    theta = par$centroid_theta
   )
 
-  # If this is the first modality, initialize the main Seurat object
-  if (is.null(seurat_obj)) {
-    seurat_obj <- temp_seurat
-  } else {
-    # Add as additional assay to existing Seurat object
-    seurat_obj[[assay]] <- temp_seurat[[assay]]
-  }
-  seurat_obj
+  # Create FOV object
+  fov <- CreateFOV(coords = centroids, assay = par$assay)
+  seurat_obj[["fov"]] <- fov
+  seurat_obj@reductions[[par$obsm_centroid_coordinates]] <- NULL
 }
 
-# Initialize seurat object
-seurat_obj <- NULL
-modalities_to_metadata <- list()
-
-# Check that modalities and assays have the same length
-if (length(par$modality) != length(par$assay)) {
-  stop("The number of modalities should match the number of assays.")
-}
-
-# Loop through modalities and assays
-for (i in seq_along(par$modality)) {
-  mod <- par$modality[i]
-  assay <- par$assay[i]
-  cat("Processing modality:", mod, "as assay:", assay, "\n")
-
-  # Read the specific modality from h5mu file
-  adata_path <- h5mu_to_h5ad(par$input, mod)
-  adata <- read_h5ad(adata_path, mode = "r")
-
-  # Check dimensions: modalities with dimension 0 will be added later
-  if (has_zero_dimension(adata)) {
-    if (adata$shape()[1] == 0) {
-      cat("Skipping modality", mod, "- has zero observations\n")
-    } else {
-      cat(
-        "Modality",
-        mod,
-        "has zero features - moving to metadata\n"
-      )
-      modalities_to_metadata[[mod]] <- assay
-    }
-    next
-  }
-
-  # Convert to Seurat assay
-  seurat_obj <- map_modality_to_assay(adata_path, seurat_obj, assay)
-}
-
-if (is.null(seurat_obj)) {
-  stop(
-    "No valid modalities found to create a Seurat object.",
-    "At least one modality must have non-zero dimensions."
-  )
-}
-
-for (mod in names(modalities_to_metadata)) {
-  assay <- modalities_to_metadata[[mod]]
-  cat("Moving modality", mod, "to metadata\n")
-  seurat_obj <- map_obs_to_metadata(adata, seurat_obj, mod, assay)
-}
 
 saveRDS(seurat_obj, file = par$output)
