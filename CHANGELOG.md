@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## NEW FUNCTIONALITY
+
+* `convert/from_h5mu_to_seurat`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #23).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
