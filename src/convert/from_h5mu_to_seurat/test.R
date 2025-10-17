@@ -16,7 +16,7 @@ cat("> Test conversion without adding FOV\n")
 
 in_h5mu <- paste0(
   meta[["resources_dir"]],
-  "/xenium_tiny_processed.h5mu"
+  "/xenium_tiny.h5mu"
 )
 out_rds <- "output.rds"
 
@@ -41,7 +41,7 @@ adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
 
 cat("> Checking whether Seurat object is in the right format\n")
 expect_equal(Assays(obj), "Xenium")
-expect_true(all(Layers(obj) == c("counts", "log_normalized")))
+expect_true(all(Layers(obj) == c("counts")))
 
 dim_rds <- dim(obj)
 dim_ad <- adata$attr_open("shape")$read()
@@ -56,7 +56,7 @@ cat("> Test conversion Xenium\n")
 
 in_h5mu <- paste0(
   meta[["resources_dir"]],
-  "/xenium_tiny_processed.h5mu"
+  "/xenium_tiny.h5mu"
 )
 out_rds <- "output.rds"
 
@@ -82,7 +82,7 @@ adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
 
 cat("> Checking whether Seurat object is in the right format\n")
 expect_equal(Assays(obj), "Xenium")
-expect_true(all(Layers(obj) == c("counts", "log_normalized")))
+expect_true(all(Layers(obj) == c("counts")))
 
 dim_rds <- dim(obj)
 dim_ad <- adata$attr_open("shape")$read()
@@ -111,7 +111,7 @@ cat("> Test conversion Xenium with centroid arguments\n")
 
 in_h5mu <- paste0(
   meta[["resources_dir"]],
-  "/xenium_tiny_processed.h5mu"
+  "/xenium_tiny.h5mu"
 )
 out_rds <- "output.rds"
 

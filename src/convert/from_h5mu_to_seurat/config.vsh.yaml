@@ -68,7 +68,7 @@ test_resources:
     path: test.R
   - path: /resources_test/aviti/aviti_teton_tiny.h5mu
   - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
-  - path: /resources_test/xenium/xenium_tiny_processed.h5mu
+  - path: /resources_test/xenium/xenium_tiny.h5mu
 engines:
   - type: docker
     image: rocker/r2u:22.04
