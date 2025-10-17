@@ -2,7 +2,7 @@ library(SpatialExperimentIO)
 
 ### VIASH START
 par <- list(
-  input = "output-XETG00150__0031015__slidearray0085__20241023__195946",
+  input = "resources_test/xenium/temp_dir.zip",
   add_experiment_xenium = TRUE,
   add_parquet_paths = TRUE,
   alternative_experiment_features = c(
@@ -46,9 +46,7 @@ spe <- readXeniumSXE(
   coordNames = c("x_centroid", "y_centroid"),
   addExperimentXenium = par$add_experiment_xenium,
   addParquetPaths = par$add_parquet_paths,
-  altExps = par$alternative_experiment_features,
-  addCellBound = TRUE,
-  addNucBound = TRUE
+  altExps = par$alternative_experiment_features
 )
 
 cat("Saving output...")
