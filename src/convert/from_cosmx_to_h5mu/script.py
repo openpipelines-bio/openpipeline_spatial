@@ -7,7 +7,7 @@ from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "./resources_test/cosmx/Lung5_Rep2_tiny.zip",
+    "input": "./resources_test/cosmx/Lung5_Rep2_tiny",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
     "modality": "rna",
     "output_compression": None,
@@ -50,18 +50,24 @@ def retrieve_input_data(cosmx_output_bundle):
         assert len(file) == 1, f"Expected one file for {key}, found {len(file)}."
         input_data[key] = file[0]
 
+    parent_dirs = {file.parent for file in input_data.values()}
+    assert len(parent_dirs) == 1, (
+        f"Input files are expected to be in the same directory."
+        f"Found files in {len(parent_dirs)} different directories: {parent_dirs}"
+    )
+
     return input_data
 
 
 def main():
     logger.info("Reading in CosMx data...")
-    input_data = retrieve_input_data(par["input"])
+    input_files = retrieve_input_data(par["input"])
 
     adata = sq.read.nanostring(
-        path=par["input"],
-        counts_file=input_data["counts_file"],
-        meta_file=input_data["meta_file"],
-        fov_file=input_data["fov_file"],
+        path=input_files["counts_file"].parent,
+        counts_file=input_files["counts_file"].name,
+        meta_file=input_files["meta_file"].name,
+        fov_file=input_files["fov_file"].name,
     )
 
     logger.info("Writing output MuData object...")
