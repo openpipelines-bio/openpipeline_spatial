@@ -4,6 +4,8 @@
 
 * Add `scope` to component and workflow configurations (PR #22).
 
+* Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
