@@ -3392,8 +3392,9 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "spatialdata~=0.4.1rc",
-            "spatialdata-io~=0.2.0"
+            "spatialdata-io~=0.3.0",
+            "spatialdata~=0.5.0",
+            "pyarrow~=18.0.0"
           ],
           "git" : [
             "https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2"
@@ -3436,7 +3437,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialdata",
     "viash_version" : "0.9.4",
-    "git_commit" : "0012682a669cfb1e7900136a00c383aef8f34c37",
+    "git_commit" : "40c03c3d8a662cb18f17a77a4bab50ad564df70a",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
