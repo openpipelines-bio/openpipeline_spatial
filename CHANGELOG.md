@@ -6,6 +6,10 @@
 
 * Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
 
+## BUG FIXES
+
+* `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when readin in data (PR #25).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES

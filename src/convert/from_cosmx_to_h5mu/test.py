@@ -11,10 +11,6 @@ def test_simple_execution(run_component, tmp_path):
         [
             "--input",
             meta["resources_dir"] + "/Lung5_Rep2_tiny",
-            "--dataset_id",
-            "Lung5_Rep2",
-            "--num_fovs",
-            "2",
             "--output",
             output,
         ]
@@ -68,10 +64,6 @@ def test_compressed_input(run_component, tmp_path):
         [
             "--input",
             zipped_input,
-            "--dataset_id",
-            "Lung5_Rep2",
-            "--num_fovs",
-            "2",
             "--output",
             output,
         ]
