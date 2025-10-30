@@ -12,7 +12,6 @@ description: |
     - `cells.parquet`: File containing cell metadata.
     - `morphology_mip.ome.tif`: File containing morphology mip.
     - `morphology_focus.ome.tif`: File containing morphology focus.
-
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
@@ -58,7 +57,7 @@ arguments:
   - name: "--morphology_mip"
     type: boolean
     default: True
-    description: Whether to read morphology mip image (available in versions < 2.0.0).
+    description: Whether to read the morphology mip image (available in versions < 2.0.0).
   - name: "--morphology_focus"
     type: boolean
     default: True
