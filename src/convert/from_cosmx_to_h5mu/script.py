@@ -63,12 +63,26 @@ def main():
     logger.info("Reading in CosMx data...")
     input_files = retrieve_input_data(par["input"])
 
-    adata = sq.read.nanostring(
-        path=input_files["counts_file"].parent,
-        counts_file=input_files["counts_file"].name,
-        meta_file=input_files["meta_file"].name,
-        fov_file=input_files["fov_file"].name,
-    )
+    try:
+        adata = sq.read.nanostring(
+            path=input_files["counts_file"].parent,
+            counts_file=input_files["counts_file"].name,
+            meta_file=input_files["meta_file"].name,
+            fov_file=input_files["fov_file"].name,
+        )
+    except ValueError as e:
+        if "Index fov invalid" in str(e):
+            import pandas as pd
+            df = pd.read_csv(input_files["fov_file"])
+            df.rename(columns={"FOV": "fov"}, inplace=True)
+            df.to_csv(input_files["fov_file"], index=False)
+
+            adata = sq.read.nanostring(
+                path=input_files["counts_file"].parent,
+                counts_file=input_files["counts_file"].name,
+                meta_file=input_files["meta_file"].name,
+                fov_file=input_files["fov_file"].name,
+            )
 
     logger.info("Writing output MuData object...")
     mdata = mu.MuData({par["modality"]: adata})
