@@ -3261,7 +3261,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Converts the output from 10X Genomics Xenium dataset into a SpatialData objcet.\nBy default, the following files will be converted:\n  - `experiment.xenium`: File containing specifications.\n  - `nucleus_boundaries.parquet`: Polygons of nucleus boundaries.\n  - `cell_boundaries.parquet`: Polygons of cell boundaries.\n  - `transcripts.parquet`: File containing transcripts.\n  - `cell_feature_matrix.h5`: File containing cell feature matrix.\n  - `cells.parquet`: File containing cell metadata.\n  - `morphology_mip.ome.tif`: File containing morphology mip.\n  - `morphology_focus.ome.tif`: File containing morphology focus.\n  \n",
+  "description" : "Converts the output from 10X Genomics Xenium dataset into a SpatialData objcet.\nBy default, the following files will be converted:\n  - `experiment.xenium`: File containing specifications.\n  - `nucleus_boundaries.parquet`: Polygons of nucleus boundaries.\n  - `cell_boundaries.parquet`: Polygons of cell boundaries.\n  - `transcripts.parquet`: File containing transcripts.\n  - `cell_feature_matrix.h5`: File containing cell feature matrix.\n  - `cells.parquet`: File containing cell metadata.\n  - `morphology_mip.ome.tif`: File containing morphology mip.\n  - `morphology_focus.ome.tif`: File containing morphology focus.\n",
   "test_resources" : [
     {
       "type" : "python_script",
@@ -3437,7 +3437,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialdata",
     "viash_version" : "0.9.4",
-    "git_commit" : "e163828f351c36b32c1b3470bc4784a73dce6fe5",
+    "git_commit" : "d5fccff01756531a77408287d6ed9cc70b4e859a",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
