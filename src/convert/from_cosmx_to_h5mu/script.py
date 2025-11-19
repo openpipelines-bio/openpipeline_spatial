@@ -7,7 +7,7 @@ from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "./resources_test/cosmx/Lung5_Rep2_tiny.zip",
+    "input": "./resources_test/cosmx/Lung5_Rep2_tiny",
     "output": "./resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
     "modality": "rna",
     "output_compression": None,
@@ -50,19 +50,44 @@ def retrieve_input_data(cosmx_output_bundle):
         assert len(file) == 1, f"Expected one file for {key}, found {len(file)}."
         input_data[key] = file[0]
 
+    parent_dirs = {file.parent for file in input_data.values()}
+    assert len(parent_dirs) == 1, (
+        f"Input files are expected to be in the same directory."
+        f"Found files in {len(parent_dirs)} different directories: {parent_dirs}"
+    )
+
     return input_data
 
 
 def main():
     logger.info("Reading in CosMx data...")
-    input_data = retrieve_input_data(par["input"])
+    input_files = retrieve_input_data(par["input"])
 
-    adata = sq.read.nanostring(
-        path=par["input"],
-        counts_file=input_data["counts_file"],
-        meta_file=input_data["meta_file"],
-        fov_file=input_data["fov_file"],
-    )
+    try:
+        adata = sq.read.nanostring(
+            path=input_files["counts_file"].parent,
+            counts_file=input_files["counts_file"].name,
+            meta_file=input_files["meta_file"].name,
+            fov_file=input_files["fov_file"].name,
+        )
+    except ValueError as e:
+        if "Index fov invalid" in str(e):
+            # CosMx experiments processed with AtoMx SIP <v1.3.2 has 'FOV' index column in fov_file
+            # see https://nanostring-biostats.github.io/CosMx-Analysis-Scratch-Space/posts/flat-file-exports/flat-files-compare.html
+            import pandas as pd
+
+            df = pd.read_csv(input_files["fov_file"])
+            df.rename(columns={"FOV": "fov"}, inplace=True)
+            df.to_csv(input_files["fov_file"], index=False)
+
+            adata = sq.read.nanostring(
+                path=input_files["counts_file"].parent,
+                counts_file=input_files["counts_file"].name,
+                meta_file=input_files["meta_file"].name,
+                fov_file=input_files["fov_file"].name,
+            )
+        else:
+            raise e
 
     logger.info("Writing output MuData object...")
     mdata = mu.MuData({par["modality"]: adata})

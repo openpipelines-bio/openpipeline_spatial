@@ -6,6 +6,10 @@
 
 * Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
 
+## BUG FIXES
+
+* `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
@@ -15,6 +19,8 @@
 ## NEW FUNCTIONALITY
 
 * `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
+
+* `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
 
 # openpipeline_spatial 0.1.0
 
