@@ -108,7 +108,9 @@ def test_legacy_atomx_input(run_component, tmp_path):
     output = tmp_path / "cosmx_tiny.h5mu"
 
     # mimic legacy AtoMx SIP output structure
-    fov_file = meta["resources_dir"] + "/Lung5_Rep2_tiny/Lung5_Rep2_fov_positions_file.csv"
+    fov_file = (
+        meta["resources_dir"] + "/Lung5_Rep2_tiny/Lung5_Rep2_fov_positions_file.csv"
+    )
     df = pd.read_csv(fov_file)
     df.rename(columns={"fov": "FOV"}, inplace=True)
     df.to_csv(fov_file, index=False)

@@ -75,6 +75,7 @@ def main():
             # CosMx experiments processed with AtoMx SIP <v1.3.2 has 'FOV' index column in fov_file
             # see https://nanostring-biostats.github.io/CosMx-Analysis-Scratch-Space/posts/flat-file-exports/flat-files-compare.html
             import pandas as pd
+
             df = pd.read_csv(input_files["fov_file"])
             df.rename(columns={"FOV": "fov"}, inplace=True)
             df.to_csv(input_files["fov_file"], index=False)
