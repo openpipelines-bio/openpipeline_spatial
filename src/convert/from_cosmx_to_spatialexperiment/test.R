@@ -75,9 +75,8 @@ spe <- paste0(meta[["resources_dir"]], "/Lung5_Rep2_tiny")
 out_rds <- "output.rds"
 
 create_folder_archive <- function(
-  folder_path,
-  archive = "Lung5_Rep2_tiny.zip"
-) {
+    folder_path,
+    archive = "Lung5_Rep2_tiny.zip") {
   old_wd <- getwd()
   on.exit(setwd(old_wd))
   setwd(meta$resources_dir)
