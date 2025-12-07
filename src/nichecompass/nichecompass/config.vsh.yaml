@@ -7,41 +7,41 @@ authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
 
-# argument_groups:
-#   - name: "Inputs"
-#   - arguments:
-#       - name: "--input"
-#         type: file
-#         required: true
-#         direction: input
-#         description: Input H5MU file
-#       - name: "--input_gp_mask"
-#         type: file
-#         direction: input
-#         description: |
-#           JSON file containing a nested dictionary containing the gene programs,
-#           with keys being gene program names and values being dictionaries with keys ´targets´ and ´sources´,
-#           where ´targets´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node itself (receiving node)
-#           and ´sources´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node’s neighbors (transmitting nodes).
-#         example: prior_knowledge_gp_mask.json
-#       - name: "--modality"
-#         description: |
-#           Which modality from the input MuData file to process.
-#         type: string
-#         default: "rna"
-#         required: false
-#       - name: "--layer"
-#         type: string
-#         required: false
-#         description: "Input layer to use. If None, X is used"
-#       - name: "--input_obsm_spatial_coords"
-#         type: string
-#         default: "spatial"
-#         description: "Key in adata.obsm where spatial coordinates are stored"
-#       - name: "--input_obs_covariates"
-#         type: string
-#         multiple: true
-#         description: "Keys of the adata.obs fields to use as covariates."
+argument_groups:
+  - name: "Inputs"
+  - arguments:
+      - name: "--input"
+        type: file
+        required: true
+        direction: input
+        description: Input H5MU file
+      - name: "--input_gp_mask"
+        type: file
+        direction: input
+        description: |
+          JSON file containing a nested dictionary containing the gene programs,
+          with keys being gene program names and values being dictionaries with keys ´targets´ and ´sources´,
+          where ´targets´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node itself (receiving node)
+          and ´sources´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node’s neighbors (transmitting nodes).
+        example: prior_knowledge_gp_mask.json
+      - name: "--modality"
+        description: |
+          Which modality from the input MuData file to process.
+        type: string
+        default: "rna"
+        required: false
+      - name: "--layer"
+        type: string
+        required: false
+        description: "Input layer to use. If None, X is used"
+      - name: "--input_obsm_spatial_coords"
+        type: string
+        default: "spatial"
+        description: "Key in adata.obsm where spatial coordinates are stored"
+      - name: "--input_obs_covariates"
+        type: string
+        multiple: true
+        description: "Keys of the adata.obs fields to use as covariates."
 
   # - name: "Spatial Neighbors Calculation"
   # - arguments:

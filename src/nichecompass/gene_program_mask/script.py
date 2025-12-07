@@ -18,24 +18,24 @@ par = {
     "create_omnipath_gene_program_mask": True,
     "create_nichenet_gene_program_mask": True,
     "create_mebocost_gene_program_mask": True,
-    "create_collectri_tf_gene_program_mask": True,
+    "create_collectri_tf_gene_program_mask": False,
     # omnipath params
-    "input_gene_orthologs_mapping_file": "resources_test/gene_annotations/human_mouse_gene_orthologs.csv",
-    "min_curation_effort": 2,
+    "input_gene_orthologs_mapping_file": "resources_test/niche/human_mouse_gene_orthologs.csv",
+    "omnipath_min_curation_effort": 2,
     # nichenet params
-    "input_ligand_target_matrix_file": "resources_test/gene_programs/nichenet_ligand_target_matrix_v2_mouse.csv",
     "nichenet_version": "v2",
-    "keep_target_genes_ratio": 1.0,
-    "max_n_target_genes_per_gp": 250,
+    "nichenet_keep_target_genes_ratio": 1.0,
+    "nichenet_max_n_target_genes_per_gp": 250,
     # mebocost_gene_program_mask
-    "input_metabolite_enzymes": "resources_test/gene_programs/metabolite_enzyme_sensor_gps/mouse_metabolite_enzymes.tsv",
-    "input_metabolite_sensors": "resources_test/gene_programs/metabolite_enzyme_sensor_gps/mouse_metabolite_sensors.tsv",
+    "input_metabolite_enzymes": "resources_test/niche/mouse_metabolite_enzymes.tsv",
+    "input_metabolite_sensors": "resources_test/niche/mouse_metabolite_sensors.tsv",
     # filter and combine programs
     "overlap_thresh_target_genes": 1.0,
     # output paths
     "output": "prior_knowledge_gene_program_mask.json",
     "output_omnipath_lr_network": "omnipath_lr_network.csv",
     "output_nichenet_lr_network": "nichenet_lr_network.csv",
+    "output_nichenet_ligand_target_matrix": "nichenet_ligand_target_matrix_v2_mouse.csv",
     "output_collectri_tf_network": "collectri_tf_network.csv",
     "output_omnipath_gp_gene_count_distributions": "omnipath_gp_gene_count_distributions.svg",
     "output_nichenet_gp_gene_count_distributions": "nichenet_gp_gene_count_distributions.svg",
@@ -43,7 +43,7 @@ par = {
     "output_collectri_tf_gp_gene_count_distributions": "collectri_tf_gp_gene_count_distributions.svg",
 }
 
-meta = {"temp_dir": "resources_test/gene_programs/", "resources_dir": "src/utils/"}
+meta = {"temp_dir": "tmp/", "resources_dir": "src/utils/"}
 ## VIASH END
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
@@ -76,13 +76,6 @@ if (
     raise ValueError(
         "For mouse species, a --input_gene_orthologs_mapping_file file must be provided for generating the nichenet mask."
     )
-if (
-    par["create_nichenet_gene_program_mask"]
-    and not par["input_ligand_target_matrix_file"]
-):
-    raise ValueError(
-        "For nichenet gene program mask, an --input_ligand_target_matrix_file file must be provided."
-    )
 if par["create_mebocost_gene_program_mask"] and (
     not par["input_metabolite_enzymes"] or not par["input_metabolite_sensors"]
 ):
@@ -103,7 +96,7 @@ if par["create_omnipath_gene_program_mask"]:
 
     omnipath_gp_dict = extract_gp_dict_from_omnipath_lr_interactions(
         species=par["species"],
-        min_curation_effort=par["min_curation_effort"],
+        min_curation_effort=par["omnipath_min_curation_effort"],
         load_from_disk=False,
         save_to_disk=True,
         lr_network_file_path=par["output_omnipath_lr_network"],
@@ -122,17 +115,17 @@ if par["create_nichenet_gene_program_mask"]:
     plot_gp_gene_count_distributions = (
         True if par["output_nichenet_gp_gene_count_distributions"] else False
     )
-    save_to_disk = True if par["output_nichenet_lr_network"] else False
+    save_to_disk = True if (par["output_nichenet_lr_network"] or par ['output_ligand_target_matrix']) else False
 
     nichenet_gp_dict = extract_gp_dict_from_nichenet_lrt_interactions(
         species=par["species"],
         version=par["nichenet_version"],
-        keep_target_genes_ratio=par["keep_target_genes_ratio"],
-        max_n_target_genes_per_gp=par["max_n_target_genes_per_gp"],
+        keep_target_genes_ratio=par["nichenet_keep_target_genes_ratio"],
+        max_n_target_genes_per_gp=par["nichenet_max_n_target_genes_per_gp"],
         load_from_disk=False,
         save_to_disk=save_to_disk,
         lr_network_file_path=par["output_nichenet_lr_network"],
-        ligand_target_matrix_file_path=par["input_ligand_target_matrix_file"],
+        ligand_target_matrix_file_path=par["output_nichenet_ligand_target_matrix"],
         gene_orthologs_mapping_file_path=par["input_gene_orthologs_mapping_file"],
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
         gp_gene_count_distributions_save_path=par[
