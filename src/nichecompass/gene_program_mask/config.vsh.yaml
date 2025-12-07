@@ -1,0 +1,98 @@
+name: gene_program_mask
+namespace: nichecompass
+scope: public
+description: Generation of a prior knowledge gene program mask for NicheCompass.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+argument_groups:
+  - name: Inputs
+    arguments: 
+      - name: "--input_gene_orthologs_mapping_file"
+        type: str
+        required: false
+        description: Path to a CSV file mapping human genes to mouse orthologs. Required for the OmniPath and NicheNet masks if species is mouse.
+      - name: "--input_ligand_target_matrix_file"
+        type: str
+        required: false
+        description: Path to the NicheNet ligand-target matrix file. Required for the NicheNet gene program mask.
+      - name: "--input_metabolite_enzymes"
+        type: str
+        required: false
+        description: Path to the MeBocost metabolite-enzymes TSV file. Required for generating the MeBocost gene program mask.
+      - name: "--input_metabolite_sensors"
+        type: str
+        required: false
+        description: Path to the MeBocost metabolite-sensors TSV file. Required for generating the MeBocost gene program mask..
+  - name: Parameters
+    arguments:
+      - name: "--species"
+        type: str
+        choices: ["human", "mouse"]
+        default: "human"
+        description: Species of the organism (human or mouse).
+      - name: "--create_omnipath_gene_program_mask"
+        type: bool
+        default: true
+        description: Whether to create the OmniPath gene program mask.
+      - name: "--create_nichenet_gene_program_mask"
+        type: bool
+        default: true
+        description: Whether to create the NicheNet gene program mask.
+      - name: "--create_mebocost_gene_program_mask"
+        type: bool
+        default: true
+        description: Whether to create the MeBocost gene program mask.
+      - name: "--create_collectri_tf_gene_program_mask"
+        type: bool
+        default: true
+        description: Whether to create the CollecTRI TF gene program mask.
+  - name: Omnipath Parameters
+    arguments:
+      - name: "--min_curation_effort"
+        type: int
+        default: 2
+        description: Minimum number of times an interaction has to be described in a paper and mentioned in a database to be included in the OmniPath gene programs.
+  - name: NicheNet Parameters
+    arguments:
+      - name: "--nichenet_top_target_genes"
+        type: int
+        default: 500
+        description: Number of top target genes to consider for each ligand when constructing NicheNet gene programs.
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+
+engines:
+- type: docker
+  image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+  setup:
+    - type: apt
+      packages:
+        - libhdf5-dev
+        - python3-pip
+        - python3-dev
+        - python-is-python3
+    - type: docker
+      run: |
+        pip install torch --index-url https://download.pytorch.org/whl/cu124 \
+        && pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
+    - type: python
+      packages:
+        - numpy<2
+        - nichecompass
+  test_setup:
+    - type: python
+      __merge__: [ /src/base/requirements/viashpy.yaml, .]
+
+runners:
+- type: executable
+- type: nextflow
+  directives:
+    label: [lowcpu, lowmem, lowdisk]

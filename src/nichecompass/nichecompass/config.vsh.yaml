@@ -1,0 +1,490 @@
+name: nichecompass
+namespace: nichecompass
+scope: public
+description: Trains a NicheCompass model and generates the latent space for the provided input data.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+
+# argument_groups:
+#   - name: "Inputs"
+#   - arguments:
+#       - name: "--input"
+#         type: file
+#         required: true
+#         direction: input
+#         description: Input H5MU file
+#       - name: "--input_gp_mask"
+#         type: file
+#         direction: input
+#         description: |
+#           JSON file containing a nested dictionary containing the gene programs,
+#           with keys being gene program names and values being dictionaries with keys ´targets´ and ´sources´,
+#           where ´targets´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node itself (receiving node)
+#           and ´sources´ contains a list of the names of genes in the gene program for the reconstruction of the gene expression of the node’s neighbors (transmitting nodes).
+#         example: prior_knowledge_gp_mask.json
+#       - name: "--modality"
+#         description: |
+#           Which modality from the input MuData file to process.
+#         type: string
+#         default: "rna"
+#         required: false
+#       - name: "--layer"
+#         type: string
+#         required: false
+#         description: "Input layer to use. If None, X is used"
+#       - name: "--input_obsm_spatial_coords"
+#         type: string
+#         default: "spatial"
+#         description: "Key in adata.obsm where spatial coordinates are stored"
+#       - name: "--input_obs_covariates"
+#         type: string
+#         multiple: true
+#         description: "Keys of the adata.obs fields to use as covariates."
+
+  # - name: "Spatial Neighbors Calculation"
+  # - arguments:
+  #     - name: "--coord_type"
+  #       type: string
+  #       options: ["generic", "grid"]
+  #       description: |
+  #         Type of coordinate system. Valid options are:
+  #         ’grid’ - grid coordinates.
+  #         ’generic’ - generic coordinates.
+  #         If not provided, ‘grid’ is used if `--input_obsm_spatial_coords` is in --input .uns with `--n_neighs` = 6 (Visium), otherwise ‘generic’ is used.
+  #     - name: "--n_spatial_neighbors"
+  #       type: integer
+  #       default: 6
+  #       description: |
+  #         Depending on `--coord_type`:
+  #         ’grid’ - number of neighboring tiles.
+  #         ’generic’ - number of neighborhoods for non-grid data. Only used when `--delaunay False`.
+  #     - name: "--delaunay"
+  #       type: bool
+  #       default: false
+  #       description: |
+  #         Whether to use Delaunay triangulation to determine spatial neighborhood graph.
+  #         Only used when `--coord_type generic`.
+
+  # - name: Gene Program Mask 
+  #   arguments:
+  #     - name: "--min_genes_per_gp"
+  #       type: int
+  #       default: 1
+  #       min: 0
+  #       description: |
+  #         Minimum number of genes in a gene program inluding both target and source genes that need to be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--min_source_genes_per_gp"
+  #       type: int
+  #       default: 0
+  #       min: 0
+  #       description: |
+  #         Minimum number of source genes in a gene program that need to be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--min_target_genes_per_gp"
+  #       type: int
+  #       default: 0
+  #       min: 0
+  #       description: |
+  #         Minimum number of target genes in a gene program that need to be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--max_genes_per_gp"
+  #       type: int
+  #       min: 1
+  #       description: |
+  #         Maximum number of genes in a gene program inluding both target and source genes that can be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--max_source_genes_per_gp"
+  #       type: int
+  #       min: 1
+  #       description: |
+  #         Maximum number of source genes in a gene program that can be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--max_target_genes_per_gp"
+  #       type: int
+  #       min: 1
+  #       description: |
+  #         Maximum number of target genes in a gene program that can be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+  #     - name: "--filter_genes_not_in_masks"
+  #       type: boolean_true
+  #       description: |
+  #         Whether to remove the genes that are not in the gp masks from the adata object.
+
+  # - name: NicheCompass Model Architecture
+  #   arguments:
+  #     - name: "--include_edge_recon_loss"
+  #     - name: "--include_gene_expr_recon_loss"
+  #     - name: "--include_cat_covariates_contrastive_loss"
+  #     - name: "--covariate_edges"
+  #       type: bool
+  #       multiple: true
+  #       description: |
+  #         List of booleans that indicate whether there can be edges between different categories of the categorical covariates. If this is ´True´ for a specific categorical covariate, this covariate will be excluded from the edge reconstruction loss.
+  #         Must be the same length as `--input_obs_covariates`.
+  #     - name: "--covariate_embedding_injection_layers"
+  #       type: string
+  #       multiple: true
+  #       choices: ["encoder", "gene_expr_decoder", "chrom_access_decoder"]
+  #       default: ["gene_expr_decoder", "chrom_access_decoder"]
+  #       description: |
+  #         List of VGPGAE modules in which the categorical covariates embeddings are injected.
+  #     - name: "--include_edge_recon_loss"
+  #       type: bool
+  #       default: true
+  #       description: |
+  #         Whether to include the edge reconstruction loss in the backpropagation.
+  #     - name: "--include_gene_expr_recon_loss"
+  #       type: bool
+  #       default: true
+  #       description: |
+  #         Whether to include the gene expression reconstruction loss in the backpropagation.
+  #     - name: "--include_cat_covariates_contrastive_loss"
+  #       type: bool
+  #       default: true
+  #       description: |
+  #         Whether to include the categorical covariates contrastive loss in the backpropagation.
+  #     - name: "--gene_expr_recon_dist"
+  #       type: string
+  #       choiches: ["nb", "zinb"]
+  #       default: "nb"
+  #       description: |
+  #         The distribution used for gene expression reconstruction. 
+  #         If `nb`, uses a negative binomial distribution. 
+  #         If `zinb`, uses a zero-inflated negative binomial distribution.
+  #     - name: "--log_variational"
+  #       type: bool
+  #       default: true
+  #       description: |
+  #         Whether to transform x by log(x+1) prior to encoding for numerical stability (not for normalization).
+  #     - name: "--node_label_method"
+  #       type: string
+  #       choices: ["one-hop-norm", "two-hop-norm", "one-hop-attention"]
+  #       default: "one-hop-norm"
+  #       description: |
+  #         Node label method that will be used for omics reconstruction.
+  #         If ´one-hop-sum´, uses a concatenation of the node’s input features with the sum of the input features of all nodes in the node’s one-hop neighborhood.
+  #         If ´one-hop-norm´, uses a concatenation of the node`s input features with the node’s one-hop neighbors input features normalized as per Kipf, T. N. & Welling, M. Semi-Supervised Classification with Graph Convolutional Networks. arXiv [cs.LG] (2016).
+  #         If ´one-hop-attention´, uses a concatenation of the node`s input features with the node’s one-hop neighbors input features weighted by an attention mechanism.
+  #     - name: "--active_gp_thresh_ratio"
+  #       type: double
+  #       default: 0.1
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Ratio that determines which gene programs are considered active and are used in the latent representation after model training.
+  #         All inactive gene programs will be dropped during model training after a determined number of epochs.
+  #         Aggregations of the absolute values of the gene weights of the gene expression decoder per gene program are calculated.
+  #         The maximum value, i.e. the value of the gene program with the highest aggregated value will be used as a benchmark and all gene programs whose aggregated value is smaller than ´--active_gp_thresh_ratio´ times this maximum value will be set to inactive.
+  #         If set to 0, all gene programs will be considered active.
+  #     - name: "--active_gp_type"
+  #       type: string
+  #       choices: ["mixed", "separate"]
+  #       default: "separate"
+  #       description: |
+  #         Type to determine active gene programs. 
+  #         Can be ´mixed´, in which case active gene programs are determined across prior and add-on gene programs jointly,
+  #         or ´separate´ in which case they are determined separately for prior adn add-on gene programs.
+  #     - name: "--n_fc_layers_encoder"
+  #       type: int
+  #       default: 1
+  #       min: 0
+  #       description: |
+  #         Number of fully connected layers in the encoder before message passing layers.
+  #     - name: "--n_layers_encoder"
+  #       type: int
+  #       default: 1
+  #       min: 0
+  #       description: |
+  #         Number of message passing layers in the encoder.
+  #     - name: "--n_hidden_encoder"
+  #       type: int
+  #       min: 0
+  #       description: |
+  #         Number of nodes in the encoder hidden layers. If ´None´ is determined automatically based on the number of input genes and gene programs.
+  #     - name: "--conv_layer_encoder"
+  #       type: string
+  #       choices: ["gcnconv", "gatv2conv"]
+  #       default: "gatv2conv"
+  #       description: |
+  #         Convolutional layer used as GNN in the encoder.
+  #     - name: "--encoder_n_attention_heads"
+  #       type: int
+  #       default: 4
+  #       min: 0
+  #       description: |
+  #         Number of attention heads used in the GNN layers of the encoder.
+  #         Only relevant if ´--conv_layer_encoder gatv2conv´. 
+  #     - name: "--encoder_use_bn"
+  #       type: bool
+  #       default: false
+  #       description: |
+  #         Whether to use a batch normalization layer at the end of the encoder to normalize ´mu´.
+  #     - name: "--dropout_rate_encoder"
+  #       type: double
+  #       default: 0.0
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Probability that nodes will be dropped in the encoder during training.
+  #     - name: "--dropout_rate_graph_decoder"
+  #       type: double
+  #       default: 0.0
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Probability that nodes will be dropped in the graph decoder during training.
+  #     - name: "--n_addon_gp"
+  #       type: int
+  #       default: 100
+  #       min: 0
+  #       description: |
+  #         Number of addon gene programs (i.e. gene programs that are not included in masks but can be learned de novo).
+  #     - name: "--cat_covariates_embeds_nums"
+  #       type: int
+  #       multiple: true
+  #       description: |
+  #         Number of embedding nodes for all categorical covariates.
+  #         Must be the same length as `--input_obs_covariates`.
+  #     - name: "--random_state"
+  #       default: 0
+  #       type: int
+  #       min: 0
+  #       description: |
+  #         Random seed for reproducibility.
+  # - name: NicheCompass Training Parameters
+  #   arguments:
+  #     - name: "--n_epochs"
+  #       type: int
+  #       min: 1
+  #       default: 100
+  #       description: Number of training epochs
+  #     - name: "--n_epochs_all_gps"
+  #       type: int
+  #       min: 0
+  #       default: 25
+  #       description: |
+  #         Number of epochs during which all gene programs are used for model training.
+  #         After that only active gene programs are retained.
+  #     - name: "--n_epochs_no_edge_recon"
+  #       type: int
+  #       default: 0
+  #       min: 0
+  #       description: |
+  #         Number of epochs during which the edge reconstruction loss is excluded from backpropagation for pretraining using the other loss components.
+  #     - name: "--n_epochs_no_cat_covariates_contrastive"
+  #       type: int
+  #       default: 5
+  #       min: 0
+  #       description: |
+  #         Number of epochs during which the categorical covariates contrastive loss is excluded from backpropagation for pretraining using the other loss components.
+  #     - name: "--lr"
+  #       type: double
+  #       default: 0.001
+  #       min: 0.0
+  #       max: 1.0
+  #       description: Learning rate
+  #     - name: "--weight_decay"
+  #       type: double
+  #       default: 0.001
+  #       description: Weight decay (L2 penalty).
+  #     - name: "--lambda_edge_recon"
+  #       type: double
+  #       default: 500000.0
+  #       description: |
+  #         Lambda (weighting factor) for the edge reconstruction loss.
+  #         If ´>0´, this will enforce gene programs to be meaningful for edge reconstruction and, hence, to preserve spatial colocalization information.
+  #     - name: "--lambda_gene_expr_recon"
+  #       type: double
+  #       default: 300.0
+  #       description: |
+  #         Lambda (weighting factor) for the gene expression reconstruction loss.
+  #         If ´>0´, this will enforce interpretable gene programs that can be combined in a linear way to reconstruct gene expression.
+  #     - name: "--lambda_cat_covariates_contrastive"
+  #       type: double
+  #       default: 0.0
+  #       description: |
+  #         Lambda (weighting factor) for the categorical covariates contrastive loss.
+  #         If ´>0´, this will enforce observations with different categorical covariates categories with very similar latent representations to become more similar, and observations with different latent representations to become more different.
+  #     - name: "--contrastive_logits_pos_ratio"
+  #       type: double
+  #       default: 0.0
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Ratio for determining the logits threshold of positive contrastive examples of node pairs from different categorical covariates categories.
+  #         The top (´contrastive_logits_pos_ratio´ * 100)% logits of node pairs from different categorical covariates categories serve as positive labels for the contrastive loss.
+  #     - name: "--contrastive_logits_neg_ratio"
+  #       type: double
+  #       default: 0.0
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Ratio for determining the logits threshold of negative contrastive examples of node pairs from different categorical covariates categories.
+  #         The bottom (´contrastive_logits_neg_ratio´ * 100)% logits of node pairs from different categorical covariates categories serve as negative labels for the contrastive loss.
+  #     - name: "--lambda_group_lasso"
+  #       type: double
+  #       default: 0.0
+  #       description: |
+  #         Lambda (weighting factor) for the group lasso regularization loss of gene programs.
+  #         If ´>0´, this will enforce sparsity of gene programs.
+  #     - name: "--lambda_l1_masked"
+  #       type: double
+  #       default: 0.0
+  #       description: |
+  #         Lambda (weighting factor) for the L1 regularization loss of genes in masked gene programs.
+  #         If ´>0´, this will enforce sparsity of genes in masked gene programs.
+  #     - name: "--l1_targets_categories"
+  #       type: string
+  #       multiple: true
+  #       description: |
+  #         Gene program mask targets categories for which l1 regularization loss will be applied.
+  #     - name: "--l1_sources_categories"
+  #       type: string
+  #       multiple: true
+  #       description: |
+  #         Gene program mask sources categories for which l1 regularization loss will be applied.
+  #     - name: "--lambda_l1_addon"
+  #       type: double
+  #       default: 30.0
+  #       description: |
+  #         Lambda (weighting factor) for the L1 regularization loss of genes in addon gene programs.
+  #         If ´>0´, this will enforce sparsity of genes in addon gene programs.
+  #     - name: "--edge_val_ratio"
+  #       type: double
+  #       default: 0.1
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Fraction of the data that is used as validation set on edge-level. The rest of the data will be used as training set on edge-level.
+  #     - name: "--node_val_ratio"
+  #       type: double
+  #       default: 0.1
+  #       min: 0.0
+  #       max: 1.0
+  #       description: |
+  #         Fraction of the data that is used as validation set on node-level. The rest of the data will be used as training set on node-level.
+  #     - name: "--edge_batch_size"
+  #       type: int
+  #       min: 1
+  #       default: 256
+  #       description: |
+  #         Batch size for the edge-level dataloaders.
+  #     - name: "--node_batch_size"
+  #       type: int
+  #       min: 1
+  #       description: |
+  #         Batch size for the node-level dataloaders.
+  #         If not provided, is automatically determined based on ´--edge_batch_size´.
+  #     - name: "--n_sampled_neighbors"
+  #       type: int
+  #       default: -1
+  #       min: -1
+  #       description: |
+  #         Number of neighbors that are sampled during model training from the spatial neighborhood graph.
+  #         If set to -1, all direct neighbors are included.
+
+  # - name: Outputs
+  #   arguments:
+  #     - name: "--output"
+  #       type: file
+  #       required: true
+  #       direction: output
+  #       description: Output H5MU file
+  #     - name: "--output_model"
+  #       type: file
+  #       required: true
+  #       direction: output
+  #       description: Directory to save the trained NicheCompass model
+  #     - name: "--output_obsm_embedding"
+  #       type: string
+  #       default: nichecompass_latent
+  #       description: |
+  #         Key of the obsm field where the latent / gene program representation of active gene programs will be stored after NicheCompass model training.
+  #     - name: "--output_varm_gp_targets_mask"
+  #       type: string
+  #       default: nichecompass_gp_targets
+  #       description: |
+  #         Key of the varm field where the binary gene program mask for target genes of a gene program will be stored (target genes are used for the reconstruction of the gene expression of the node itself (receiving node )).
+  #     - name: "--output_varm_gp_sources_mask"
+  #       type: string
+  #       default: nichecompass_gp_sources
+  #       description: |
+  #         Key of the varm field where the binary gene program mask for source genes of a gene program will be stored (source genes are used for the reconstruction of the gene expression of the node’s neighbors (transmitting nodes)).
+  #     - name: "--output_uns_gp_names"
+  #       type: string
+  #       default: nichecompass_gp_names
+  #       description: |
+  #         Key of the uns field where the gene program names will be stored.
+  #     - name: "--output_uns_active_gp_names"
+  #       type: string
+  #       default: nichecompass_active_gp_names
+  #       description: |
+  #         Key of the uns field where the active gene program names will be stored.
+  #     - name: "--output_uns_gene_index"
+  #       type: string
+  #       default: nichecompass_gene_idx
+  #       description: |
+  #         Key of the uns field where the index of a concatenated vector of target and source genes that are in the gene program masks will be stored.
+  #     - name: "--output_uns_target_genes_index"
+  #       type: string
+  #       default: nichecompass_target_genes_idx
+  #       description: |
+  #         Key of the uns field where the index of the target genes that are in the gene program mask will be stored.
+  #     - name: "--output_uns_source_genes_index"
+  #       type: string
+  #       default: nichecompass_source_genes_idx
+  #       description: |
+  #         Key of the uns field where the index of the source genes that are in the gene program mask will be stored.
+  #     - name: "--output_uns_covariate_embeddings"
+  #       type: string
+  #       multiple: true
+  #       description: |
+  #         Key of the uns fields where the covariate embeddings will be stored. Needs to be the same length as `--input_obs_covariates`.
+  #     - name: "--output_obsp_reconstructed_adj_edge_proba"
+  #       type: string
+  #       default: nichecompass_recon_connectivities
+  #       description: |
+  #         Key of the obsp field where the reconstructed adjacency matrix edge probabilities will be stored.
+  #     - name: "--output_obsp_agg_weights"
+  #       type: string
+  #       default: nichecompass_agg_weights
+  #       description: |
+  #         Key of the obsp field where the aggregation weights of the node label aggregator will be stored.
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  # - path: resources_test/niche/starmap_plus_mouse_cns_batch1.h5mu
+
+engines:
+- type: docker
+  image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+  setup:
+    - type: apt
+      packages:
+        - libhdf5-dev
+        - python3-pip
+        - python3-dev
+        - python-is-python3
+    - type: docker
+      run: |
+        pip install torch --index-url https://download.pytorch.org/whl/cu124 \
+        && pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
+    - type: python
+      __merge__: [ /src/base/requirements/anndata_mudata.yaml, /src/base/requirements/squidpy.yaml, . ]
+    - type: python
+      packages:
+        - numpy<2
+        - nichecompass
+  test_setup:
+    - type: python
+      __merge__: [ /src/base/requirements/viashpy.yaml, .]
+
+runners:
+- type: executable
+  # docker_run_args: ["--gpus all"]
+- type: nextflow
+  directives:
+    label: [midcpu, midmem, gpu, highdisk]
