@@ -1,0 +1,93 @@
+name: neighbors
+namespace: spatial_neighborhood_graph
+scope: public
+description: Calculates a spatial neighborhood graph.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+
+argument_groups:
+  - name: "Inputs"
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input H5MU file
+      - name: "--modality"
+        description: |
+          Which modality from the input MuData file to process.
+        type: string
+        default: "rna"
+        required: false
+      - name: "--layer"
+        type: string
+        required: false
+        description: "Input layer to use. If None, X is used"
+      - name: "--input_obsm_spatial_coords"
+        type: string
+        default: "spatial"
+        description: "Key in adata.obsm where spatial coordinates are stored"
+
+  - name: "Spatial Neighbors Calculation"
+    arguments:
+      - name: "--coord_type"
+        type: string
+        choices: ["generic", "grid"]
+        description: |
+          Type of coordinate system. Valid options are:
+          `grid` - grid coordinates.
+          `generic` - generic coordinates.
+          If not provided, `grid` is used if `--input_obsm_spatial_coords` is in --input .uns with `--n_neighs` = 6 (Visium), otherwise `generic` is used.
+      - name: "--n_spatial_neighbors"
+        type: integer
+        default: 6
+        description: |
+          Depending on `--coord_type`:
+          `grid` - number of neighboring tiles.
+          `generic` - number of neighborhoods for non-grid data. Only used when `--delaunay False`.
+      - name: "--delaunay"
+        type: boolean
+        default: false
+        description: |
+          Whether to use Delaunay triangulation to determine spatial neighborhood graph.
+          Only used when `--coord_type generic`.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file path.
+        example: output.h5mu
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.h5mu
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: 
+          - procps
+      - type: python
+        __merge__: [ /src/base/requirements/squidpy.yaml ]
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+
+runners:
+- type: executable
+- type: nextflow
+  directives:
+    label: [lowcpu, lowmem, lowdisk]
