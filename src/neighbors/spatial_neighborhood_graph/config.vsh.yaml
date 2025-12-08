@@ -82,7 +82,7 @@ engines:
         packages: 
           - procps
       - type: python
-        __merge__: [ /src/base/requirements/squidpy.yaml ]
+        __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 

@@ -14,12 +14,8 @@ par = {
     "modality": "rna",
     "layer": None,
     "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
-    "input_obsm_spatial_coords": "spatial",
     "input_obs_covariates": None,
-    ## Spatial neighbor calculation
-    "n_spatial_neighbors": 4,
-    "coord_type": "generic",
-    "delaunay": False,
+    "input_obsm_spatial_connectivities": "spatial_connectivities",
     ## GP Mask
     "min_genes_per_gp": 2,
     "min_source_genes_per_gp": 1,
@@ -103,21 +99,21 @@ logger.info("GPU enabled? %s", use_gpu)
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
-## Compute spatial neighbor graph
-logger.info("Computing spatial neighbor graph...")
-# Compute connectivities and distances
-sq.gr.spatial_neighbors(
-    adata,
-    coord_type=par["coord_type"],
-    spatial_key=par["input_obsm_spatial_coords"],
-    n_neighs=par["n_spatial_neighbors"],
-    delaunay=par["delaunay"],
-)
+# ## Compute spatial neighbor graph
+# logger.info("Computing spatial neighbor graph...")
+# # Compute connectivities and distances
+# sq.gr.spatial_neighbors(
+#     adata,
+#     coord_type=par["coord_type"],
+#     spatial_key=par["input_obsm_spatial_coords"],
+#     n_neighs=par["n_spatial_neighbors"],
+#     delaunay=par["delaunay"],
+# )
 
-# Making the connectivity matrix symmetric
-adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maximum(
-    adata.obsp["spatial_connectivities"].T
-)
+# # Making the connectivity matrix symmetric
+# adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maximum(
+#     adata.obsp["spatial_connectivities"].T
+# )
 
 ## Add GP mask to data
 logger.info("Adding prior knowledge gene program mask to data...")
@@ -146,7 +142,7 @@ logger.info("Initializing NicheCompass model...")
 model = NicheCompass(
     adata,
     counts_key=par["layer"],
-    adj_key="spatial_connectivities",
+    adj_key=par["input_obsm_spatial_connectivities"],
     gp_names_key=par["output_uns_gp_names"],
     active_gp_names_key=par["output_uns_active_gp_names"],
     gp_targets_mask_key=par["output_varm_gp_targets_mask"],

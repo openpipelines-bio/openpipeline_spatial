@@ -14,6 +14,7 @@ par = {
     "n_spatial_neighbors": 4,
     "coord_type": "generic",
     "delaunay": False,
+    "output": "foo.h5mu"
 }
 
 meta = {"resources_dir": "src/utils/"}

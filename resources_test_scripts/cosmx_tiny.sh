@@ -41,6 +41,12 @@ viash run src/convert/from_cosmx_to_h5mu/config.vsh.yaml -- \
     --output "$DIR/${ID}_tiny.h5mu" \
     --output_compression "gzip"
 
+viash run src/neighbors/spatial_neighborhood_graph/config.vsh.yaml -- \
+    --input "$DIR/${ID}_tiny.h5mu" \
+    --output "$DIR/${ID}_tiny.h5mu"
+
+echo "> Spatial neighbor graph calculation complete"
+
 rm -rf "$OUT"
 
 # Sync to S3
