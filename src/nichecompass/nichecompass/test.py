@@ -29,11 +29,10 @@ def test_simple_execution_xenium(run_component, tmp_path):
             "n_epochs_no_edge_recon",
             "0",
             "n_epochs_no_cat_covariates_contrastive",
-            "0"
-            "--output",
+            "0--output",
             str(output),
             "--output_compression",
-            "gzip"
+            "gzip",
         ]
     )
 
@@ -43,30 +42,44 @@ def test_simple_execution_xenium(run_component, tmp_path):
     adata = mdata.mod["rna"]
 
     expected_uns_keys = [
-        'nichecompass_sources_categories_label_encoder',
-        'nichecompass_targets_categories_label_encoder',
-        'nichecompass_source_genes_idx',
-        'nichecompass_target_genes_idx',
-        'nichecompass_genes_idx',
-        'nichecompass_gp_names',
-        'nichecompass_active_gp_names'
+        "nichecompass_sources_categories_label_encoder",
+        "nichecompass_targets_categories_label_encoder",
+        "nichecompass_source_genes_idx",
+        "nichecompass_target_genes_idx",
+        "nichecompass_genes_idx",
+        "nichecompass_gp_names",
+        "nichecompass_active_gp_names",
     ]
     assert all([uns in expected_uns_keys for uns in adata.uns.keys()])
-    assert len(adata.uns['nichecompass_gp_names']) > len(adata.uns['nichecompass_active_gp_names']), "Expected less active GP names than total GP names"
-    assert adata.uns["nichecompass_genes_idx"] == (adata.uns["nichecompass_source_genes_idx"] + adata.uns["nichecompass_target_genes_idx"]), "Expected genes idx to be union of source and target genes idx"
+    assert len(adata.uns["nichecompass_gp_names"]) > len(
+        adata.uns["nichecompass_active_gp_names"]
+    ), "Expected less active GP names than total GP names"
+    assert adata.uns["nichecompass_genes_idx"] == (
+        adata.uns["nichecompass_source_genes_idx"]
+        + adata.uns["nichecompass_target_genes_idx"]
+    ), "Expected genes idx to be union of source and target genes idx"
 
-    expected_obsm_keys = ['nichecompass_latent']
-    assert all([obsm in expected_obsm_keys for obsm in adata.obsm.keys()]), "Not all expected obsm keys found"
-    assert all(adata.obsm[obsm].dtype.kind == "f" for obsm in expected_obsm_keys), "Expected obsm matrices to be float type"
+    expected_obsm_keys = ["nichecompass_latent"]
+    assert all([obsm in expected_obsm_keys for obsm in adata.obsm.keys()]), (
+        "Not all expected obsm keys found"
+    )
+    assert all(adata.obsm[obsm].dtype.kind == "f" for obsm in expected_obsm_keys), (
+        "Expected obsm matrices to be float type"
+    )
 
     expected_varm_keys = [
-        'nichecompass_gp_sources',
-        'nichecompass_gp_targets',
-        'nichecompass_gp_sources_categories',
-        'nichecompass_gp_targets_categories'
+        "nichecompass_gp_sources",
+        "nichecompass_gp_targets",
+        "nichecompass_gp_sources_categories",
+        "nichecompass_gp_targets_categories",
     ]
-    assert all([varm in expected_varm_keys for varm in adata.varm.keys()]), "Not all expected varm keys found"
-    assert adata.varm["nichecompass_gp_targets"].shape == adata.varm["nichecompass_gp_sources"].shape, "Expected GP targets and sources varm to have same shape"
+    assert all([varm in expected_varm_keys for varm in adata.varm.keys()]), (
+        "Not all expected varm keys found"
+    )
+    assert (
+        adata.varm["nichecompass_gp_targets"].shape
+        == adata.varm["nichecompass_gp_sources"].shape
+    ), "Expected GP targets and sources varm to have same shape"
 
 
 if __name__ == "__main__":

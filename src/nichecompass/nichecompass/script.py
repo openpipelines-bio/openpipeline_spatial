@@ -1,5 +1,4 @@
 import sys
-import squidpy as sq
 import json
 import mudata as mu
 

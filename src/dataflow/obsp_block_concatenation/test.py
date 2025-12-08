@@ -1,13 +1,9 @@
 import mudata as md
 import anndata as ad
-import subprocess
-from pathlib import Path
 import pandas as pd
 import numpy as np
 import pytest
-import re
 import sys
-from openpipeline_testutils.utils import remove_annotation_column
 from operator import attrgetter
 import scipy.sparse as sp
 
@@ -70,8 +66,7 @@ def sample_1_modality_1():
             ),
         },
     )
-    A1 = np.array([[0, 1],
-                   [2, 0]])
+    A1 = np.array([[0, 1], [2, 0]])
     ad1.obsp["connectivities"] = sp.csr_matrix(A1)
     # ad1 = ad.AnnData(df, obs=obs, var=var)
     return ad1
@@ -167,9 +162,7 @@ def sample_2_modality_1():
             ),
         },
     )
-    A2 = np.array([[0, 3, 4],
-                   [5, 0, 6],
-                   [7, 8, 0]])
+    A2 = np.array([[0, 3, 4], [5, 0, 6], [7, 8, 0]])
     ad3.obsp["connectivities"] = sp.csr_matrix(A2)
     return ad3
 
@@ -1208,7 +1201,7 @@ def test_obsp_block_diag_concat(
     sample_3_h5mu,
     write_mudata_to_file,
     random_h5mu_path,
-  ):
+):
     """
     Test that `.obsp` for a given key is concatenated as a block-diagonal matrix
     across samples for the same modality (here: mod1), and that the block order
@@ -1245,8 +1238,12 @@ def test_obsp_block_diag_concat(
 
     expected = sp.block_diag([A1, A2], format="csr")
     G = mod1.obsp["connectivities"].tocsr()
-    assert G.shape == expected.shape, "obsp 'connectivities' has incorrect shape after concatenation"
-    assert (G - expected).nnz == 0, "obsp 'connectivities' not correctly concatenated as block-diagonal matrix"
+    assert G.shape == expected.shape, (
+        "obsp 'connectivities' has incorrect shape after concatenation"
+    )
+    assert (G - expected).nnz == 0, (
+        "obsp 'connectivities' not correctly concatenated as block-diagonal matrix"
+    )
 
     output_path_2 = random_h5mu_path()
     run_component(
@@ -1269,7 +1266,9 @@ def test_obsp_block_diag_concat(
     concatenated = md.read(output_path_2)
     mod1 = concatenated["mod1"]
 
-    assert "connectivities" not in mod1.obsp, "obsp 'connectivities' should not be present when only one sample has it"
+    assert "connectivities" not in mod1.obsp, (
+        "obsp 'connectivities' should not be present when only one sample has it"
+    )
 
 
 if __name__ == "__main__":

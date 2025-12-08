@@ -238,7 +238,9 @@ def get_common_obsp_keys(mod_data: dict[str, anndata.AnnData]) -> set[str]:
     if not common_keys:
         logger.info("No suitable `.obsp` keys found for block-diagonal merge.")
     else:
-        logger.info("Will merge `.obsp` keys block-diagonally: %s", ", ".join(common_keys))
+        logger.info(
+            "Will merge `.obsp` keys block-diagonally: %s", ", ".join(common_keys)
+        )
 
     return common_keys
 

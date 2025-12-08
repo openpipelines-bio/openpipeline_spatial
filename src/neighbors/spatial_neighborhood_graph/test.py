@@ -24,7 +24,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
             "--output",
             str(output),
             "--output_compression",
-            "gzip"
+            "gzip",
         ]
     )
 
@@ -33,12 +33,13 @@ def test_simple_execution_xenium(run_component, tmp_path):
     assert list(mdata.mod.keys()) == ["rna"], "Expected modality rna"
     adata = mdata.mod["rna"]
 
-    expected_obsp_keys = [
-        "spatial_connectivities",
-        "spatial_distances"
-    ]
-    assert all([obsp in expected_obsp_keys for obsp in adata.obsp.keys()]), "Not all expected obsp keys found"
-    assert all(adata.obsp[obsp].dtype.kind == "f" for obsp in expected_obsp_keys), "Expected obsp matrices to be float type"
+    expected_obsp_keys = ["spatial_connectivities", "spatial_distances"]
+    assert all([obsp in expected_obsp_keys for obsp in adata.obsp.keys()]), (
+        "Not all expected obsp keys found"
+    )
+    assert all(adata.obsp[obsp].dtype.kind == "f" for obsp in expected_obsp_keys), (
+        "Expected obsp matrices to be float type"
+    )
 
 
 if __name__ == "__main__":
