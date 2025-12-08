@@ -1,180 +1,73 @@
 import pytest
-from pathlib import Path
-
-import mudata
-from anndata.tests.helpers import assert_equal
+import mudata as mu
 
 ## VIASH START
 meta = {
-    "executable": "./target/executable/integrate/scvi/scvi",
-    "resources_dir": "./resources_test/pbmc_1k_protein_v3/",
+    "executable": "./target/executable/nichecompass/nichecompass/nichecompass",
 }
 ## VIASH END
 
-import sys
-
-sys.path.append(meta["resources_dir"])
-
-input_file = f"{meta['resources_dir']}/pbmc_1k_protein_v3_mms.h5mu"
+input_xenium = f"{meta['resources_dir']}/xenium_tiny.h5mu"
+input_cosmx = f"{meta['resources_dir']}/Lung5_Rep2_tiny.h5mu"
+gp_mask = f"{meta['resources_dir']}/prior_knowledge_gp_mask.json"
 
 
-@pytest.fixture
-def mudata_with_mod_rna_obs_batch(tmp_path, request):
-    obs_batch, var_input, obsm_output = request.param
+def test_simple_execution_xenium(run_component, tmp_path):
+    output = tmp_path / "nc_xenium.h5mu"
 
-    new_input_file = tmp_path / "input.h5mu"
-
-    input_data = mudata.read_h5mu(input_file)
-    input_rna = input_data.mod["rna"]
-    input_rna.obs[obs_batch] = "A"
-    column_index = input_rna.obs.columns.get_indexer([obs_batch])
-    input_rna.obs.iloc[slice(input_rna.n_obs // 2, None), column_index] = "B"
-    input_data.write(new_input_file.name)
-
-    return new_input_file.name, input_rna, obs_batch, var_input, obsm_output
-
-
-@pytest.mark.parametrize(
-    "mudata_with_mod_rna_obs_batch",
-    [("batch", None, None), ("batch2", "filter_with_hvg", "X_int")],
-    indirect=True,
-)
-def test_scvi(run_component, mudata_with_mod_rna_obs_batch):
-    new_input_file, input_rna, obs_batch, var_input, obsm_output = (
-        mudata_with_mod_rna_obs_batch
+    # run component
+    run_component(
+        [
+            "--input",
+            input_xenium,
+            "--input_gp_mask",
+            gp_mask,
+            "--n_epochs",
+            "1",
+            "n_epochs_all_gps",
+            "0",
+            "n_epochs_no_edge_recon",
+            "0",
+            "n_epochs_no_cat_covariates_contrastive",
+            "0"
+            "--output",
+            str(output),
+            "--output_compression",
+            "gzip"
+        ]
     )
 
-    args = [
-        "--input",
-        new_input_file,
-        "--modality",
-        "rna",
-        "--obs_batch",
-        obs_batch,
-        "--output",
-        "output.h5mu",
-        "--output_model",
-        "test/",
-        "--max_epochs",
-        "1",
-        "--n_obs_min_count",
-        "10",
-        "--n_var_min_count",
-        "10",
-        "--output_compression",
-        "gzip",
+    assert output.is_file(), "output file was not created"
+    mdata = mu.read_h5mu(output)
+    assert list(mdata.mod.keys()) == ["rna"], "Expected modality rna"
+    adata = mdata.mod["rna"]
+
+    expected_uns_keys = [
+        'nichecompass_sources_categories_label_encoder',
+        'nichecompass_targets_categories_label_encoder',
+        'nichecompass_source_genes_idx',
+        'nichecompass_target_genes_idx',
+        'nichecompass_genes_idx',
+        'nichecompass_gp_names',
+        'nichecompass_active_gp_names'
     ]
+    assert all([uns in expected_uns_keys for uns in adata.uns.keys()])
+    assert len(adata.uns['nichecompass_gp_names']) > len(adata.uns['nichecompass_active_gp_names']), "Expected less active GP names than total GP names"
+    assert adata.uns["nichecompass_genes_idx"] == (adata.uns["nichecompass_source_genes_idx"] + adata.uns["nichecompass_target_genes_idx"]), "Expected genes idx to be union of source and target genes idx"
 
-    if var_input is not None:
-        args.extend(["--var_input", var_input])
-    if obsm_output is not None:
-        args.extend(["--obsm_output", obsm_output])
+    expected_obsm_keys = ['nichecompass_latent']
+    assert all([obsm in expected_obsm_keys for obsm in adata.obsm.keys()]), "Not all expected obsm keys found"
+    assert all(adata.obsm[obsm].dtype.kind == "f" for obsm in expected_obsm_keys), "Expected obsm matrices to be float type"
 
-    run_component(args)
-
-    # check files
-    assert Path("output.h5mu").is_file(), "Output file does not exist"
-    assert Path("test").is_dir()
-    assert Path("test/model.pt").is_file()
-
-    # check output h5mu
-    output_data = mudata.read_h5mu("output.h5mu")
-    output_rna = output_data.mod["rna"]
-    assert output_rna.n_obs == input_rna.n_obs, (
-        f"Number of observations changed\noutput_data: {output_data}"
-    )
-    assert output_rna.n_vars == input_rna.n_vars, (
-        f"Number of variables changed\noutput_data: {output_data}"
-    )
-
-    expected_obsm_output = "X_scvi_integrated" if obsm_output is None else obsm_output
-    assert expected_obsm_output in output_rna.obsm, (
-        f".obsm['{expected_obsm_output}'] not added\noutput_data: {output_data}"
-    )
-
-    # assert that nothing else has changed
-    del output_rna.obsm[expected_obsm_output]
-    assert_equal(input_rna, output_rna)
-
-
-def test_input_parameters(run_component):
-    args = [
-        "--input",
-        input_file_2,
-        "--modality",
-        "rna",
-        "--obs_batch",
-        "donor_id",
-        "--var_gene_names",
-        "ensemblid",
-        "--obs_labels",
-        "cell_ontology_class",
-        "--obsm_output",
-        "X_scvi_integrated_test",
-        "--obs_categorical_covariate",
-        "donor_assay;donor_tissue",
-        "--output",
-        "output.h5mu",
-        "--output_model",
-        "test_model/",
-        "--max_epochs",
-        "1",
-        "--n_obs_min_count",
-        "10",
-        "--n_var_min_count",
-        "10",
-        "--output_compression",
-        "gzip",
+    expected_varm_keys = [
+        'nichecompass_gp_sources',
+        'nichecompass_gp_targets',
+        'nichecompass_gp_sources_categories',
+        'nichecompass_gp_targets_categories'
     ]
-
-    run_component(args)
-
-    # check files
-    assert Path("output.h5mu").is_file(), "Output file does not exist"
-    assert Path("test_model").is_dir()
-    assert Path("test_model/model.pt").is_file()
-
-    # Read input h5mu
-    input_rna = mudata.read_h5mu(input_file_2).mod["rna"]
-
-    # check output h5mu
-    output_data = mudata.read_h5mu("output.h5mu")
-    output_rna = output_data.mod["rna"]
-    assert output_rna.n_obs == input_rna.n_obs, (
-        f"Number of observations changed\noutput_data: {output_data}"
-    )
-    assert output_rna.n_vars == input_rna.n_vars, (
-        f"Number of variables changed\noutput_data: {output_data}"
-    )
-
-    expected_obsm_output = "X_scvi_integrated_test"
-    assert expected_obsm_output in output_rna.obsm, (
-        f".obsm['{expected_obsm_output}'] not added\noutput_data: {output_data}"
-    )
-
-    # assert that nothing else has changed
-    del output_rna.obsm[expected_obsm_output]
-    assert_equal(input_rna, output_rna)
-
-
-def test_hvg_subsetting_helper():
-    input_data = mudata.read_h5mu(input_file)
-    adata = input_data.mod["rna"]
-
-    old_n_genes = adata.n_vars
-
-    adata.var["highly_variable_features"] = False
-    adata.var.iloc[
-        : old_n_genes // 2, adata.var.columns.get_indexer(["highly_variable_features"])
-    ] = True
-
-    adata = subset_vars(adata, subset_col="highly_variable_features")
-
-    # Correct number of genes is subsetted
-    assert adata.n_vars == old_n_genes // 2
-    # Only HVG are subsetted
-    assert adata.var["highly_variable_features"].all()
+    assert all([varm in expected_varm_keys for varm in adata.varm.keys()]), "Not all expected varm keys found"
+    assert adata.varm["nichecompass_gp_targets"].shape == adata.varm["nichecompass_gp_sources"].shape, "Expected GP targets and sources varm to have same shape"
 
 
 if __name__ == "__main__":
-    sys.exit(pytest.main([__file__]))
+    pytest.main([__file__])

@@ -10,12 +10,12 @@ from torch.cuda import is_available as cuda_is_available
 ## VIASH START
 par = {
     # Inputs
-    "input": "resources_test/niche/starmap_plus_mouse_cns_batch1.h5mu",
+    "input": "resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
     "modality": "rna",
-    "layer": "counts",
-    "input_gp_mask": "prior_knowledge_gene_program_mask.json",
+    "layer": None,
+    "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
     "input_obsm_spatial_coords": "spatial",
-    "input_obs_covariates": ["batch"],
+    "input_obs_covariates": None,
     ## Spatial neighbor calculation
     "n_spatial_neighbors": 4,
     "coord_type": "generic",
