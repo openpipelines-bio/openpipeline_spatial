@@ -6,25 +6,33 @@ description: Generation of a prior knowledge gene program mask for NicheCompass.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
+
 argument_groups:
   - name: Inputs
     arguments: 
       - name: "--input_gene_orthologs_mapping_file"
         type: file
         required: false
-        description: Path to a CSV file mapping human genes to mouse orthologs. Required for the OmniPath and NicheNet masks if `--species mouse`.
+        description: |
+          Path to a CSV file mapping human genes to mouse orthologs.
+          Required for the OmniPath and NicheNet masks if `--species mouse`.
       - name: "--input_metabolite_enzymes"
         type: file
         required: false
-        description: Path to the MeBocost metabolite-enzymes TSV file. Required for generating the MeBocost gene program mask.
+        description: |
+          Path to the MeBocost metabolite-enzymes TSV file.
+          Required for generating the MeBocost gene program mask.
       - name: "--input_metabolite_sensors"
         type: file
         required: false
-        description: Path to the MeBocost metabolite-sensors TSV file. Required for generating the MeBocost gene program mask..
+        description: |
+          Path to the MeBocost metabolite-sensors TSV file.
+          Required for generating the MeBocost gene program mask.
+
   - name: Parameters
     arguments:
       - name: "--species"
-        type: str
+        type: string
         choices: ["human", "mouse"]
         default: "human"
         description: Species of the organism (human or mouse).
@@ -49,7 +57,6 @@ argument_groups:
         default: 1.0
         min: 0.0
         max: 1.0
-        default: 1.0
         description: |
           The minimum ratio of target genes that need to overlap between a GP without source genes and another GP for the GP to be dropped.
           Gene programs with different source genes are never combined or dropped.
@@ -103,7 +110,7 @@ argument_groups:
         required: false
         description: Path to the output NicheNet ligand-receptor network CSV file.
         example: nichenet_lr_network.csv
-      - name: "--output_nichenet_ligand_target_matrix_file"
+      - name: "--output_nichenet_ligand_target_matrix"
         type: file
         direction: output
         required: false
@@ -148,6 +155,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
+  - path: /resources_test/niche/
 
 engines:
 - type: docker

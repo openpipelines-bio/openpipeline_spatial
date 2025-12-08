@@ -115,7 +115,7 @@ if par["create_nichenet_gene_program_mask"]:
     plot_gp_gene_count_distributions = (
         True if par["output_nichenet_gp_gene_count_distributions"] else False
     )
-    save_to_disk = True if (par["output_nichenet_lr_network"] or par ['output_ligand_target_matrix']) else False
+    save_to_disk = True if (par["output_nichenet_lr_network"] or par ['output_nichenet_ligand_target_matrix']) else False
 
     nichenet_gp_dict = extract_gp_dict_from_nichenet_lrt_interactions(
         species=par["species"],
@@ -172,6 +172,7 @@ if par["create_collectri_tf_gene_program_mask"]:
     collectri_gp_dict = extract_gp_dict_from_collectri_tf_network(
         species=par["species"],
         save_to_disk=save_to_disk,
+        tf_network_file_path=par["output_collectri_tf_network"],
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
         gp_gene_count_distributions_save_path=par[
             "output_collectri_tf_gp_gene_count_distributions"
