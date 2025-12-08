@@ -22,6 +22,8 @@
 
 * `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
 
+* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheComnpass analysis (PR #27).
+
 # openpipeline_spatial 0.1.0
 
 ## NEW FUNCTIONALITY
