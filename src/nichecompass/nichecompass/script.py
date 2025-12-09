@@ -98,22 +98,6 @@ logger.info("GPU enabled? %s", use_gpu)
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
-# ## Compute spatial neighbor graph
-# logger.info("Computing spatial neighbor graph...")
-# # Compute connectivities and distances
-# sq.gr.spatial_neighbors(
-#     adata,
-#     coord_type=par["coord_type"],
-#     spatial_key=par["input_obsm_spatial_coords"],
-#     n_neighs=par["n_spatial_neighbors"],
-#     delaunay=par["delaunay"],
-# )
-
-# # Making the connectivity matrix symmetric
-# adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maximum(
-#     adata.obsp["spatial_connectivities"].T
-# )
-
 ## Add GP mask to data
 logger.info("Adding prior knowledge gene program mask to data...")
 with open(par["input_gp_mask"], "r") as f:
@@ -125,7 +109,7 @@ add_gps_from_gp_dict_to_adata(
     gp_targets_mask_key=par["output_varm_gp_targets_mask"],
     gp_sources_mask_key=par["output_varm_gp_sources_mask"],
     gp_names_key=par["output_uns_gp_names"],
-    genes_idx_key=par["output_uns_gene_index"],
+    genes_idx_key=par["output_uns_genes_index"],
     target_genes_idx_key=par["output_uns_target_genes_index"],
     source_genes_idx_key=par["output_uns_source_genes_index"],
     min_genes_per_gp=par["min_genes_per_gp"],
@@ -148,12 +132,12 @@ model = NicheCompass(
     gp_sources_mask_key=par["output_varm_gp_sources_mask"],
     latent_key=par["output_obsm_embedding"],
     cat_covariates_keys=par["input_obs_covariates"],
-    cat_covariates_no_edges=par["covariates_edges"],
+    cat_covariates_no_edges=par["covariate_edges"],
     cat_covariates_embeds_keys=par["output_uns_covariate_embeddings"],
-    cat_covariates_embeds_injection_layers=par["covariate_embedding_injection_layers"],
-    gene_idx_key=par["output_uns_gene_index"],
-    target_gene_idx_key=par["output_uns_target_genes_index"],
-    source_gene_idx_key=par["output_uns_source_genes_index"],
+    cat_covariates_embeds_injection=par["covariate_embedding_injection_layers"],
+    genes_idx_key=par["output_uns_genes_index"],
+    target_genes_idx_key=par["output_uns_target_genes_index"],
+    source_genes_idx_key=par["output_uns_source_genes_index"],
     recon_adj_key=par["output_obsp_reconstructed_adj_edge_proba"],
     agg_weights_key=par["output_obsp_agg_weights"],
     include_edge_recon_loss=par["include_edge_recon_loss"],
@@ -174,7 +158,6 @@ model = NicheCompass(
     encoder_use_bn=par["encoder_use_bn"],
     dropout_rate_encoder=par["dropout_rate_encoder"],
     dropout_rate_graph_decoder=par["dropout_rate_graph_decoder"],
-    cat_covariates_cats=par["cat_covariates_cats"],
     n_addon_gp=par["n_addon_gp"],
     cat_covariates_embeds_nums=par["cat_covariates_embeds_nums"],
     seed=par["random_state"],
@@ -212,6 +195,6 @@ model.train(
 ## Save model and data
 logger.info("Saving NicheCompass model and data...")
 mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"])
+mdata.write_h5mu(par["output"], compression=par["output_compression"])
 
 model.save(par["output_model"], save_adata=False)

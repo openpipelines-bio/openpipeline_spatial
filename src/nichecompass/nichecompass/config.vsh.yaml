@@ -42,30 +42,6 @@ argument_groups:
         multiple: true
         description: "Keys of the adata.obs fields to use as covariates."
 
-  - name: "Spatial Neighbors Calculation"
-    arguments:
-      - name: "--coord_type"
-        type: string
-        choices: ["generic", "grid"]
-        description: |
-          Type of coordinate system. Valid options are:
-          `grid` - grid coordinates.
-          `generic` - generic coordinates.
-          If not provided, `grid` is used if `--input_obsm_spatial_coords` is in --input .uns with `--n_neighs` = 6 (Visium), otherwise `generic` is used.
-      - name: "--n_spatial_neighbors"
-        type: integer
-        default: 6
-        description: |
-          Depending on `--coord_type`:
-          `grid` - number of neighboring tiles.
-          `generic` - number of neighborhoods for non-grid data. Only used when `--delaunay False`.
-      - name: "--delaunay"
-        type: boolean
-        default: false
-        description: |
-          Whether to use Delaunay triangulation to determine spatial neighborhood graph.
-          Only used when `--coord_type generic`.
-
   - name: Gene Program Mask 
     arguments:
       - name: "--min_genes_per_gp"
@@ -416,9 +392,9 @@ argument_groups:
         default: nichecompass_active_gp_names
         description: |
           Key of the uns field where the active gene program names will be stored.
-      - name: "--output_uns_gene_index"
+      - name: "--output_uns_genes_index"
         type: string
-        default: nichecompass_gene_idx
+        default: nichecompass_genes_idx
         description: |
           Key of the uns field where the index of a concatenated vector of target and source genes that are in the gene program masks will be stored.
       - name: "--output_uns_target_genes_index"
@@ -447,6 +423,7 @@ argument_groups:
         default: nichecompass_agg_weights
         description: |
           Key of the obsp field where the aggregation weights of the node label aggregator will be stored.
+    __merge__: [., /src/base/h5_compression_argument.yaml]
 
 resources:
   - type: python_script

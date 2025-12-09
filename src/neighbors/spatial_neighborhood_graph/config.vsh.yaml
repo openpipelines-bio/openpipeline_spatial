@@ -1,5 +1,5 @@
-name: neighbors
-namespace: spatial_neighborhood_graph
+name: spatial_neighborhood_graph
+namespace: neighbors
 scope: public
 description: Calculates a spatial neighborhood graph.
 

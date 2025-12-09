@@ -1,5 +1,6 @@
 import pytest
 import mudata as mu
+import sys
 
 ## VIASH START
 meta = {
@@ -24,15 +25,18 @@ def test_simple_execution_xenium(run_component, tmp_path):
             gp_mask,
             "--n_epochs",
             "1",
-            "n_epochs_all_gps",
+            "--n_epochs_all_gps",
             "0",
-            "n_epochs_no_edge_recon",
+            "--n_epochs_no_edge_recon",
             "0",
-            "n_epochs_no_cat_covariates_contrastive",
-            "0--output",
+            "--n_epochs_no_cat_covariates_contrastive",
+            "0",
+            "--output",
             str(output),
+            "--output_model",
+            "test_model",
             "--output_compression",
-            "gzip",
+            "gzip"
         ]
     )
 
@@ -48,9 +52,9 @@ def test_simple_execution_xenium(run_component, tmp_path):
         "nichecompass_target_genes_idx",
         "nichecompass_genes_idx",
         "nichecompass_gp_names",
-        "nichecompass_active_gp_names",
+        "nichecompass_active_gp_names"
     ]
-    assert all([uns in expected_uns_keys for uns in adata.uns.keys()])
+    assert all([uns in expected_uns_keys for uns in adata.uns.keys()]), f"Expected uns keys: {expected_uns_keys}, found: {list(adata.uns.keys())}"
     assert len(adata.uns["nichecompass_gp_names"]) > len(
         adata.uns["nichecompass_active_gp_names"]
     ), "Expected less active GP names than total GP names"
@@ -71,7 +75,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
         "nichecompass_gp_sources",
         "nichecompass_gp_targets",
         "nichecompass_gp_sources_categories",
-        "nichecompass_gp_targets_categories",
+        "nichecompass_gp_targets_categories"
     ]
     assert all([varm in expected_varm_keys for varm in adata.varm.keys()]), (
         "Not all expected varm keys found"
@@ -83,4 +87,4 @@ def test_simple_execution_xenium(run_component, tmp_path):
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    sys.exit(pytest.main([__file__]))
