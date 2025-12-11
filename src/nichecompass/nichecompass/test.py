@@ -54,7 +54,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
         "nichecompass_gp_names",
         "nichecompass_active_gp_names",
     ]
-    assert all([uns in expected_uns_keys for uns in adata.uns.keys()]), (
+    assert all([uns in adata.uns.keys() for uns in expected_uns_keys]), (
         f"Expected uns keys: {expected_uns_keys}, found: {list(adata.uns.keys())}"
     )
     assert len(adata.uns["nichecompass_gp_names"]) > len(
@@ -66,7 +66,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
     ), "Expected genes idx to be union of source and target genes idx"
 
     expected_obsm_keys = ["nichecompass_latent"]
-    assert all([obsm in expected_obsm_keys for obsm in adata.obsm.keys()]), (
+    assert all([obsm in adata.obsm.keys() for obsm in expected_obsm_keys]), (
         "Not all expected obsm keys found"
     )
     assert all(adata.obsm[obsm].dtype.kind == "f" for obsm in expected_obsm_keys), (
@@ -79,7 +79,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
         "nichecompass_gp_sources_categories",
         "nichecompass_gp_targets_categories",
     ]
-    assert all([varm in expected_varm_keys for varm in adata.varm.keys()]), (
+    assert all([varm in adata.varm.keys() for varm in expected_varm_keys]), (
         "Not all expected varm keys found"
     )
     assert (
