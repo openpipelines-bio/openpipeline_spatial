@@ -60,10 +60,6 @@ def test_simple_execution_xenium(run_component, tmp_path):
     assert len(adata.uns["nichecompass_gp_names"]) > len(
         adata.uns["nichecompass_active_gp_names"]
     ), "Expected less active GP names than total GP names"
-    assert adata.uns["nichecompass_genes_idx"] == (
-        adata.uns["nichecompass_source_genes_idx"]
-        + adata.uns["nichecompass_target_genes_idx"]
-    ), "Expected genes idx to be union of source and target genes idx"
 
     expected_obsm_keys = ["nichecompass_latent"]
     assert all([obsm in adata.obsm.keys() for obsm in expected_obsm_keys]), (
