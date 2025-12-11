@@ -95,6 +95,7 @@ workflow run_wf {
       fromState: {id, state -> [
         "input": state.input,
         "input_gp_mask": state.input_gp_mask,
+        "input_obs_covariates": state.input_obs_covariates,
         "modality": state.modality,
         "layer": state.layer,
         "min_genes_per_gp": state.min_genes_per_gp,
@@ -124,18 +125,52 @@ workflow run_wf {
         "edge_batch_size": state.edge_batch_size,
         "node_batch_size": state.node_batch_size,
         "n_sampled_neighbors": state.n_sampled_neighbors,
+        "output_model": state.output_model
       ]},
       args: [
-        "input_obsm_spatial_connectivities": "spatial_connectivities",
-        "input_obs_covariates": "sample_id"
+        "input_obsm_spatial_connectivities": "spatial_connectivities"
       ],
       toState: [
-        "input": "output",
-        "output_model": "output_model"
+        "input": "output"
       ]
     )
 
-  | view()
+    | leiden.run(
+      fromState: [
+        "input": "input",
+        "modality": "modality",
+        "obsm_name": "obs_cluster",
+        "resolution": "leiden_resolution"
+      ],
+      args: [
+        "obsp_connectivities": "spatial_connectivities"
+      ],
+      toState: ["input": "output"]
+    )
+
+    | move_obsm_to_obs.run(
+      runIf: {id, state -> state.leiden_resolution},
+      fromState: [
+        "input": "input",
+        "obsm_key": "obs_cluster",
+        "modality": "modality",
+      ],
+      toState: ["input": "output"]
+    )
+    | umap.run(
+      runIf: {id, state -> !state.obsm_umap?.trim()?.isEmpty()},
+      fromState: [
+          "input": "input",
+          "output": "workflow_output",
+          "uns_neighbors": "uns_neighbors",
+          "obsm_output": "obsm_umap",
+          "modality": "modality",
+        ],
+      args: ["output_compression": "gzip"],
+      toState: ["output": "output"]
+    )
+    | setState(["output": "output", "output_model": "output_model"])
+    | view()
 
   emit:
     output_ch

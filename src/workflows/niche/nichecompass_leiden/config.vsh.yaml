@@ -7,10 +7,10 @@ authors:
     roles: [ author, maintainer ]
   - __merge__: /src/authors/weiwei_schultz.yaml
     roles: [ contributor ]
-# info:
-#   test_dependencies:
-#     - name: nichecompass_leiden_test
-#       namespace: test_workflows/niche
+info:
+  test_dependencies:
+    - name: nichecompass_leiden_test
+      namespace: test_workflows/niche
 argument_groups:
   - name: Inputs
     arguments:
@@ -47,6 +47,7 @@ argument_groups:
       - name: "--input_obs_covariates"
         type: string
         multiple: true
+        default: ["sample_id"]
         description: "Keys of the adata.obs fields to use as covariates."
       - name: "--input_obsm_spatial_coords"
         type: string
@@ -289,6 +290,29 @@ argument_groups:
           Number of neighbors that are sampled during model training from the spatial neighborhood graph.
           If set to -1, all direct neighbors are included.
 
+  - name: Clustering options
+    arguments:
+      - name: "--obs_cluster"
+        type: string
+        description: |
+          Prefix for the .obs keys under which to add the cluster labels. Newly created columns in .obs will 
+          be created from the specified value for '--obs_cluster' suffixed with an underscore and one of the resolutions
+          resolutions specified in '--leiden_resolution'.
+        default: "nichecompass_leiden"
+      - name: "--leiden_resolution"
+        type: double
+        description: Control the coarseness of the clustering. Higher values lead to more clusters.
+        default: [1]
+        multiple: true
+
+  - name: Umap options
+    arguments:
+      - name: "--obsm_umap"
+        type: string
+        default: "X_leiden_nichecompass_umap"
+        required: false
+        description: "In which .obsm slot to store the resulting UMAP embedding."
+
   - name: "Outputs"
     arguments:
       - name: "--output"
@@ -297,6 +321,11 @@ argument_groups:
         direction: output
         description: Destination path to the output.
         example: output.h5mu
+      - name: "--output_model"
+        type: file
+        required: true
+        direction: output
+        description: Directory to save the trained NicheCompass model.
 
 dependencies:
   - name: dataflow/obsp_block_concatenation
@@ -308,7 +337,8 @@ dependencies:
     repository: openpipeline
   - name: dimred/umap
     repository: openpipeline
-
+  - name: metadata/move_obsm_to_obs
+    repository: openpipeline
 
 resources:
   - type: nextflow_script

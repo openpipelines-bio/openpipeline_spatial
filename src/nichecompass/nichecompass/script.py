@@ -9,7 +9,7 @@ from torch.cuda import is_available as cuda_is_available
 ## VIASH START
 par = {
     # Inputs
-    "input": "resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
+    "input": "work/8c/d3f8f50ac967abac81eabcda42798e/_viash_par/input_1/merged.obsp_block_concatenation.output.h5mu",
     "modality": "rna",
     "layer": None,
     "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
@@ -97,6 +97,20 @@ logger.info("GPU enabled? %s", use_gpu)
 
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
+
+# Counts need to be float32 to be processed by nichecompass model
+# See https://discuss.pytorch.org/t/runtimeerror-mat1-and-mat2-must-have-the-same-dtype/166759
+counts_dtype = (
+    adata.layers[par["layer"]].dtype if par["layer"] is not None else adata.X.dtype
+)
+if counts_dtype != "float32":
+    logger.info(
+        f"Converting count data to float32 from {counts_dtype} for model compatibility..."
+    )
+    if par["layer"] is not None:
+        adata.layers[par["layer"]] = adata.layers[par["layer"]].astype("float32")
+    else:
+        adata.X = adata.X.astype("float32")
 
 ## Add GP mask to data
 logger.info("Adding prior knowledge gene program mask to data...")
