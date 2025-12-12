@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 import re
 import sys
+import scipy.sparse as sp
 from openpipeline_testutils.utils import remove_annotation_column
 from operator import attrgetter
 

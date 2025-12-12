@@ -166,7 +166,10 @@ workflow run_wf {
           "obsm_output": "obsm_umap",
           "modality": "modality",
         ],
-      args: ["output_compression": "gzip"],
+      args: [
+        "output_compression": "gzip",
+        "uns_neighbors": "spatial_neighbors"
+        ],
       toState: ["output": "output"]
     )
     | setState(["output": "output", "output_model": "output_model"])
