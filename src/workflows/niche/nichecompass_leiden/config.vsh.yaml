@@ -313,6 +313,21 @@ argument_groups:
         required: false
         description: "In which .obsm slot to store the resulting UMAP embedding."
 
+  - name: Neighbour calculation
+    arguments:
+      - name: "--uns_neighbors"
+        type: string
+        default: nichecompass_neighbors
+        description: In which .uns slot to store various neighbor output objects.
+      - name: "--obsp_neighbor_distances"
+        type: string
+        default: "nichecompass_distances"
+        description: "In which .obsp slot to store the distance matrix between the resulting neighbors."
+      - name: "--obsp_neighbor_connectivities"
+        type: string
+        default: "nichecompass_connectivities"
+        description: "In which .obsp slot to store the connectivities matrix between the resulting neighbors."
+
   - name: "Outputs"
     arguments:
       - name: "--output"
@@ -326,6 +341,11 @@ argument_groups:
         required: true
         direction: output
         description: Directory to save the trained NicheCompass model.
+      - name: "--output_obsm_embedding"
+        type: string
+        default: nichecompass_latent
+        description: |
+          Key of the obsm field where the latent / gene program representation of active gene programs will be stored after NicheCompass model training.
 
 dependencies:
   - name: dataflow/obsp_block_concatenation
@@ -333,11 +353,7 @@ dependencies:
   - name: nichecompass/nichecompass
   - name: metadata/add_id
     repository: openpipeline
-  - name: cluster/leiden
-    repository: openpipeline
-  - name: dimred/umap
-    repository: openpipeline
-  - name: metadata/move_obsm_to_obs
+  - name: workflows/multiomics/neighbors_leiden_umap
     repository: openpipeline
 
 resources:

@@ -42,7 +42,7 @@ workflow test_wf {
 
       // check id
       def id = output[0]
-      assert id.endsWith("_test")
+      assert id == "merged"
 
       // check output
       def state = output[1]

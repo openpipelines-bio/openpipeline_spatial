@@ -125,54 +125,36 @@ workflow run_wf {
         "edge_batch_size": state.edge_batch_size,
         "node_batch_size": state.node_batch_size,
         "n_sampled_neighbors": state.n_sampled_neighbors,
+        "output_obsm_embedding": state.output_obsm_embedding,
         "output_model": state.output_model
       ]},
       args: [
         "input_obsm_spatial_connectivities": "spatial_connectivities"
       ],
       toState: [
-        "input": "output"
+        "input": "output",
+        "output_model": "output_model"
       ]
     )
 
-    | leiden.run(
-      fromState: [
-        "input": "input",
-        "modality": "modality",
-        "obsm_name": "obs_cluster",
-        "resolution": "leiden_resolution"
-      ],
-      args: [
-        "obsp_connectivities": "spatial_connectivities"
-      ],
-      toState: ["input": "output"]
-    )
-
-    | move_obsm_to_obs.run(
-      runIf: {id, state -> state.leiden_resolution},
-      fromState: [
-        "input": "input",
-        "obsm_key": "obs_cluster",
-        "modality": "modality",
-      ],
-      toState: ["input": "output"]
-    )
-    | umap.run(
-      runIf: {id, state -> !state.obsm_umap?.trim()?.isEmpty()},
-      fromState: [
-          "input": "input",
-          "output": "workflow_output",
-          "uns_neighbors": "uns_neighbors",
-          "obsm_output": "obsm_umap",
-          "modality": "modality",
-        ],
-      args: [
-        "output_compression": "gzip",
-        "uns_neighbors": "spatial_neighbors"
-        ],
+    | neighbors_leiden_umap.run(
+      fromState: { id, state -> [
+        "input": state.input,
+        "modality": state.modality,
+        "obsm_input": state.output_obsm_embedding,
+        "output": state.workflow_output,
+        "uns_neighbors": state.uns_neighbors,
+        "obsp_neighbor_distances": state.obsp_neighbor_distances,
+        "obsp_neighbor_connectivities": state.obsp_neighbor_connectivities,
+        "leiden_resolution": state.leiden_resolution,
+        "obs_cluster": state.obs_cluster,
+        "obsm_umap": state.obsm_umap,
+      ]},
       toState: ["output": "output"]
     )
-    | setState(["output": "output", "output_model": "output_model"])
+
+    | setState(["output": "output", "output_model": "output_model", "_meta": "_meta"])
+
     | view()
 
   emit:
