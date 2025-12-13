@@ -11,11 +11,16 @@ meta = {"resources_dir": "resources_test"}
 
 def test_run():
     input_mudata = read_h5mu(par["input"])
-    
+
     expected_mod = ["rna"]
     expected_obsm = ["X_leiden_nichecompass_umap", "nichecompass_latent"]
-    expected_obs = ["sample_id"]
-    expected_obsp = ["spatial_distances", "spatial_connectivities"]
+    expected_obs = ["sample_id", "nichecompass_leiden_1.0"]
+    expected_obsp = [
+        "spatial_distances",
+        "spatial_connectivities",
+        "nichecompass_connectivities",
+        "nichecompass_distances"
+    ]
     expected_varm = [
         "nichecompass_gp_sources",
         "nichecompass_gp_targets",
@@ -29,7 +34,10 @@ def test_run():
         "nichecompass_target_genes_idx",
         "nichecompass_genes_idx",
         "nichecompass_gp_names",
-        "nichecompass_active_gp_names"
+        "nichecompass_active_gp_names",
+        "nichecompass_neighbors",
+        "spatial",
+        "xenium_spatial_neighbors"
     ]
 
     assert all(key in list(input_mudata.mod) for key in expected_mod), (
