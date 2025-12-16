@@ -19,13 +19,13 @@ def test_run():
         "spatial_distances",
         "spatial_connectivities",
         "nichecompass_connectivities",
-        "nichecompass_distances"
+        "nichecompass_distances",
     ]
     expected_varm = [
         "nichecompass_gp_sources",
         "nichecompass_gp_targets",
         "nichecompass_gp_sources_categories",
-        "nichecompass_gp_targets_categories"
+        "nichecompass_gp_targets_categories",
     ]
     expected_uns = [
         "nichecompass_sources_categories_label_encoder",
@@ -37,7 +37,7 @@ def test_run():
         "nichecompass_active_gp_names",
         "nichecompass_neighbors",
         "spatial",
-        "xenium_spatial_neighbors"
+        "xenium_spatial_neighbors",
     ]
 
     assert all(key in list(input_mudata.mod) for key in expected_mod), (
