@@ -1,5 +1,11 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
+
+* `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatialneighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)
+
 ## MINOR CHANGES
 
 * Add `scope` to component and workflow configurations (PR #22).
@@ -21,8 +27,6 @@
 * `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
 
 * `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
-
-* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheComnpass analysis (PR #27).
 
 # openpipeline_spatial 0.1.0
 
