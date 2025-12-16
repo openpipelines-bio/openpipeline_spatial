@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `neighbors/spatial_neighbors`: Calculate the spatial neighborhood graph (PR #29).
+
 ## MINOR CHANGES
 
 * Add `scope` to component and workflow configurations (PR #22).
