@@ -76,18 +76,18 @@ argument_groups:
         default: "v2"
         description: |
           Version of the NicheNet ligand receptor network and ligand target gene regulatory potential matrix.
-          ´v2´ is an improved version of ´v1´, and has separate files for mouse and human.
+          `v2` is an improved version of `v1`, and has separate files for mouse and human.
       - name: "--nichenet_keep_target_genes_ratio"
         type: double
         default: 1.0
         description: |
           Ratio of target genes that are kept compared to total target genes.
-          This ratio is applied over the entire matrix (not on gene program level), and determines the ´all_gps_score_keep_threshold´, which will be used to filter target genes according to their regulatory potential scores.
+          This ratio is applied over the entire matrix (not on gene program level), and determines the `all_gps_score_keep_threshold`, which will be used to filter target genes according to their regulatory potential scores.
       - name: "--nichenet_max_n_target_genes_per_gp"
         type: integer
         default: 250
         description: |
-          Maximum number of target genes per gene program. If a gene program has more target genes than ´max_n_target_genes_per_gp´, only the ´max_n_target_genes_per_gp´ gene programs with the highest regulatory potential scores will be kept.
+          Maximum number of target genes per gene program. If a gene program has more target genes than `max_n_target_genes_per_gp`, only the `max_n_target_genes_per_gp` gene programs with the highest regulatory potential scores will be kept.
           Default value is chosen based on MultiNicheNet specification (s. Browaeys, R. et al. MultiNicheNet: a flexible framework for differential cell-cell communication analysis from multi-sample multi-condition single-cell transcriptomics data. bioRxiv (2023) doi:10.1101/2023.06.13.544751).
 
   - name: Outputs

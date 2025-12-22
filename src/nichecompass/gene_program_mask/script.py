@@ -98,7 +98,7 @@ if par["create_omnipath_gene_program_mask"]:
         species=par["species"],
         min_curation_effort=par["omnipath_min_curation_effort"],
         load_from_disk=False,
-        save_to_disk=True,
+        save_to_disk=save_to_disk,
         lr_network_file_path=par["output_omnipath_lr_network"],
         gene_orthologs_mapping_file_path=par["input_gene_orthologs_mapping_file"],
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,

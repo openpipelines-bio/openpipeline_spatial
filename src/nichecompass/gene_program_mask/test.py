@@ -44,7 +44,7 @@ def test_simple_execution(run_component, tmp_path):
         gp_mask = json.load(f)
 
     expected_gp_keys = [
-        "igand_receptor_GP",
+        "ligand_receptor_GP",
         "ligand_receptor_target_gene_GP",
         "metabolite_enzyme_sensor_GP",
         "TF_target_genes_GP",
