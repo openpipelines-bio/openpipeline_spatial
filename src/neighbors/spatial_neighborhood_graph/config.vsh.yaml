@@ -1,7 +1,7 @@
 name: spatial_neighborhood_graph
 namespace: neighbors
 scope: public
-description: Calculates a spatial neighborhood graph.
+description: Calculates a spatial neighborhood graph based on the spatial coordinates.
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
@@ -20,10 +20,6 @@ argument_groups:
         type: string
         default: "rna"
         required: false
-      - name: "--layer"
-        type: string
-        required: false
-        description: "Input layer to use. If None, X is used"
       - name: "--input_obsm_spatial_coords"
         type: string
         default: "spatial"
@@ -73,7 +69,6 @@ test_resources:
   - type: python_script
     path: test.py
   - path: /resources_test/xenium/xenium_tiny.h5mu
-  - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
 
 engines:
   - type: docker
