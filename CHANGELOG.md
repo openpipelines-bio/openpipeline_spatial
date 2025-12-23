@@ -2,7 +2,7 @@
 
 ## NEW FUNCTIONALITY
 
-* `neighbors/spatial_neighbors`: Calculate the spatial neighborhood graph (PR #29).
+* `neighbors/spatial_neighborhood_graph`: Calculate the spatial neighborhood graph (PR #29).
 
 ## MINOR CHANGES
 

@@ -10,7 +10,6 @@ meta = {
 
 input_xenium = f"{meta['resources_dir']}/xenium_tiny.h5mu"
 input_cosmx = f"{meta['resources_dir']}/Lung5_Rep2_tiny.h5mu"
-gp_mask = f"{meta['resources_dir']}/prior_knowledge_gp_mask.json"
 
 
 def test_simple_execution_xenium(run_component, tmp_path):
