@@ -42,6 +42,7 @@ argument_groups:
       - name: "--n_spatial_neighbors"
         type: integer
         default: 6
+        min: 1
         description: |
           Depending on `--coord_type`:
           `grid` - number of neighboring tiles.
@@ -90,4 +91,4 @@ runners:
 - type: executable
 - type: nextflow
   directives:
-    label: [lowcpu, lowmem, lowdisk]
+    label: [lowcpu, midmem, middisk]
