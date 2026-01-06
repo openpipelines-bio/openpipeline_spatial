@@ -16,6 +16,8 @@ sys.path.append(meta["resources_dir"])
 ortholog_file = f"{meta['resources_dir']}/niche/human_mouse_gene_orthologs.csv"
 enzymes_file = f"{meta['resources_dir']}/niche/mouse_metabolite_enzymes.tsv"
 sensors_file = f"{meta['resources_dir']}/niche/mouse_metabolite_sensors.tsv"
+omnipath_lr_network_file = f"{meta['resources_dir']}/niche/omnipath_lr_network.csv"
+collectri_tf_network_file = f"{meta['resources_dir']}/niche/collectri_tf_network.csv"
 
 
 def test_simple_execution(run_component, tmp_path):
@@ -71,12 +73,13 @@ def test_simple_execution(run_component, tmp_path):
         )
 
 
-def test_outputs(run_component, tmp_path):
+def test_inputs_and_outputs(run_component, tmp_path):
+    """Test loading from input files instead of querying APIs.
+    
+    This test uses pre-downloaded omnipath and collectri network files
+    to avoid API rate limits when running tests in parallel.
+    """
     output = tmp_path / "output.json"
-    omnipath_lr = tmp_path / "omnipath_lr_network.tsv"
-    nichenet_lr = tmp_path / "nichenet_lr_network.tsv"
-    nichenet_lt = tmp_path / "nichenet_ligand_target_matrix.csv"
-    collectri_tf = tmp_path / "output_collectri_tf_network.csv"
     omnipath_distr = tmp_path / "omnipath_distr.svg"
     nichenet_distr = tmp_path / "nichenet_distr.svg"
     mebocost_distr = tmp_path / "mebocost_distr.svg"
@@ -89,18 +92,14 @@ def test_outputs(run_component, tmp_path):
         enzymes_file,
         "--input_metabolite_sensors",
         sensors_file,
+        "--input_omnipath_lr_network",
+        omnipath_lr_network_file,
+        "--input_collectri_tf_network",
+        collectri_tf_network_file,
         "--species",
         "mouse",
         "--output",
         output,
-        "--output_omnipath_lr_network",
-        omnipath_lr,
-        "--output_nichenet_lr_network",
-        nichenet_lr,
-        "--output_nichenet_ligand_target_matrix",
-        nichenet_lt,
-        "--output_collectri_tf_network",
-        collectri_tf,
         "--output_omnipath_gp_gene_count_distributions",
         omnipath_distr,
         "--output_nichenet_gp_gene_count_distributions",
@@ -114,18 +113,15 @@ def test_outputs(run_component, tmp_path):
     run_component(args)
 
     expected_outputs = [
-        omnipath_lr,
-        nichenet_lr,
-        nichenet_lt,
-        collectri_tf,
+        output,
         omnipath_distr,
         nichenet_distr,
         mebocost_distr,
         collectri_distr,
     ]
 
-    for output in expected_outputs:
-        assert output.is_file(), f"Expected output file {output} does not exist"
+    for output_file in expected_outputs:
+        assert output_file.is_file(), f"Expected output file {output_file} does not exist"
 
 
 if __name__ == "__main__":

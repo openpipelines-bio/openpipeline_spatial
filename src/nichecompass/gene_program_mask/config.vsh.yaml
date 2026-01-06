@@ -28,6 +28,20 @@ argument_groups:
         description: |
           Path to the MeBocost metabolite-sensors TSV file.
           Required for generating the MeBocost gene program mask.
+      - name: "--input_omnipath_lr_network"
+        type: file
+        required: false
+        description: |
+          Path to the OmniPath ligand-receptor network CSV file.
+          If provided, the network will be loaded from this file instead of querying the OmniPath API.
+          Cannot be used together with `--output_omnipath_lr_network`.
+      - name: "--input_collectri_tf_network"
+        type: file
+        required: false
+        description: |
+          Path to the CollecTRI TF-target gene regulatory network CSV file.
+          If provided, the network will be loaded from this file instead of querying the decoupler API.
+          Cannot be used together with `--output_collectri_tf_network`.
 
   - name: Parameters
     arguments:
