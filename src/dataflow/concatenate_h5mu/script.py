@@ -10,22 +10,21 @@ from pathlib import Path
 from h5py import File as H5File
 from typing import Literal
 import shutil
-import scipy.sparse as sp
 
 ### VIASH START
 par = {
     "input": [
-        "sample1.h5mu",
-        "sample3.h5mu",
+        "resources_test/concat_test_data/e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix_subset_unique_obs.h5mu",
+        "resources_test/concat_test_data/human_brain_3k_filtered_feature_bc_matrix_subset_unique_obs.h5mu",
     ],
-    "modality": None,
-    "output": "foo3.h5mu",
-    "input_id": ["sample1", "sample3"],
+    "output": "foo.h5mu",
+    "input_id": ["mouse", "human"],
+    "obsp_keys": [],
     "other_axis_mode": "move",
     "output_compression": "gzip",
     "uns_merge_mode": "make_unique",
 }
-meta = {"cpus": 10, "resources_dir": "src/utils/"}
+meta = {"cpus": 10, "resources_dir": "resources_test/"}
 ### VIASH END
 
 sys.path.append(meta["resources_dir"])
@@ -222,55 +221,6 @@ def split_conflicts_modalities(
     return output
 
 
-def get_common_obsp_keys(mod_data: dict[str, anndata.AnnData]) -> set[str]:
-    """
-    Find `.obsp` keys that are present in all samples and whose matrices
-    are square and match the number of observations per sample.
-
-    This ensures we only build block-diagonal graphs when shapes are consistent.
-    """
-    if not mod_data:
-        return set()
-
-    key_sets = [set(adata.obsp.keys()) for adata in mod_data.values()]
-    common_keys = set.intersection(*key_sets) if key_sets else set()
-
-    if not common_keys:
-        logger.info("No suitable `.obsp` keys found for block-diagonal merge.")
-    else:
-        logger.info(
-            "Will merge `.obsp` keys block-diagonally: %s", ", ".join(common_keys)
-        )
-
-    return common_keys
-
-
-def merge_obsp_block_diag(
-    mod_data: dict[str, anndata.AnnData],
-    concatenated_data: anndata.AnnData,
-) -> anndata.AnnData:
-    """
-    Build block-diagonal `.obsp` matrices for all common keys across samples.
-    """
-    common_keys = get_common_obsp_keys(mod_data)
-    if not common_keys:
-        logger.info("Skipping `.obsp` block-diagonal merge.")
-        return concatenated_data
-
-    # Order of blocks must match the concat order
-    adatas_in_order = list(mod_data.values())
-
-    for key in common_keys:
-        logger.info("Building block-diagonal obsp['%s'] matrix.", key)
-        blocks = []
-        for ad in adatas_in_order:
-            # `.tocsr()` to ensure compatible format for block_diag
-            blocks.append(ad.obsp[key].tocsr())
-        concatenated_data.obsp[key] = sp.block_diag(blocks, format="csr")
-
-    return concatenated_data
-
-
 def concatenate_modality(
     n_processes: int,
     mod: str | None,
@@ -293,6 +243,14 @@ def concatenate_modality(
         if mod is not None:
             try:
                 data = mu.read_h5ad(input_file, mod=mod)
+
+                # Remove obsp keys that are not in par["obsp_keys"]
+                if par["obsp_keys"]:
+                    # Keep only the obsp keys that are specified in par["obsp_keys"]
+                    keys_to_remove = set(data.obsp.keys()) - set(par["obsp_keys"])
+                    for key in keys_to_remove:
+                        del data.obsp[key]
+
                 mod_data[input_id] = data
                 mod_indices_combined = mod_indices_combined.append(data.obs.index)
             except KeyError as e:  # Modality does not exist for this sample, skip it
@@ -318,6 +276,7 @@ def concatenate_modality(
     concatenated_data = anndata.concat(
         mod_data.values(),
         join="outer",
+        pairwise=True if par["obsp_keys"] else False,
         merge=other_axis_mode_to_apply,
         uns_merge=uns_merge_mode_to_apply,
     )
@@ -329,8 +288,6 @@ def concatenate_modality(
 
     if uns_merge_mode == "make_unique":
         concatenated_data = make_uns_keys_unique(mod_data, concatenated_data)
-
-    concatenated_data = merge_obsp_block_diag(mod_data, concatenated_data)
 
     return concatenated_data
 
@@ -425,7 +382,7 @@ def main() -> None:
 
     n_processes = meta["cpus"] if meta["cpus"] else 1
 
-    if par.get("modality"):
+    if par["modality"]:
         par["modality"] = set(par["modality"])
         if not par["modality"].issubset(mods):
             mods_joined, input_mods_joined = ", ".join(mods), ", ".join(par["modality"])

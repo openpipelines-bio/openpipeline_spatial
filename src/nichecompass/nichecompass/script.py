@@ -14,7 +14,7 @@ par = {
     "layer": None,
     "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
     "input_obs_covariates": None,
-    "input_obsm_spatial_connectivities": "spatial_connectivities",
+    "input_obsp_spatial_connectivities": "spatial_connectivities",
     ## GP Mask
     "min_genes_per_gp": 2,
     "min_source_genes_per_gp": 1,
@@ -139,7 +139,7 @@ logger.info("Initializing NicheCompass model...")
 model = NicheCompass(
     adata,
     counts_key=par["layer"],
-    adj_key=par["input_obsm_spatial_connectivities"],
+    adj_key=par["input_obsp_spatial_connectivities"],
     gp_names_key=par["output_uns_gp_names"],
     active_gp_names_key=par["output_uns_active_gp_names"],
     gp_targets_mask_key=par["output_varm_gp_targets_mask"],

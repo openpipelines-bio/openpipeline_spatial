@@ -33,10 +33,10 @@ argument_groups:
         type: string
         required: false
         description: "Input layer to use. If None, X is used"
-      - name: "--input_obsm_spatial_connectivities"
+      - name: "--input_obsp_spatial_connectivities"
         type: string
         default: "spatial_connectivities"
-        description: "Key in adata.obsm where connectivities of the spatial neighborhood graph are stored"
+        description: "Key in adata.obsp where connectivities of the spatial neighborhood graph are stored"
       - name: "--input_obs_covariates"
         type: string
         multiple: true

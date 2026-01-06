@@ -78,12 +78,15 @@ workflow run_wf {
       [ newId, data_state ]
     }
 
-    | obsp_block_concatenation.run(
+    | concatenate_h5mu.run(
       fromState: { id, state -> [
         "input": state.input,
         "modality": state.modality,
         "input_id": state.input_id
       ]},
+      args: [
+        "obsp_keys": ["spatial_connectivities", "spatial_distances"]
+      ],
       toState: {id, output, state -> 
           def keysToRemove = ["input_id"]
           def newState = state.findAll{it.key !in keysToRemove}
@@ -129,7 +132,7 @@ workflow run_wf {
         "output_model": state.output_model
       ]},
       args: [
-        "input_obsm_spatial_connectivities": "spatial_connectivities"
+        "input_obsp_spatial_connectivities": "spatial_connectivities"
       ],
       toState: [
         "input": "output",

@@ -348,7 +348,7 @@ argument_groups:
           Key of the obsm field where the latent / gene program representation of active gene programs will be stored after NicheCompass model training.
 
 dependencies:
-  - name: dataflow/obsp_block_concatenation
+  - name: dataflow/concatenate_h5mu
   - name: neighbors/spatial_neighborhood_graph
   - name: nichecompass/nichecompass
   - name: metadata/add_id
