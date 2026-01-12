@@ -2,6 +2,17 @@
 
 set -eo pipefail
 
+## VIASH START
+par_input='resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_fastqs'
+par_image='resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_image.jpg'
+par_output='spaceranger_test'
+par_gex_reference='resources_test/GRCh38'
+par_probe_set='resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv'
+par_slide='V10L13-020'
+par_area='D1'
+par_create_bam='false'
+## VIASH END
+
 unset_if_false=(
     par_override_id
     par_nosecondary
@@ -12,8 +23,10 @@ for par in ${unset_if_false[@]}; do
     [[ "$test_val" == "false" ]] && unset $par
 done
 
+temp_id="spaceranger_run"
+
 spaceranger count \
-  ${par_output:+--id="$par_output"} \
+  --id="$temp_id" \
   ${par_gex_reference:+--transcriptome="$par_gex_reference"} \
   ${par_input:+--fastqs="$par_input"} \
   ${par_probe_set:+--probe-set="$par_probe_set"} \
@@ -41,5 +54,6 @@ spaceranger count \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 
-mv -f "$par_output"/outs/* "$par_output"/
-rm -rf "$par_output"/outs
+mkdir -p "$par_output"
+mv -f "$temp_id"/outs/* "$par_output"/
+rm -rf "$temp_id"/outs

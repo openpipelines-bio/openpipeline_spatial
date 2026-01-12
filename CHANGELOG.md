@@ -10,6 +10,8 @@
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
 
+* `mapping/spaceranger_count`: Fixed issue with long temporary folder paths causing write failures (PR #31).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
