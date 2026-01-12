@@ -3328,7 +3328,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_private/nextflow/filter/subset_cosmx",
     "viash_version" : "0.9.4",
-    "git_commit" : "d5fccff01756531a77408287d6ed9cc70b4e859a",
+    "git_commit" : "40fb1d9670218e6f80b89843e295de6bffcb86de",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
