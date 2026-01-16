@@ -44,6 +44,10 @@ argument_groups:
         type: string
         example: "raw_counts"
         required: false
+      - name: "--input_obs_batch_key"
+        type: string
+        description: "Key of the adata.obs field that contains the batch information."
+        default: sample_id
       - name: "--input_obs_covariates"
         type: string
         multiple: true
@@ -351,7 +355,7 @@ dependencies:
   - name: dataflow/concatenate_h5mu
   - name: neighbors/spatial_neighborhood_graph
   - name: nichecompass/nichecompass
-  - name: metadata/add_id
+  - name: dataflow/split_h5mu
     repository: openpipeline
   - name: workflows/multiomics/neighbors_leiden_umap
     repository: openpipeline

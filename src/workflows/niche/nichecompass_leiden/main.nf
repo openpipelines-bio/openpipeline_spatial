@@ -11,27 +11,43 @@ workflow run_wf {
         _meta: [join_id: id]
       ]]
     }
-    // If requested, add the id of the events (samples) to a column in .obs. 
-    // Also allows to make .obs_names (the .obs index) unique, by prefixing the values with an unique id per .h5mu file.
-    // The latter is usefull to avoid duplicate observations during concatenation.
-    | add_id.run(
-      filter: {id, state -> state.add_id_to_obs },
-      fromState: {id, state -> 
-        def newState = [
-          "input": state.input,
-          "input_id": id,
-          "make_observation_keys_unique": state.add_id_make_observation_keys_unique,
-          "obs_output": state.add_id_obs_output,
-          "add_id_to_obs": state.add_id_to_obs
-        ]
-        newState
-      },
-      toState: {id, output, state ->
-        def keysToRemove = ["add_id_to_obs", "add_id_obs_output", "add_id_make_observation_keys_unique"]
-        def newState = state.findAll{it.key !in keysToRemove}
-        newState + ["input": output.output]
-      }
+    // Split h5mu by sample
+    | split_h5mu.run(
+      fromState: {id, state -> [
+        "id": id,
+        "input": state.input,
+        "modality": state.modality,
+        "obs_feature": state.input_obs_batch_key,
+        "input_obsm_spatial_coords": state.input_obsm_spatial_coords,
+        "coord_type": state.coord_type,
+        "n_spatial_neighbors": state.n_spatial_neighbors,
+        "delaunay": state.delaunay
+      ]},
+      args: [
+        "drop_obs_nan": true,
+        "ensure_unique_filenames": true
+      ],
+      toState: ["output": "output", "output_files": "output_files"]
     )
+    
+    | flatMap {id, state ->
+      def outputDir = state.output
+      def files = readCsv(state.output_files.toUriString())
+      
+      files.collect{ dat ->
+        def new_id = dat.name // unique sample ids
+        def new_data = outputDir.resolve(dat.filename)
+        [ new_id, state + ["input": new_data]]
+      }
+    }
+    // remove keys from split files
+    | map {id, state -> 
+      def keysToRemove = ["output_files"]
+      def newState = state.findAll{it.key !in keysToRemove}
+      [id, newState]
+    }
+
+    | view {"After split samples: $it"}
 
     | spatial_neighborhood_graph.run(
       fromState: {id, state -> [

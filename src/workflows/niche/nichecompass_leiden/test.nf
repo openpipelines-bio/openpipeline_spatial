@@ -12,18 +12,8 @@ workflow test_wf {
   output_ch = 
     Channel.fromList([
       [
-        id: "xenium",
-        input: resources_test.resolve("xenium/xenium_tiny.h5mu"),
-        input_gp_mask: resources_test.resolve("niche/prior_knowledge_gp_mask.json"),
-        n_epochs: 1,
-        n_epochs_all_gps: 0,
-        n_epochs_no_edge_recon: 0,
-        n_epochs_no_cat_covariates_contrastive_loss: 0,
-        output_model: "simple_execution_test_model"
-      ],
-      [
-        id: "cosmx",
-        input: resources_test.resolve("cosmx/Lung5_Rep2_tiny.h5mu"),
+        id: "test",
+        input: resources_test.resolve("cosmx/Lung5_tiny_processed.h5mu"),
         input_gp_mask: resources_test.resolve("niche/prior_knowledge_gp_mask.json"),
         n_epochs: 1,
         n_epochs_all_gps: 0,
