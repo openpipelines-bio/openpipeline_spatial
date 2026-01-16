@@ -9,18 +9,16 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 DIR="resources_test/cosmx"
-ID="Lung5_Rep2"
-OUT="$DIR/$ID/"
 
 # create tempdir
 MY_TEMP="${VIASH_TEMP:-/tmp}"
-TMPDIR=$(mktemp -d "$MY_TEMP/$ID-XXXXXX")
+TMPDIR=$(mktemp -d "$MY_TEMP/cosmx-XXXXXX")
 function clean_up {
   [[ -d "$TMPDIR" ]] && rm -r "$TMPDIR"
 }
 trap clean_up EXIT
 
-if [ ! -d "$OUT" ]; then
+if [ ! -d "$DIR/cosmx" ]; then
 
     flat_dataset_rep_1="https://nanostring-public-share.s3.us-west-2.amazonaws.com/SMI-Compressed/Lung5_Rep1/Lung5_Rep1+SMI+Flat+data.tar.gz"
     wget  "$flat_dataset_rep_1" -O "$TMPDIR/Lung5_Rep1.tar.gz"
