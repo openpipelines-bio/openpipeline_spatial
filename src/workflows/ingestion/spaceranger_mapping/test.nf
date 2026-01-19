@@ -16,7 +16,6 @@ workflow test_wf {
         gex_reference: resources_test.resolve("GRCh38"),
         probe_set: resources_test.resolve("visium/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv"),
         image: resources_test.resolve("visium/subsampled/Visium_FFPE_Human_Ovarian_Cancer_image.jpg"),
-        unkown_slide: "visium-1",
         slide: "V10L13-020",
         area: "D1",
         output_type: "filtered",
