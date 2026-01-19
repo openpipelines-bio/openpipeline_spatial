@@ -6,8 +6,8 @@ import pandas as pd
 
 ## VIASH START
 par = {
-    "input": "spaceranger_test",
-    "uns_metrics": "metrics_cellranger",
+    "input": "resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger",
+    "uns_metrics": "metrics_spaceranger",
     "uns_probe_set": "probe_set",
     "obsm_coordinates": "spatial",
     "output": "foo.h5mu",
@@ -40,7 +40,7 @@ def retrieve_input_data(spaceranger_output_bundle, input_type="filtered"):
       "count_matrix": matrix_pattern,
       "metrics_summary": "**/metrics_summary.csv",
       "probe_set": "**/probe_set.csv",
-      "spatial_coords": "**/Spatial/tissue_positions.csv"
+      "spatial_coords": "**/spatial/tissue_positions.csv"
     }
 
     spaceranger_output_bundle = Path(spaceranger_output_bundle)
@@ -78,6 +78,7 @@ def main():
 
     if par["uns_probe_set"]:
         logger.info("Reading probe set file...")
+
         def read_hash_metadata(path):
             meta = {}
             with open(path, "r", encoding="utf-8") as f:

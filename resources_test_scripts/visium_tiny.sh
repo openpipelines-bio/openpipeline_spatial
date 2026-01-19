@@ -48,8 +48,7 @@ rm -f "$DIR/Visium_FFPE_Human_Ovarian_Cancer_image.jpg"
 
 aws s3 sync \
     --profile di \
-  --exclude "*.yaml" \
-  --exclude "*.yml" \
+    --exclude "*.yaml" \
     "$DIR" \
     s3://openpipelines-bio/openpipeline_spatial/resources_test/visium \
     --delete \
