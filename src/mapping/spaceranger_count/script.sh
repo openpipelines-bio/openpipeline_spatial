@@ -26,6 +26,9 @@ done
 # just to make sure paths are absolute
 par_gex_reference=`realpath $par_gex_reference`
 par_output=`realpath $par_output`
+par_probe_set=`realpath $par_probe_set`
+[[ -n "${par_image:-}" ]] && par_image=$(realpath "$par_image")
+[[ -n "${par_cytaimage:-}" ]] && par_cytaimage=$(realpath "$par_cytaimage")
 
 # create temporary directory
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
