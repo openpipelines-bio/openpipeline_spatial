@@ -6,6 +6,8 @@
 
 * Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
 
+* `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
+
 ## BUG FIXES
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
