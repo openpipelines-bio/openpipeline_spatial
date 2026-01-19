@@ -20,8 +20,11 @@ argument_groups:
       - type: file
         name: --input
         required: true
+        multiple: true
         description: | 
-          Path to a directory containing input FASTQ data. Individual FASTQ files should follow the naming convention of 10x Genomics:
+          The fastq.gz files to align. Can also be a single directory containing fastq.gz files.
+          
+          Individual FASTQ files should follow the naming convention of 10x Genomics:
           [Sample Name]_S[Sample Number]_L[Lane Number]_[Read Type]_001.fastq.gz
 
           Where:
@@ -32,9 +35,8 @@ argument_groups:
           [Read Type] will be one of:
           R1 - Read 1 (contains the spatial barcode and UMI)
           R2 - Read 2 (contains the actual cDNA sequence)
-          I1 - Index Read 1 (if applicable)
-          I2 - Index Read 2 (if applicable)
-        example: "/path/to/fastq_folder"
+
+        example: [ "sample_S1_L001_R1_001.fastq.gz", "sample_S1_L001_R2_001.fastq.gz" ]
 
       - type: file
         name: --probe_set
@@ -192,8 +194,8 @@ resources:
   - type: bash_script
     path: script.sh
 test_resources:
-  - type: bash_script
-    path: test.sh
+  - type: python_script
+    path: test.py
   - path: /resources_test/visium
   - path: /resources_test/GRCh38
 engines:
@@ -204,6 +206,7 @@ engines:
         run: |
           DEBIAN_FRONTEND=noninteractive apt update && \
           apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 runners:
   - type: executable
   - type: nextflow
