@@ -109,16 +109,6 @@ def main():
     logger.info("Storing spatial coordinates in .obsm slot...")
     adata.obsm[par["obsm_coordinates"]] = spatial_coords_aligned[["pxl_col_in_fullres", "pxl_row_in_fullres"]].to_numpy()
 
-    # might perform basic filtering to get rid of some data
-    # applicable when starting from the raw counts
-    if par["min_genes"]:
-        logger.info("Filtering with min_genes=%d", par["min_genes"])
-        sc.pp.filter_cells(adata, min_genes=par["min_genes"])
-
-    if par["min_counts"]:
-        logger.info("Filtering with min_counts=%d", par["min_counts"])
-        sc.pp.filter_cells(adata, min_counts=par["min_counts"])
-
     # generate output
     logger.info("Convert to mudata")
     mdata = mudata.MuData(adata)

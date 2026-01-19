@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { spaceranger_mapping } from params.rootDir + "/target/nextflow/workflows/ingestion/spaceranger_mapping/main.nf"
-include { cellranger_mapping_test } from params.rootDir + "/target/_test/nextflow/test_workflows/ingestion/cellranger_mapping_test/main.nf"
+include { spaceranger_mapping_test } from params.rootDir + "/target/_test/nextflow/test_workflows/ingestion/spaceranger_mapping_test/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
@@ -12,10 +12,11 @@ workflow test_wf {
   output_ch = Channel.fromList([
       [  
         id: "foo",
-        input: resources_test.resolve("visium/subsampled"),
+        input: resources_test.resolve("visium/Visium_FFPE_Human_Ovarian_Cancer_tiny"),
         gex_reference: resources_test.resolve("GRCh38"),
+        image: resources_test.resolve("visium/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg"),
         probe_set: resources_test.resolve("visium/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv"),
-        image: resources_test.resolve("visium/subsampled/Visium_FFPE_Human_Ovarian_Cancer_image.jpg"),
+        create_bam: "false",
         slide: "V10L13-020",
         area: "D1",
         output_type: "filtered",
@@ -29,7 +30,7 @@ workflow test_wf {
       "Output: $output"
     }
 
-    | cellranger_mapping_test.run(
+    | spaceranger_mapping_test.run(
       fromState: ["input": "output_h5mu"]
     )
 

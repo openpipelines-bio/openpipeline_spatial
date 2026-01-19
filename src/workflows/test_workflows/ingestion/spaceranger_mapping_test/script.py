@@ -11,17 +11,19 @@ meta = {"resources_dir": "resources_test"}
 
 def test_run():
     input_mudata = read_h5mu(par["input"])
-    expected_colnames = ["gene_symbol", "feature_types", "genome"]
+    expected_var_columns = ["gene_symbol", "feature_types", "genome"]
 
     assert list(input_mudata.mod.keys()) == ["rna"], (
         "Input should contain rna modality."
     )
-    assert list(input_mudata.var.columns) == expected_colnames, (
-        f"Input var columns should be: {expected_colnames}."
+    assert list(input_mudata.var.columns) == expected_var_columns, (
+        f"Input var columns should be: {expected_var_columns}."
     )
-    assert list(input_mudata.mod["rna"].var.columns) == expected_colnames, (
-        f"Input mod['rna'] var columns should be: {expected_colnames}."
+    assert list(input_mudata.mod["rna"].var.columns) == expected_var_columns, (
+        f"Input mod['rna'] var columns should be: {expected_var_columns}."
     )
+    
+    assert list(input_mudata.mod["rna"].obs.keys()) == ["spatial"]
 
 
 if __name__ == "__main__":

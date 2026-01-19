@@ -76,15 +76,27 @@ argument_groups:
         description: "The output from Cell Ranger, converted to h5mu."
         required: true
         example: output.h5mu
-      - name: "--uns_metrics"
-        type: string
-        description: Name of the .uns slot under which to QC metrics (if any).
-        default: "metrics_summary"
       - name: "--output_type"
         type: string
         description: "Which Cell Ranger output to use for converting to h5mu."
         choices: [ raw, filtered ]
         default: raw
+      - name: "--uns_metrics"
+        type: string
+        description: Name of the .uns slot under which to QC metrics (if any).
+        default: "metrics_summary"
+      - name: "--uns_probe_set"
+        type: string
+        description: Name of the .uns slot under which to store probe set information (if any).
+        default: "probe_set"
+      - name: "--obsm_coordinates"
+        type: string
+        description: Name of the .obsm slot under which to store the cell centroid coordinates.
+        default: "spatial"
+      - name: "--output_compression"
+        type: string
+        description: Compression to use when writing the h5mu file.
+        choices: [ gzip, lzf ]
 
   - name: Image Options
     arguments:
@@ -177,11 +189,7 @@ argument_groups:
 
 dependencies:
   - name: mapping/spaceranger_count
-  - name: mapping/cellranger_count_split
-    alias: spaceranger_count_split
-    repository: openpipeline
-  - name: convert/from_10xh5_to_h5mu
-    repository: openpipeline
+  - name: convert/from_spaceranger_to_h5mu
 
 resources:
   - type: nextflow_script
