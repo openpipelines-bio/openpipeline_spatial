@@ -459,9 +459,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_cells2stats_to_h5mu"
-LABEL org.opencontainers.image.created="2026-01-12T14:27:33Z"
+LABEL org.opencontainers.image.created="2026-01-19T10:10:55Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="40fb1d9670218e6f80b89843e295de6bffcb86de"
+LABEL org.opencontainers.image.revision="cf965f4e6d6eab509e382b2699225514d449e946"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
