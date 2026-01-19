@@ -1,6 +1,5 @@
 import pytest
 import sys
-import subprocess
 import mudata as mu
 
 ## VIASH START
@@ -28,7 +27,11 @@ def test_simple_execution(run_component, tmp_path):
     assert list(mdata.mod.keys()) == ["rna"], "Expected modality rna"
     adata = mdata.mod["rna"]
 
-    assert list(adata.uns.keys()) == ["metrics_spaceranger", "probe_set", "probe_set_meta"]
+    assert list(adata.uns.keys()) == [
+        "metrics_spaceranger",
+        "probe_set",
+        "probe_set_meta",
+    ]
     assert list(adata.obsm.keys()) == ["spatial"]
     assert list(adata.var.keys()) == ["gene_symbol", "feature_types", "genome"]
 

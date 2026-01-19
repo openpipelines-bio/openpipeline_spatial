@@ -7,8 +7,12 @@ meta = {"name": "spaceranger_count", "resources_dir": "resources_test"}
 ## VIASH END
 
 input = meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/"
-probe_set = meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv"
-image = meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg"
+probe_set = (
+    meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv"
+)
+image = (
+    meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg"
+)
 reference = meta["resources_dir"] + "/GRCh38"
 
 
@@ -43,13 +47,9 @@ def test_simple_execution(run_component, random_path):
         "No raw .h5 count matrix was created."
     )
 
-    assert (output / "metrics_summary.csv").is_file(), (
-        "No metrics summary was created."
-    )
+    assert (output / "metrics_summary.csv").is_file(), "No metrics summary was created."
 
-    assert (output / "web_summary.html").is_file(), (
-        "No web summary was created."
-    )
+    assert (output / "web_summary.html").is_file(), "No web summary was created."
 
 
 def test_with_fastqs(run_component, random_path):
@@ -57,9 +57,15 @@ def test_with_fastqs(run_component, random_path):
     run_component(
         [
             "--input",
-            Path(meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"),
+            Path(
+                meta["resources_dir"]
+                + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"
+            ),
             "--input",
-            Path(meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"),
+            Path(
+                meta["resources_dir"]
+                + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"
+            ),
             "--gex_reference",
             reference,
             "--probe_set",
@@ -85,13 +91,9 @@ def test_with_fastqs(run_component, random_path):
         "No raw .h5 count matrix was created."
     )
 
-    assert (output / "metrics_summary.csv").is_file(), (
-        "No metrics summary was created."
-    )
+    assert (output / "metrics_summary.csv").is_file(), "No metrics summary was created."
 
-    assert (output / "web_summary.html").is_file(), (
-        "No web summary was created."
-    )
+    assert (output / "web_summary.html").is_file(), "No web summary was created."
 
 
 def test_with_optional_params(run_component, random_path):
@@ -133,13 +135,9 @@ def test_with_optional_params(run_component, random_path):
         "No raw .h5 count matrix was created."
     )
 
-    assert (output / "metrics_summary.csv").is_file(), (
-        "No metrics summary was created."
-    )
+    assert (output / "metrics_summary.csv").is_file(), "No metrics summary was created."
 
-    assert (output / "web_summary.html").is_file(), (
-        "No web summary was created."
-    )
+    assert (output / "web_summary.html").is_file(), "No web summary was created."
 
 
 if __name__ == "__main__":

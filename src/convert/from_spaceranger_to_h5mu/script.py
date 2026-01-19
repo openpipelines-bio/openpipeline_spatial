@@ -14,11 +14,9 @@ par = {
     "min_genes": None,
     "min_counts": None,
     "output_compression": "gzip",
-    "output_type": "filtered"
+    "output_type": "filtered",
 }
-meta = {
-    "resources_dir": "src/utils"
-}
+meta = {"resources_dir": "src/utils"}
 ## VIASH END
 
 sys.path.append(meta["resources_dir"])
@@ -35,12 +33,16 @@ def retrieve_input_data(spaceranger_output_bundle, input_type="filtered"):
     # ├── metrics_summary.csv
     # └── probe_set.csv
 
-    matrix_pattern = "**/filtered_feature_bc_matrix.h5" if input_type == "filtered" else "**/raw_feature_bc_matrix.h5"
+    matrix_pattern = (
+        "**/filtered_feature_bc_matrix.h5"
+        if input_type == "filtered"
+        else "**/raw_feature_bc_matrix.h5"
+    )
     spaceranger_file_patterns = {
-      "count_matrix": matrix_pattern,
-      "metrics_summary": "**/metrics_summary.csv",
-      "probe_set": "**/probe_set.csv",
-      "spatial_coords": "**/spatial/tissue_positions.csv"
+        "count_matrix": matrix_pattern,
+        "metrics_summary": "**/metrics_summary.csv",
+        "probe_set": "**/probe_set.csv",
+        "spatial_coords": "**/spatial/tissue_positions.csv",
     }
 
     spaceranger_output_bundle = Path(spaceranger_output_bundle)
@@ -50,7 +52,7 @@ def retrieve_input_data(spaceranger_output_bundle, input_type="filtered"):
     for key, pattern in spaceranger_file_patterns.items():
         file = list(spaceranger_output_bundle.glob(pattern))
         assert len(file) == 1, (
-          f"Expected exactly one file for pattern '{pattern}', found {len(file)}."
+            f"Expected exactly one file for pattern '{pattern}', found {len(file)}."
         )
         spaceranger_files[key] = file[0]
 
@@ -70,7 +72,10 @@ def main():
     if par["uns_metrics"]:
         logger.info("Reading metrics summary file...")
         metrics_summary = pd.read_csv(
-            spaceranger_files["metrics_summary"], decimal=".", quotechar='"', thousands=","
+            spaceranger_files["metrics_summary"],
+            decimal=".",
+            quotechar='"',
+            thousands=",",
         )
 
         logger.info("Storing metrics summary in .uns slot...")
@@ -92,9 +97,7 @@ def main():
             return meta
 
         meta = read_hash_metadata(spaceranger_files["probe_set"])
-        probe_set = pd.read_csv(
-            spaceranger_files["probe_set"], comment="#"
-            )
+        probe_set = pd.read_csv(spaceranger_files["probe_set"], comment="#")
 
         logger.info("Storing probe set in .uns slot...")
         adata.uns[par["uns_probe_set"]] = probe_set
@@ -105,9 +108,13 @@ def main():
         spaceranger_files["spatial_coords"], decimal=".", thousands=","
     )
 
-    spatial_coords_aligned = spatial_coords.set_index("barcode").reindex(adata.obs_names)
+    spatial_coords_aligned = spatial_coords.set_index("barcode").reindex(
+        adata.obs_names
+    )
     logger.info("Storing spatial coordinates in .obsm slot...")
-    adata.obsm[par["obsm_coordinates"]] = spatial_coords_aligned[["pxl_col_in_fullres", "pxl_row_in_fullres"]].to_numpy()
+    adata.obsm[par["obsm_coordinates"]] = spatial_coords_aligned[
+        ["pxl_col_in_fullres", "pxl_row_in_fullres"]
+    ].to_numpy()
 
     # generate output
     logger.info("Convert to mudata")
