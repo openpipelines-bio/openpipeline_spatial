@@ -460,9 +460,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialexperiment"
-LABEL org.opencontainers.image.created="2026-01-20T10:22:50Z"
+LABEL org.opencontainers.image.created="2026-01-20T13:37:52Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="e3526aa6d4cb2826657c88c71cfd1bc9ace6139b"
+LABEL org.opencontainers.image.revision="c9ad319d141e23717d36fad04b99961b76c3a14c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

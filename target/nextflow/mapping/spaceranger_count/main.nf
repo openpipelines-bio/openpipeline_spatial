@@ -3563,7 +3563,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/mapping/spaceranger_count",
     "viash_version" : "0.9.4",
-    "git_commit" : "e3526aa6d4cb2826657c88c71cfd1bc9ace6139b",
+    "git_commit" : "c9ad319d141e23717d36fad04b99961b76c3a14c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3672,7 +3672,7 @@ for par in \\${unset_if_false[@]}; do
     [[ "\\$test_val" == "false" ]] && unset \\$par
 done
 
-# just to make sure paths are absolute
+# Make sure paths are absolute
 par_gex_reference=\\`realpath \\$par_gex_reference\\`
 par_output=\\`realpath \\$par_output\\`
 par_probe_set=\\`realpath \\$par_probe_set\\`

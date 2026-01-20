@@ -4,6 +4,10 @@
 
 * `neighbors/spatial_neighborhood_graph`: Calculate the spatial neighborhood graph (PR #29).
 
+* `convert/from_spaceranger_to_h5mu`: Added converter component for convert Spaceranger output to H5MU files (PR #33).
+
+* `workflows/ingestion/spaceranger_mapping`: Added a workflow to ingest Visium data using Spaceranger and convert the count matrix to an H5MU file (PR #33).
+
 ## MINOR CHANGES
 
 * Add `scope` to component and workflow configurations (PR #22).

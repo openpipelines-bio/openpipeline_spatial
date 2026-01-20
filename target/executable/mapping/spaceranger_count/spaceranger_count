@@ -453,9 +453,9 @@ apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-01-20T10:22:49Z"
+LABEL org.opencontainers.image.created="2026-01-20T13:37:51Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="e3526aa6d4cb2826657c88c71cfd1bc9ace6139b"
+LABEL org.opencontainers.image.revision="c9ad319d141e23717d36fad04b99961b76c3a14c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1711,7 +1711,7 @@ for par in \${unset_if_false[@]}; do
     [[ "\$test_val" == "false" ]] && unset \$par
 done
 
-# just to make sure paths are absolute
+# Make sure paths are absolute
 par_gex_reference=\`realpath \$par_gex_reference\`
 par_output=\`realpath \$par_output\`
 par_probe_set=\`realpath \$par_probe_set\`
