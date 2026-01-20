@@ -58,13 +58,11 @@ def test_with_fastqs(run_component, random_path):
         [
             "--input",
             Path(
-                meta["resources_dir"]
-                + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"
+                input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"
             ),
             "--input",
             Path(
-                meta["resources_dir"]
-                + "/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"
+                input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"
             ),
             "--gex_reference",
             reference,
