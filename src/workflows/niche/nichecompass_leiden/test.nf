@@ -32,7 +32,7 @@ workflow test_wf {
 
       // check id
       def id = output[0]
-      assert id == "merged"
+      assert id == "test"
 
       // check output
       def state = output[1]
