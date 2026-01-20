@@ -34,6 +34,7 @@ argument_groups:
       - name: "--coord_type"
         type: string
         choices: ["generic", "grid"]
+        default: "generic"
         description: |
           Type of coordinate system. Valid options are:
           `grid` - grid coordinates.
