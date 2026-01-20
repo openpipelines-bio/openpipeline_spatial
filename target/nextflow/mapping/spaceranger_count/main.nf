@@ -3080,15 +3080,16 @@ meta = [
         {
           "type" : "file",
           "name" : "--input",
-          "description" : "Path to a directory containing input FASTQ data. Individual FASTQ files should follow the naming convention of 10x Genomics:\n[Sample Name]_S[Sample Number]_L[Lane Number]_[Read Type]_001.fastq.gz\n\nWhere:\n[Sample Name] is the name assigned during sample preparation/sequencing\nS[Sample Number] is the sample index (usually S1, S2, etc.)\nL[Lane Number] identifies the sequencing lane (L001, L002, etc.)\n\n[Read Type] will be one of:\nR1 - Read 1 (contains the spatial barcode and UMI)\nR2 - Read 2 (contains the actual cDNA sequence)\nI1 - Index Read 1 (if applicable)\nI2 - Index Read 2 (if applicable)\n",
+          "description" : "The fastq.gz files to align. Can also be a single directory containing fastq.gz files.\n\nIndividual FASTQ files should follow the naming convention of 10x Genomics:\n[Sample Name]_S[Sample Number]_L[Lane Number]_[Read Type]_001.fastq.gz\n\nWhere:\n[Sample Name] is the name assigned during sample preparation/sequencing\nS[Sample Number] is the sample index (usually S1, S2, etc.)\nL[Lane Number] identifies the sequencing lane (L001, L002, etc.)\n\n[Read Type] will be one of:\nR1 - Read 1 (contains the spatial barcode and UMI)\nR2 - Read 2 (contains the actual cDNA sequence)\n",
           "example" : [
-            "/path/to/fastq_folder"
+            "sample_S1_L001_R1_001.fastq.gz",
+            "sample_S1_L001_R2_001.fastq.gz"
           ],
           "must_exist" : true,
           "create_parent" : true,
           "required" : true,
           "direction" : "input",
-          "multiple" : false,
+          "multiple" : true,
           "multiple_sep" : ";"
         },
         {
@@ -3409,8 +3410,8 @@ meta = [
   "description" : "Count gene expression and protein expression reads from a single capture area.",
   "test_resources" : [
     {
-      "type" : "bash_script",
-      "path" : "test.sh",
+      "type" : "python_script",
+      "path" : "test.py",
       "is_executable" : true
     },
     {
@@ -3533,6 +3534,26 @@ meta = [
             "DEBIAN_FRONTEND=noninteractive apt update && \\\\\napt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*\n"
           ]
         }
+      ],
+      "test_setup" : [
+        {
+          "type" : "apt",
+          "packages" : [
+            "git"
+          ],
+          "interactive" : false
+        },
+        {
+          "type" : "python",
+          "user" : false,
+          "packages" : [
+            "viashpy==0.9.0"
+          ],
+          "github" : [
+            "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
+          ],
+          "upgrade" : true
+        }
       ]
     }
   ],
@@ -3542,7 +3563,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/mapping/spaceranger_count",
     "viash_version" : "0.9.4",
-    "git_commit" : "cf965f4e6d6eab509e382b2699225514d449e946",
+    "git_commit" : "0697fd64640e7d87189c16a87c5d33639ee41e65",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3651,12 +3672,53 @@ for par in \\${unset_if_false[@]}; do
     [[ "\\$test_val" == "false" ]] && unset \\$par
 done
 
+# just to make sure paths are absolute
+par_gex_reference=\\`realpath \\$par_gex_reference\\`
+par_output=\\`realpath \\$par_output\\`
+par_probe_set=\\`realpath \\$par_probe_set\\`
+[[ -n "\\${par_image:-}" ]] && par_image=\\$(realpath "\\$par_image")
+[[ -n "\\${par_cytaimage:-}" ]] && par_cytaimage=\\$(realpath "\\$par_cytaimage")
+
+# create temporary directory
+tmpdir=\\$(mktemp -d "\\$meta_temp_dir/\\$meta_name-XXXXXXXX")
+function clean_up {
+    rm -rf "\\$tmpdir"
+}
+trap clean_up EXIT
+
+# process inputs
+# for every fastq file found, make a symlink into the tempdir
+fastq_dir="\\$tmpdir/fastqs"
+mkdir -p "\\$fastq_dir"
+IFS=";"
+for var in \\$par_input; do
+  unset IFS
+  abs_path=\\`realpath \\$var\\`
+  if [ -d "\\$abs_path" ]; then
+    find "\\$abs_path" -name *.fastq.gz -exec ln -s {} "\\$fastq_dir" \\\\;
+  else
+    ln -s "\\$abs_path" "\\$fastq_dir"
+  fi
+done
+
+# process reference
+if file \\$par_gex_reference | grep -q 'gzip compressed data'; then
+  echo "Untarring genome"
+  reference_dir="\\$tmpdir/fastqs"
+  mkdir -p "\\$reference_dir"
+  tar -xvf "\\$par_gex_reference" -C "\\$reference_dir" --strip-components=1
+  par_gex_reference="\\$reference_dir"
+fi
+
+# cd into tempdir
+cd "\\$tmpdir"
+
 temp_id="spaceranger_run"
 
 spaceranger count \\\\
   --id="\\$temp_id" \\\\
-  \\${par_gex_reference:+--transcriptome="\\$par_gex_reference"} \\\\
-  \\${par_input:+--fastqs="\\$par_input"} \\\\
+  --fastqs="\\$fastq_dir" \\\\
+  --transcriptome="\\$par_gex_reference" \\\\
   \\${par_probe_set:+--probe-set="\\$par_probe_set"} \\\\
   \\${par_cytaimage:+--cytaimage="\\$par_cytaimage"} \\\\
   \\${par_image:+--image="\\$par_image"} \\\\

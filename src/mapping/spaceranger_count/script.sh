@@ -23,12 +23,53 @@ for par in ${unset_if_false[@]}; do
     [[ "$test_val" == "false" ]] && unset $par
 done
 
+# just to make sure paths are absolute
+par_gex_reference=`realpath $par_gex_reference`
+par_output=`realpath $par_output`
+par_probe_set=`realpath $par_probe_set`
+[[ -n "${par_image:-}" ]] && par_image=$(realpath "$par_image")
+[[ -n "${par_cytaimage:-}" ]] && par_cytaimage=$(realpath "$par_cytaimage")
+
+# create temporary directory
+tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
+function clean_up {
+    rm -rf "$tmpdir"
+}
+trap clean_up EXIT
+
+# process inputs
+# for every fastq file found, make a symlink into the tempdir
+fastq_dir="$tmpdir/fastqs"
+mkdir -p "$fastq_dir"
+IFS=";"
+for var in $par_input; do
+  unset IFS
+  abs_path=`realpath $var`
+  if [ -d "$abs_path" ]; then
+    find "$abs_path" -name *.fastq.gz -exec ln -s {} "$fastq_dir" \;
+  else
+    ln -s "$abs_path" "$fastq_dir"
+  fi
+done
+
+# process reference
+if file $par_gex_reference | grep -q 'gzip compressed data'; then
+  echo "Untarring genome"
+  reference_dir="$tmpdir/fastqs"
+  mkdir -p "$reference_dir"
+  tar -xvf "$par_gex_reference" -C "$reference_dir" --strip-components=1
+  par_gex_reference="$reference_dir"
+fi
+
+# cd into tempdir
+cd "$tmpdir"
+
 temp_id="spaceranger_run"
 
 spaceranger count \
   --id="$temp_id" \
-  ${par_gex_reference:+--transcriptome="$par_gex_reference"} \
-  ${par_input:+--fastqs="$par_input"} \
+  --fastqs="$fastq_dir" \
+  --transcriptome="$par_gex_reference" \
   ${par_probe_set:+--probe-set="$par_probe_set"} \
   ${par_cytaimage:+--cytaimage="$par_cytaimage"} \
   ${par_image:+--image="$par_image"} \

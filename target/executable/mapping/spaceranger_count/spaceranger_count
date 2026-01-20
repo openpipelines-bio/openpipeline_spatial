@@ -453,9 +453,9 @@ apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-01-19T10:10:54Z"
+LABEL org.opencontainers.image.created="2026-01-20T09:36:58Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="cf965f4e6d6eab509e382b2699225514d449e946"
+LABEL org.opencontainers.image.revision="0697fd64640e7d87189c16a87c5d33639ee41e65"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -584,10 +584,12 @@ function ViashHelp {
   echo "        Path of folder containing 10x-compatible reference"
   echo ""
   echo "    --input"
-  echo "        type: file, required parameter, file must exist"
-  echo "        example: /path/to/fastq_folder"
-  echo "        Path to a directory containing input FASTQ data. Individual FASTQ files"
-  echo "        should follow the naming convention of 10x Genomics:"
+  echo "        type: file, required parameter, multiple values allowed, file must exist"
+  echo "        example: sample_S1_L001_R1_001.fastq.gz;sample_S1_L001_R2_001.fastq.gz"
+  echo "        The fastq.gz files to align. Can also be a single directory containing"
+  echo "        fastq.gz files."
+  echo "        Individual FASTQ files should follow the naming convention of 10x"
+  echo "        Genomics:"
   echo "        [Sample Name]_S[Sample Number]_L[Lane Number]_[Read Type]_001.fastq.gz"
   echo "        Where:"
   echo "        [Sample Name] is the name assigned during sample preparation/sequencing"
@@ -596,8 +598,6 @@ function ViashHelp {
   echo "        [Read Type] will be one of:"
   echo "        R1 - Read 1 (contains the spatial barcode and UMI)"
   echo "        R2 - Read 2 (contains the actual cDNA sequence)"
-  echo "        I1 - Index Read 1 (if applicable)"
-  echo "        I2 - Index Read 2 (if applicable)"
   echo ""
   echo "    --probe_set"
   echo "        type: file, required parameter, file must exist"
@@ -790,14 +790,20 @@ while [[ $# -gt 0 ]]; do
             shift 1
             ;;
         --input)
-            [ -n "$VIASH_PAR_INPUT" ] && ViashError Bad arguments for option \'--input\': \'$VIASH_PAR_INPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_INPUT="$2"
+            if [ -z "$VIASH_PAR_INPUT" ]; then
+              VIASH_PAR_INPUT="$2"
+            else
+              VIASH_PAR_INPUT="$VIASH_PAR_INPUT;""$2"
+            fi
             [ $# -lt 2 ] && ViashError Not enough arguments passed to --input. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
         --input=*)
-            [ -n "$VIASH_PAR_INPUT" ] && ViashError Bad arguments for option \'--input=*\': \'$VIASH_PAR_INPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_INPUT=$(ViashRemoveFlags "$1")
+            if [ -z "$VIASH_PAR_INPUT" ]; then
+              VIASH_PAR_INPUT=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_INPUT="$VIASH_PAR_INPUT;"$(ViashRemoveFlags "$1")
+            fi
             shift 1
             ;;
         --probe_set)
@@ -1281,9 +1287,17 @@ if [ ! -z "$VIASH_PAR_GEX_REFERENCE" ] && [ ! -e "$VIASH_PAR_GEX_REFERENCE" ]; t
   ViashError "Input file '$VIASH_PAR_GEX_REFERENCE' does not exist."
   exit 1
 fi
-if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT' does not exist."
-  exit 1
+if [ ! -z "$VIASH_PAR_INPUT" ]; then
+  IFS=';'
+  set -f
+  for file in $VIASH_PAR_INPUT; do
+    unset IFS
+    if [ ! -e "$file" ]; then
+      ViashError "Input file '$file' does not exist."
+      exit 1
+    fi
+  done
+  set +f
 fi
 if [ ! -z "$VIASH_PAR_PROBE_SET" ] && [ ! -e "$VIASH_PAR_PROBE_SET" ]; then
   ViashError "Input file '$VIASH_PAR_PROBE_SET' does not exist."
@@ -1529,8 +1543,15 @@ if [ ! -z "$VIASH_PAR_GEX_REFERENCE" ]; then
   VIASH_PAR_GEX_REFERENCE=$(ViashDockerAutodetectMount "$VIASH_PAR_GEX_REFERENCE")
 fi
 if [ ! -z "$VIASH_PAR_INPUT" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT")" )
-  VIASH_PAR_INPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT")
+  VIASH_TEST_INPUT=()
+  IFS=';'
+  for var in $VIASH_PAR_INPUT; do
+    unset IFS
+    VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$var")" )
+    var=$(ViashDockerAutodetectMount "$var")
+    VIASH_TEST_INPUT+=( "$var" )
+  done
+  VIASH_PAR_INPUT=$(IFS=';' ; echo "${VIASH_TEST_INPUT[*]}")
 fi
 if [ ! -z "$VIASH_PAR_PROBE_SET" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_PROBE_SET")" )
@@ -1690,12 +1711,53 @@ for par in \${unset_if_false[@]}; do
     [[ "\$test_val" == "false" ]] && unset \$par
 done
 
+# just to make sure paths are absolute
+par_gex_reference=\`realpath \$par_gex_reference\`
+par_output=\`realpath \$par_output\`
+par_probe_set=\`realpath \$par_probe_set\`
+[[ -n "\${par_image:-}" ]] && par_image=\$(realpath "\$par_image")
+[[ -n "\${par_cytaimage:-}" ]] && par_cytaimage=\$(realpath "\$par_cytaimage")
+
+# create temporary directory
+tmpdir=\$(mktemp -d "\$meta_temp_dir/\$meta_name-XXXXXXXX")
+function clean_up {
+    rm -rf "\$tmpdir"
+}
+trap clean_up EXIT
+
+# process inputs
+# for every fastq file found, make a symlink into the tempdir
+fastq_dir="\$tmpdir/fastqs"
+mkdir -p "\$fastq_dir"
+IFS=";"
+for var in \$par_input; do
+  unset IFS
+  abs_path=\`realpath \$var\`
+  if [ -d "\$abs_path" ]; then
+    find "\$abs_path" -name *.fastq.gz -exec ln -s {} "\$fastq_dir" \\;
+  else
+    ln -s "\$abs_path" "\$fastq_dir"
+  fi
+done
+
+# process reference
+if file \$par_gex_reference | grep -q 'gzip compressed data'; then
+  echo "Untarring genome"
+  reference_dir="\$tmpdir/fastqs"
+  mkdir -p "\$reference_dir"
+  tar -xvf "\$par_gex_reference" -C "\$reference_dir" --strip-components=1
+  par_gex_reference="\$reference_dir"
+fi
+
+# cd into tempdir
+cd "\$tmpdir"
+
 temp_id="spaceranger_run"
 
 spaceranger count \\
   --id="\$temp_id" \\
-  \${par_gex_reference:+--transcriptome="\$par_gex_reference"} \\
-  \${par_input:+--fastqs="\$par_input"} \\
+  --fastqs="\$fastq_dir" \\
+  --transcriptome="\$par_gex_reference" \\
   \${par_probe_set:+--probe-set="\$par_probe_set"} \\
   \${par_cytaimage:+--cytaimage="\$par_cytaimage"} \\
   \${par_image:+--image="\$par_image"} \\
@@ -1738,7 +1800,17 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
     VIASH_PAR_GEX_REFERENCE=$(ViashDockerStripAutomount "$VIASH_PAR_GEX_REFERENCE")
   fi
   if [ ! -z "$VIASH_PAR_INPUT" ]; then
-    VIASH_PAR_INPUT=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT")
+    unset VIASH_TEST_INPUT
+    IFS=';'
+    for var in $VIASH_PAR_INPUT; do
+      unset IFS
+      if [ -z "$VIASH_TEST_INPUT" ]; then
+      VIASH_TEST_INPUT="$(ViashDockerStripAutomount "$var")"
+    else
+      VIASH_TEST_INPUT="$VIASH_TEST_INPUT;""$(ViashDockerStripAutomount "$var")"
+    fi
+    done
+    VIASH_PAR_INPUT="$VIASH_TEST_INPUT"
   fi
   if [ ! -z "$VIASH_PAR_PROBE_SET" ]; then
     VIASH_PAR_PROBE_SET=$(ViashDockerStripAutomount "$VIASH_PAR_PROBE_SET")
