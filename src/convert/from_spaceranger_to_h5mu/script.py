@@ -7,6 +7,7 @@ import pandas as pd
 ## VIASH START
 par = {
     "input": "resources_test/visium/Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger",
+    "modality": "rna",
     "uns_metrics": "metrics_spaceranger",
     "uns_probe_set": "probe_set",
     "obsm_coordinates": "spatial",
@@ -118,7 +119,7 @@ def main():
 
     # generate output
     logger.info("Convert to mudata")
-    mdata = mudata.MuData(adata)
+    mdata = mudata.MuData({par["modality"]: adata})
 
     # override root .obs and .uns
     mdata.obs = adata.obs

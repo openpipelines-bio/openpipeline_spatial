@@ -24,8 +24,11 @@ argument_groups:
       - name: --input
         type: file
         required: true
+        multiple: true
         description: | 
-          Path to a directory containing input FASTQ data. Individual FASTQ files should follow the naming convention of 10x Genomics:
+          The fastq.gz files to align. Can also be a single directory containing fastq.gz files.
+          
+          Individual FASTQ files should follow the naming convention of 10x Genomics:
           [Sample Name]_S[Sample Number]_L[Lane Number]_[Read Type]_001.fastq.gz
 
           Where:
@@ -36,7 +39,8 @@ argument_groups:
           [Read Type] will be one of:
           R1 - Read 1 (contains the spatial barcode and UMI)
           R2 - Read 2 (contains the actual cDNA sequence)
-        example: "/path/to/fastq_folder"
+
+        example: [ "sample_S1_L001_R1_001.fastq.gz", "sample_S1_L001_R2_001.fastq.gz" ]
       - name: --gex_reference
         type: file
         required: true
