@@ -1,7 +1,7 @@
 name: spatial_neighborhood_graph
 namespace: neighbors
 scope: public
-description: Calculates a spatial neighborhood graph.
+description: Calculates a spatial neighborhood graph based on the spatial coordinates.
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
@@ -20,10 +20,6 @@ argument_groups:
         type: string
         default: "rna"
         required: false
-      - name: "--layer"
-        type: string
-        required: false
-        description: "Input layer to use. If None, X is used"
       - name: "--input_obsm_spatial_coords"
         type: string
         default: "spatial"
@@ -33,16 +29,16 @@ argument_groups:
     arguments:
       - name: "--coord_type"
         type: string
-        choices: ["generic", "grid"]
         default: "generic"
+        choices: ["generic", "grid"]
         description: |
           Type of coordinate system. Valid options are:
-          `grid` - grid coordinates.
-          `generic` - generic coordinates.
-          If not provided, `grid` is used if `--input_obsm_spatial_coords` is in --input .uns with `--n_neighs` = 6 (Visium), otherwise `generic` is used.
+          `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming a regular grid topology, where neighbors aredefined by grid adjacency rather than distance.
+          `generic` - Generic coordinates. Recommended for imaging-based data. This option is appropriate for irregularly spaced points, such as cell centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx). Setting this option avoids grid-assumption artifacts and ensures each node has spatial neighbors as defined by distance. 
       - name: "--n_spatial_neighbors"
         type: integer
         default: 6
+        min: 1
         description: |
           Depending on `--coord_type`:
           `grid` - number of neighboring tiles.
@@ -73,7 +69,6 @@ test_resources:
   - type: python_script
     path: test.py
   - path: /resources_test/xenium/xenium_tiny.h5mu
-  - path: /resources_test/cosmx/Lung5_Rep2_tiny.h5mu
 
 engines:
   - type: docker
@@ -91,4 +86,4 @@ runners:
 - type: executable
 - type: nextflow
   directives:
-    label: [lowcpu, lowmem, lowdisk]
+    label: [lowcpu, midmem, middisk]

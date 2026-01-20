@@ -4,13 +4,12 @@ import sys
 
 ## VIASH START
 meta = {
-    "executable": "./target/executable/nichecompass/nichecompass/nichecompass",
+    "executable": "./target/executable/neighbors/spatial_neighborhood_graph/spatial_neighborhood_graph",
 }
 ## VIASH END
 
 input_xenium = f"{meta['resources_dir']}/xenium_tiny.h5mu"
 input_cosmx = f"{meta['resources_dir']}/Lung5_Rep2_tiny.h5mu"
-gp_mask = f"{meta['resources_dir']}/prior_knowledge_gp_mask.json"
 
 
 def test_simple_execution_xenium(run_component, tmp_path):
@@ -34,7 +33,7 @@ def test_simple_execution_xenium(run_component, tmp_path):
     adata = mdata.mod["rna"]
 
     expected_obsp_keys = ["spatial_connectivities", "spatial_distances"]
-    assert all([obsp in expected_obsp_keys for obsp in adata.obsp.keys()]), (
+    assert all([obsp in adata.obsp.keys() for obsp in expected_obsp_keys]), (
         "Not all expected obsp keys found"
     )
     assert all(adata.obsp[obsp].dtype.kind == "f" for obsp in expected_obsp_keys), (

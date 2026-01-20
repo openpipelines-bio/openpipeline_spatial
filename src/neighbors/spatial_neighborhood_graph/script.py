@@ -7,8 +7,6 @@ par = {
     # Inputs
     "input": "resources_test/cosmx/Lung5_Rep2_tiny.h5mu",
     "modality": "rna",
-    "layer": None,
-    "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
     "input_obsm_spatial_coords": "spatial",
     ## Spatial neighbor calculation
     "n_spatial_neighbors": 4,
@@ -47,4 +45,4 @@ adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maxi
 ## Save model and data
 logger.info("Saving output data...")
 mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"])
+mdata.write_h5mu(par["output"], compression=par["output_compression"])

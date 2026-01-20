@@ -2,6 +2,8 @@
 
 ## NEW FUNCTIONALITY
 
+* `neighbors/spatial_neighborhood_graph`: Calculate the spatial neighborhood graph (PR #29).
+
 * `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
 
 * `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatialneighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)
@@ -12,9 +14,15 @@
 
 * Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
 
+* `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
+
+* `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
+
 ## BUG FIXES
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
+
+* `mapping/spaceranger_count`: Fixed issue with long temporary folder paths causing write failures (PR #31).
 
 # openpipeline_spatial 0.1.1
 

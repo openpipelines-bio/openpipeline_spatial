@@ -64,6 +64,10 @@ engines:
         packages: 
           - libhdf5-dev
           - libgeos-dev
+      - type: docker
+        env: ["LIBARROW_MINIMAL=false"]
+      - type: r
+        script: 'install.packages("arrow", type = "source")'
       - type: r
         script: 'Sys.setenv(LIBARROW_MINIMAL = "false"); install.packages("arrow", type = "source")'
       - type: r
