@@ -297,7 +297,7 @@ build_info:
   output: "target/executable/convert/from_cells2stats_to_h5mu"
   executable: "target/executable/convert/from_cells2stats_to_h5mu/from_cells2stats_to_h5mu"
   viash_version: "0.9.4"
-  git_commit: "0697fd64640e7d87189c16a87c5d33639ee41e65"
+  git_commit: "e3526aa6d4cb2826657c88c71cfd1bc9ace6139b"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"
