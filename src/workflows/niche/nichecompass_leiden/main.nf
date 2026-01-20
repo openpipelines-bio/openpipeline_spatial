@@ -33,7 +33,7 @@ workflow run_wf {
       files.collect{ dat ->
         def new_id = dat.name // unique sample ids
         def new_data = outputDir.resolve(dat.filename)
-        [ new_id, state + ["input": new_data]]
+        [ new_id, state + ["input": new_data ] ]
       }
     }
     // remove keys from split files
@@ -63,12 +63,11 @@ workflow run_wf {
     )
 
     | joinStates { ids, states ->
-      def newId = "merged"
+      def newId = states[0]._meta.join_id
       // gather keys with unique values across states that should be combined
       def new_state_non_unique_values = [
         input: states.collect{it.input},
-        input_id: ids,
-        _meta: [join_id: ids[0]]
+        input_id: ids
       ]
       // gather keys from different states
       def all_state_keys = states.inject([].toSet()){ current_keys, state ->
@@ -89,6 +88,8 @@ workflow run_wf {
       def data_state = new_state_non_unique_values + new_state
       [ newId, data_state ]
     }
+
+    | view {"After join samples: $it"}
 
     | concatenate_h5mu.run(
       fromState: { id, state -> [
@@ -168,7 +169,7 @@ workflow run_wf {
       toState: ["output": "output"]
     )
 
-    | setState(["output": "output", "output_model": "output_model", "_meta": "_meta"])
+    | setState(["output": "output", "output_model": "output_model"])
 
     | view()
 
