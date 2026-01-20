@@ -18,10 +18,6 @@ workflow run_wf {
         "input": state.input,
         "modality": state.modality,
         "obs_feature": state.input_obs_batch_key,
-        "input_obsm_spatial_coords": state.input_obsm_spatial_coords,
-        "coord_type": state.coord_type,
-        "n_spatial_neighbors": state.n_spatial_neighbors,
-        "delaunay": state.delaunay
       ]},
       args: [
         "drop_obs_nan": true,

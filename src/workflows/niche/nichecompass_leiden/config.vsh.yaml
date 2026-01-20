@@ -92,12 +92,12 @@ argument_groups:
     arguments:
       - name: "--coord_type"
         type: string
+        default: "generic"
         choices: ["generic", "grid"]
         description: |
-          Type of coordinate system provided by `--input_obsm_spatial_coords`. Valid options are:
-          `grid` - grid coordinates.
-          `generic` - generic coordinates.
-          If not provided, `grid` is used if `--input_obsm_spatial_coords` is in --input .uns with `--n_neighs` = 6 (Visium), otherwise `generic` is used.
+          Type of coordinate system. Valid options are:
+          `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming a regular grid topology, where neighbors aredefined by grid adjacency rather than distance.
+          `generic` - Generic coordinates. Recommended for imaging-based data. This option is appropriate for irregularly spaced points, such as cell centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx). Setting this option avoids grid-assumption artifacts and ensures each node has spatial neighbors as defined by distance. 
       - name: "--n_spatial_neighbors"
         type: integer
         default: 6
