@@ -57,13 +57,9 @@ def test_with_fastqs(run_component, random_path):
     run_component(
         [
             "--input",
-            Path(
-                input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"
-            ),
+            Path(input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R1_001.fastq.gz"),
             "--input",
-            Path(
-                input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"
-            ),
+            Path(input + "/Visium_FFPE_Human_Ovarian_Cancer_S1_L001_R2_001.fastq.gz"),
             "--gex_reference",
             reference,
             "--probe_set",
