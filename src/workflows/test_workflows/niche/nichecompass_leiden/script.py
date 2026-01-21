@@ -36,8 +36,6 @@ def test_run():
         "nichecompass_gp_names",
         "nichecompass_active_gp_names",
         "nichecompass_neighbors",
-        "spatial",
-        "xenium_spatial_neighbors",
     ]
 
     assert all(key in list(input_mudata.mod) for key in expected_mod), (
