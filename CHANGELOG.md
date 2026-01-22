@@ -20,6 +20,8 @@
 
 * Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
 
+* Bump spatialdata to 0.6.0 (PR #34).
+
 ## BUG FIXES
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
