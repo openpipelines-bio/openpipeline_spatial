@@ -3,6 +3,8 @@ viash_version: 0.9.4
 source: src
 target: target
 
+version: v0.2.0
+
 name: openpipeline_spatial
 organization: openpipelines-bio
 
