@@ -239,7 +239,7 @@ def main():
     # Var field
     var_df = pd.DataFrame(index=pd.Index(var_names, dtype=str))
     var_df["target"] = [c.split(".")[0] for c in var_names]
-    var_df["batch"] = [c.split(".")[-1] for c in var_names] 
+    var_df["batch"] = [c.split(".")[-1] for c in var_names]
 
     # Create AnnData object
     logger.info("Creating AnnData object...")
