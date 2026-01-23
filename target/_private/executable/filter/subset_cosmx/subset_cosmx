@@ -454,13 +454,13 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata~=0.5.0" "pyarrow~=18.0.0" "squidpy~=1.6.5"
+  pip install --upgrade --no-cache-dir "spatialdata~=0.6.1" "pyarrow~=18.0.0" "squidpy~=1.6.5"
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component filter subset_cosmx"
-LABEL org.opencontainers.image.created="2026-01-22T08:02:41Z"
+LABEL org.opencontainers.image.created="2026-01-23T16:44:34Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1"
+LABEL org.opencontainers.image.revision="660ea1cb6c68242ef5b869239e9a4b9f434938cb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

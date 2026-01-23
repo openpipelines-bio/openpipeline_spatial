@@ -3355,15 +3355,16 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.11.1",
-            "mudata~=0.3.1",
+            "anndata~=0.12.7",
+            "awkward",
+            "mudata~=0.3.2",
             "pyarrow"
           ],
           "git" : [
             "https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2"
           ],
           "script" : [
-            "exec(\\"try:\\\\n  import awkward\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  exit(1)\\")"
+            "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
           ],
           "upgrade" : true
         }
@@ -3393,7 +3394,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cells2stats_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1",
+    "git_commit" : "660ea1cb6c68242ef5b869239e9a4b9f434938cb",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3501,7 +3502,7 @@ logger = setup_logger()
 
 def assert_matching_order(var_names, count_columns, split_pattern=None):
     for var, col in zip(var_names, count_columns):
-        count_var = col if not split_pattern else col.split("_Nuclear")[0]
+        count_var = col if not split_pattern else col.replace(split_pattern, "")
         assert var == count_var, "Orders do not match"
 
 
@@ -3690,8 +3691,8 @@ def main():
     df.index_name = None
 
     # var and obs names
-    var_names = [var.split(".")[0] for var in count_columns]
-    obs_names = df["Cell"].astype(str).tolist()
+    var_columns = list(count_columns)
+    obs_columns = df["Cell"].astype(str).tolist()
 
     # Count matrix
     logger.info("Creating count matrix...")
@@ -3702,16 +3703,21 @@ def main():
     logger.info(f"Creating obs field with columns {obs_columns_fixed}")
     obs_df = df[obs_columns_fixed].copy()
 
+    # Var field
+    var_df = pd.DataFrame(index=pd.Index(var_columns, dtype=str))
+    targets, batches = zip(*(c.rsplit(".", 1) for c in var_columns))
+    var_df["target"] = targets
+    var_df["batch"] = batches
+
     # Create AnnData object
     logger.info("Creating AnnData object...")
     adata = ad.AnnData(
         X=count_matrix_sparse,
         obs=obs_df,
-        var=pd.DataFrame(index=var_names),
+        var=var_df,
     )
-
-    adata.obs_names = obs_names
-    adata.var_names = var_names
+    adata.obs_names = pd.Index(obs_columns, dtype=str)
+    adata.var_names = pd.Index(var_columns, dtype=str)
 
     # Spatial coordinates
     coordinate_sets = {
@@ -3748,13 +3754,13 @@ def main():
         adata.uns[par["obsm_cell_profiler"]] = cell_profiler_columns
     if par["obsm_unassigned_targets"]:
         logger.info(f"Adding {par['obsm_unassigned_targets']} to obsm")
-        adata.obsm["unassigned_targets"] = df[unassigned_columns].copy()
-        adata.uns["unassigned_targets"] = unassigned_columns
+        adata.obsm[par["obsm_unassigned_targets"]] = df[unassigned_columns].copy()
+        adata.uns[par["obsm_unassigned_targets"]] = unassigned_columns
 
     # Add (optional) nuclear count layer
     if par["layer_nuclear_counts"]:
         assert_matching_order(
-            var_names, nuclear_count_columns, split_pattern="_Nuclear"
+            var_columns, nuclear_count_columns, split_pattern="_Nuclear"
         )
         logger.info(f"Adding {par['layer_nuclear_counts']} to layers")
         nuclear_count_df = df[nuclear_count_columns].copy()

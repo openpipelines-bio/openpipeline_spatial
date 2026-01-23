@@ -454,15 +454,15 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "anndata~=0.11.1" "mudata~=0.3.1" "spatialdata~=0.5.0" "pyarrow~=18.0.0" "squidpy~=1.6.5" "pyarrow" && \
+  pip install --upgrade --no-cache-dir "anndata~=0.12.7" "awkward" "mudata~=0.3.2" "spatialdata~=0.6.1" "pyarrow~=18.0.0" "squidpy~=1.6.5" "pyarrow" && \
   pip install --upgrade --no-cache-dir "git+https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2" && \
-  python -c 'exec("try:\n  import awkward\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  exit(1)")'
+  python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_cosmx_to_h5mu"
-LABEL org.opencontainers.image.created="2026-01-22T08:02:41Z"
+LABEL org.opencontainers.image.created="2026-01-23T16:44:34Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1"
+LABEL org.opencontainers.image.revision="660ea1cb6c68242ef5b869239e9a4b9f434938cb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

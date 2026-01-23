@@ -446,7 +446,7 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM rocker/r2u:22.04
+FROM rocker/r2u:24.04
 ENTRYPOINT []
 RUN apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y libhdf5-dev libgeos-dev && \
@@ -458,9 +458,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_spatialexperiment"
-LABEL org.opencontainers.image.created="2026-01-22T08:02:41Z"
+LABEL org.opencontainers.image.created="2026-01-23T16:44:35Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1"
+LABEL org.opencontainers.image.revision="660ea1cb6c68242ef5b869239e9a4b9f434938cb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

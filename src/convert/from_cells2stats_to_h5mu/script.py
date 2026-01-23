@@ -35,7 +35,7 @@ logger = setup_logger()
 
 def assert_matching_order(var_names, count_columns, split_pattern=None):
     for var, col in zip(var_names, count_columns):
-        count_var = col if not split_pattern else col.split("_Nuclear")[0]
+        count_var = col if not split_pattern else col.replace(split_pattern, "")
         assert var == count_var, "Orders do not match"
 
 
@@ -224,8 +224,8 @@ def main():
     df.index_name = None
 
     # var and obs names
-    var_names = [var.split(".")[0] for var in count_columns]
-    obs_names = df["Cell"].astype(str).tolist()
+    var_columns = list(count_columns)
+    obs_columns = df["Cell"].astype(str).tolist()
 
     # Count matrix
     logger.info("Creating count matrix...")
@@ -236,16 +236,21 @@ def main():
     logger.info(f"Creating obs field with columns {obs_columns_fixed}")
     obs_df = df[obs_columns_fixed].copy()
 
+    # Var field
+    var_df = pd.DataFrame(index=pd.Index(var_columns, dtype=str))
+    targets, batches = zip(*(c.rsplit(".", 1) for c in var_columns))
+    var_df["target"] = targets
+    var_df["batch"] = batches
+
     # Create AnnData object
     logger.info("Creating AnnData object...")
     adata = ad.AnnData(
         X=count_matrix_sparse,
         obs=obs_df,
-        var=pd.DataFrame(index=var_names),
+        var=var_df,
     )
-
-    adata.obs_names = obs_names
-    adata.var_names = var_names
+    adata.obs_names = pd.Index(obs_columns, dtype=str)
+    adata.var_names = pd.Index(var_columns, dtype=str)
 
     # Spatial coordinates
     coordinate_sets = {
@@ -282,13 +287,13 @@ def main():
         adata.uns[par["obsm_cell_profiler"]] = cell_profiler_columns
     if par["obsm_unassigned_targets"]:
         logger.info(f"Adding {par['obsm_unassigned_targets']} to obsm")
-        adata.obsm["unassigned_targets"] = df[unassigned_columns].copy()
-        adata.uns["unassigned_targets"] = unassigned_columns
+        adata.obsm[par["obsm_unassigned_targets"]] = df[unassigned_columns].copy()
+        adata.uns[par["obsm_unassigned_targets"]] = unassigned_columns
 
     # Add (optional) nuclear count layer
     if par["layer_nuclear_counts"]:
         assert_matching_order(
-            var_names, nuclear_count_columns, split_pattern="_Nuclear"
+            var_columns, nuclear_count_columns, split_pattern="_Nuclear"
         )
         logger.info(f"Adding {par['layer_nuclear_counts']} to layers")
         nuclear_count_df = df[nuclear_count_columns].copy()

@@ -453,15 +453,15 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "anndata~=0.11.1" "mudata~=0.3.1" "viashpy==0.9.0" && \
+  pip install --upgrade --no-cache-dir "anndata~=0.12.7" "awkward" "mudata~=0.3.2" "viashpy==0.9.0" && \
   pip install --upgrade --no-cache-dir "git+https://github.com/openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils" && \
-  python -c 'exec("try:\n  import awkward\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  exit(1)")'
+  python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows/ingestion spaceranger_mapping_test"
-LABEL org.opencontainers.image.created="2026-01-22T08:02:41Z"
+LABEL org.opencontainers.image.created="2026-01-23T16:44:34Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1"
+LABEL org.opencontainers.image.revision="660ea1cb6c68242ef5b869239e9a4b9f434938cb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1054,7 +1054,9 @@ def test_run():
         f"Input mod['rna'] var columns should be: {expected_var_columns}."
     )
 
-    assert list(input_mudata.mod["rna"].obs.keys()) == ["spatial"]
+    assert list(input_mudata.mod["rna"].obsm.keys()) == ["spatial"], (
+        "Input mod['rna'] obsm should contain spatial column."
+    )
 
 
 if __name__ == "__main__":

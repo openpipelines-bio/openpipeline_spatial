@@ -23,7 +23,9 @@ def test_run():
         f"Input mod['rna'] var columns should be: {expected_var_columns}."
     )
 
-    assert list(input_mudata.mod["rna"].obs.keys()) == ["spatial"]
+    assert list(input_mudata.mod["rna"].obsm.keys()) == ["spatial"], (
+        "Input mod['rna'] obsm should contain spatial column."
+    )
 
 
 if __name__ == "__main__":

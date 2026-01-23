@@ -3320,7 +3320,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1",
+    "git_commit" : "660ea1cb6c68242ef5b869239e9a4b9f434938cb",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

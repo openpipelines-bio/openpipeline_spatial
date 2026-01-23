@@ -3255,7 +3255,7 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "rocker/r2u:22.04",
+      "image" : "rocker/r2u:24.04",
       "namespace_separator" : "/",
       "setup" : [
         {
@@ -3283,7 +3283,8 @@ meta = [
         {
           "type" : "docker",
           "env" : [
-            "RETICULATE_PYTHON=/usr/bin/python"
+            "RETICULATE_PYTHON=/usr/bin/python",
+            "PIP_BREAK_SYSTEM_PACKAGES=1"
           ]
         },
         {
@@ -3307,13 +3308,14 @@ meta = [
         },
         {
           "type" : "python",
-          "user" : false,
+          "user" : true,
           "packages" : [
-            "anndata~=0.11.1",
-            "mudata~=0.3.1"
+            "anndata~=0.12.7",
+            "awkward",
+            "mudata~=0.3.2"
           ],
           "script" : [
-            "exec(\\"try:\\\\n  import awkward\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  exit(1)\\")"
+            "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
           ],
           "upgrade" : true
         }
@@ -3326,7 +3328,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "3fa66d80df524a3e8db65ccfd894ef5a2dd28dd1",
+    "git_commit" : "660ea1cb6c68242ef5b869239e9a4b9f434938cb",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
