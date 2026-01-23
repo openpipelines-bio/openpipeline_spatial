@@ -20,7 +20,7 @@
 
 * Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
 
-* Bump spatialdata to 0.6.0 (PR #34).
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #34).
 
 ## BUG FIXES
 
