@@ -18,6 +18,10 @@
 
 * `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
 
+* Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
+
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #34).
+
 ## BUG FIXES
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
