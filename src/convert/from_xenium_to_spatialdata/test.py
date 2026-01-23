@@ -29,7 +29,9 @@ def test_simple_execution(run_component, tmp_path):
     assert os.path.exists(output_sd_path / "points"), "images folder was not created"
     assert os.path.exists(output_sd_path / "shapes"), "shapes folder was not created"
     assert os.path.exists(output_sd_path / "tables"), "tables folder was not created"
-    assert (output_sd_path / "zarr.json").is_file(), "zarr metadata file was not created"
+    assert (output_sd_path / "zarr.json").is_file(), (
+        "zarr metadata file was not created"
+    )
 
 
 def test_compressed_input(run_component, tmp_path):
@@ -62,7 +64,9 @@ def test_compressed_input(run_component, tmp_path):
     assert os.path.exists(output_sd_path / "points"), "images folder was not created"
     assert os.path.exists(output_sd_path / "shapes"), "shapes folder was not created"
     assert os.path.exists(output_sd_path / "tables"), "tables folder was not created"
-    assert (output_sd_path / "zarr.json").is_file(), "zarr metadata file was not created"
+    assert (output_sd_path / "zarr.json").is_file(), (
+        "zarr metadata file was not created"
+    )
 
 
 if __name__ == "__main__":
