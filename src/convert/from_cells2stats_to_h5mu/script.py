@@ -224,8 +224,8 @@ def main():
     df.index_name = None
 
     # var and obs names
-    var_names = list(count_columns)
-    obs_names = df["Cell"].astype(str).tolist()
+    var_columns = list(count_columns)
+    obs_columns = df["Cell"].astype(str).tolist()
 
     # Count matrix
     logger.info("Creating count matrix...")
@@ -237,9 +237,10 @@ def main():
     obs_df = df[obs_columns_fixed].copy()
 
     # Var field
-    var_df = pd.DataFrame(index=pd.Index(var_names, dtype=str))
-    var_df["target"] = [c.split(".")[0] for c in var_names]
-    var_df["batch"] = [c.split(".")[-1] for c in var_names]
+    var_df = pd.DataFrame(index=pd.Index(var_columns, dtype=str))
+    targets, batches = zip(*(c.rsplit(".", 1) for c in var_columns))
+    var_df["target"] = targets
+    var_df["batch"] = batches
 
     # Create AnnData object
     logger.info("Creating AnnData object...")
@@ -248,8 +249,8 @@ def main():
         obs=obs_df,
         var=var_df,
     )
-    adata.obs_names = pd.Index(obs_names, dtype=str)
-    adata.var_names = pd.Index(var_names, dtype=str)
+    adata.obs_names = pd.Index(obs_columns, dtype=str)
+    adata.var_names = pd.Index(var_columns, dtype=str)
 
     # Spatial coordinates
     coordinate_sets = {
@@ -292,7 +293,7 @@ def main():
     # Add (optional) nuclear count layer
     if par["layer_nuclear_counts"]:
         assert_matching_order(
-            var_names, nuclear_count_columns, split_pattern="_Nuclear"
+            var_columns, nuclear_count_columns, split_pattern="_Nuclear"
         )
         logger.info(f"Adding {par['layer_nuclear_counts']} to layers")
         nuclear_count_df = df[nuclear_count_columns].copy()
