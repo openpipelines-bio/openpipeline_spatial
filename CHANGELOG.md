@@ -1,4 +1,4 @@
-# openpipeline_spatial x.x.x
+# openpipeline_spatial 0.2.0
 
 ## NEW FUNCTIONALITY
 
@@ -17,6 +17,10 @@
 * `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
 
 * `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
+
+* Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
+
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #34).
 
 ## BUG FIXES
 
