@@ -4,7 +4,6 @@ import mudata as mu
 
 from nichecompass.models import NicheCompass
 from nichecompass.utils import add_gps_from_gp_dict_to_adata
-from torch.cuda import is_available as cuda_is_available
 
 ## VIASH START
 par = {
@@ -92,9 +91,6 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
-use_gpu = cuda_is_available()
-logger.info("GPU enabled? %s", use_gpu)
-
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
@@ -175,7 +171,7 @@ model = NicheCompass(
     n_addon_gp=par["n_addon_gp"],
     cat_covariates_embeds_nums=par["cat_covariates_embeds_nums"],
     seed=par["random_state"],
-    use_cuda_if_available=use_gpu,
+    use_cuda_if_available=True,
 )
 
 logger.info("Training NicheCompass model...")
@@ -203,7 +199,7 @@ model.train(
     edge_batch_size=par["edge_batch_size"],
     node_batch_size=par["node_batch_size"],
     n_sampled_neighbors=par["n_sampled_neighbors"],
-    use_cuda_if_available=use_gpu,
+    use_cuda_if_available=True,
 )
 
 ## Save model and data
