@@ -3327,9 +3327,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "spatialdata~=0.6.1",
-            "pyarrow~=18.0.0",
-            "squidpy~=1.6.5",
+            "scanpy~=1.10.4",
+            "squidpy~=1.7.0",
             "anndata~=0.12.7",
             "awkward",
             "mudata~=0.3.2"
@@ -3368,7 +3367,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/spatial_neighborhood_graph",
     "viash_version" : "0.9.4",
-    "git_commit" : "660ea1cb6c68242ef5b869239e9a4b9f434938cb",
+    "git_commit" : "2b2208311fd869197fc49fdccad8986e9507eea5",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
