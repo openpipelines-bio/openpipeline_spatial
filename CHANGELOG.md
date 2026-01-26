@@ -22,6 +22,8 @@
 
 * Bump squidpy to 1.7.0 (PR #36).
 
+* Update openpipeline dependencies to v4.0.0 (PR #37).
+
 ## BUG FIXES
 
 * `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).

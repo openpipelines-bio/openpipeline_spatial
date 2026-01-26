@@ -3405,7 +3405,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v3.0.0"
+        "tag" : "v4.0.0"
       }
     }
   ],
@@ -3414,7 +3414,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v3.0.0"
+      "tag" : "v4.0.0"
     }
   ],
   "links" : {
@@ -3505,7 +3505,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/qc/spatial_qc",
     "viash_version" : "0.9.4",
-    "git_commit" : "2b2208311fd869197fc49fdccad8986e9507eea5",
+    "git_commit" : "538039b2bb38965412fbdb6355776519100bd406",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3525,7 +3525,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v3.0.0"
+        "tag" : "v4.0.0"
       }
     ],
     "viash_version" : "0.9.4",
@@ -3545,7 +3545,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { qc as spatial_qc_workflow_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v3.0.0/nextflow/workflows/qc/qc/main.nf"
+include { qc as spatial_qc_workflow_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.0.0/nextflow/workflows/qc/qc/main.nf"
 spatial_qc_workflow = spatial_qc_workflow_viashalias.run(key: "spatial_qc_workflow")
 
 // inner workflow

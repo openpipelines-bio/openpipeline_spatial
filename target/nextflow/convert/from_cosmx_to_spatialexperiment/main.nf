@@ -3190,7 +3190,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v3.0.0"
+      "tag" : "v4.0.0"
     }
   ],
   "links" : {
@@ -3320,7 +3320,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "2b2208311fd869197fc49fdccad8986e9507eea5",
+    "git_commit" : "538039b2bb38965412fbdb6355776519100bd406",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3340,7 +3340,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v3.0.0"
+        "tag" : "v4.0.0"
       }
     ],
     "viash_version" : "0.9.4",
