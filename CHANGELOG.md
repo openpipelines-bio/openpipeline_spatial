@@ -12,15 +12,17 @@
 
 * Add `scope` to component and workflow configurations (PR #22).
 
-* Bump version of spatialdata-io to 0.3.0 and spatialdata to 0.5.0. Pin version of pyarrow to 18.0.0 for compatibility (PR #24).
-
 * `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
 
 * `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
 
 * Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
 
-* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #34).
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #24, #34).
+
+* Bump squidpy to 1.7.0 (PR #36).
+
+* Update openpipeline dependencies to v4.0.0 (PR #37).
 
 ## BUG FIXES
 
