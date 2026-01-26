@@ -20,7 +20,7 @@
 
 * Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #24, #34).
 
-* Bump squidpy to 1.7.0 (PR #35).
+* Bump squidpy to 1.7.0 (PR #36).
 
 ## BUG FIXES
 
