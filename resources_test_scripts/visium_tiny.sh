@@ -7,6 +7,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # Define absolute directory path
 DIR="$REPO_ROOT/resources_test/visium"
+ID="visium_tiny"
 
 # from https://www.10xgenomics.com/resources/datasets/human-ovarian-cancer-1-standard
 mkdir -p "$DIR"
@@ -46,10 +47,14 @@ echo "> Running spaceranger complete"
 rm -rf "$DIR/Visium_FFPE_Human_Ovarian_Cancer_fastqs"
 rm -f "$DIR/Visium_FFPE_Human_Ovarian_Cancer_image.jpg"
 
+viash run "$REPO_ROOT/src/convert/from_spaceranger_to_h5mu/config.vsh.yaml" -- \
+    --input "$DIR/Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger" \
+    --output "$DIR/$ID.h5mu"
+
 aws s3 sync \
     --profile di \
     --exclude "*.yaml" \
-    "$DIR" \
+    "resources_test/visium" \
     s3://openpipelines-bio/openpipeline_spatial/resources_test/visium \
     --delete \
     --dryrun
