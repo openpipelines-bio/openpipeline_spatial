@@ -439,14 +439,8 @@ test_resources:
 
 engines:
 - type: docker
-  image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+  image: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
   setup:
-    - type: apt
-      packages:
-        - libhdf5-dev
-        - python3-pip
-        - python3-dev
-        - python-is-python3
     - type: docker
       run: |
         pip install torch --index-url https://download.pytorch.org/whl/cu124 \

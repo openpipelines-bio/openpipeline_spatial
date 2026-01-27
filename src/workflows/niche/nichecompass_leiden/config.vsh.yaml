@@ -353,6 +353,7 @@ argument_groups:
 
 dependencies:
   - name: dataflow/concatenate_h5mu
+    repository: openpipeline
   - name: neighbors/spatial_neighborhood_graph
   - name: nichecompass/nichecompass
   - name: dataflow/split_h5mu

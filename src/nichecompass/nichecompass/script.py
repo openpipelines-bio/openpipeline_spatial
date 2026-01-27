@@ -1,6 +1,7 @@
 import sys
 import json
 import mudata as mu
+import torch
 
 from nichecompass.models import NicheCompass
 from nichecompass.utils import add_gps_from_gp_dict_to_adata
@@ -90,6 +91,12 @@ sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
 
 logger = setup_logger()
+
+# Verify torch and CUDA availability
+logger.info(f"Torch version: {torch.__version__}")
+logger.info(f"CUDA available: {torch.cuda.is_available()}")
+logger.info(f"Torch CUDA version: {torch.version.cuda}")
+logger.info(f"GPU count: {torch.cuda.device_count()}")
 
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
