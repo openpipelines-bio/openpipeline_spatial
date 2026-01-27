@@ -69,6 +69,8 @@ engines:
       - type: r
         script: 'install.packages("arrow", type = "source")'
       - type: r
+        script: 'Sys.setenv(LIBARROW_MINIMAL = "false"); install.packages("arrow", type = "source")'
+      - type: r
         bioc: [ SpatialExperimentIO ]
     test_setup:
       - type: r
