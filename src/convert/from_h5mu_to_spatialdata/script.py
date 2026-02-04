@@ -25,9 +25,6 @@ mdata = mu.read_h5mu(par["input"])
 
 logger.info("Extracting modality from MuData object...")
 mod = mdata.mod[par["modality"]]
-if ("spatialdata_attrs" in mod.uns):
-    logger.info("Removing existing SpatialData attributes from modality...")
-    del mod.uns["spatialdata_attrs"]
 
 if (par.get("input_spatialdata", None) is not None):
     logger.info(f"Reading existing SpatialData from {par['input_spatialdata']}...")
