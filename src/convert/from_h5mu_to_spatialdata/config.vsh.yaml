@@ -18,6 +18,12 @@ arguments:
     example: input.h5mu
     direction: input
     required: true
+  - name: "--input_spatialdata"
+    type: file
+    description: An optional existing SpatialData Zarr store to fill remaining slots from.
+    example: existing.zarr
+    direction: input
+    required: false
   - name: "--modality"
     type: string
     default: rna
