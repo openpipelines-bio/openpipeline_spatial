@@ -1,7 +1,8 @@
-import sys
-import spatialdata as sd
-import mudata as mu
 import logging
+import sys
+
+import mudata as mu
+import spatialdata as sd
 
 ## VIASH START
 par = {
@@ -26,9 +27,9 @@ mdata = mu.read_h5mu(par["input"])
 logger.info("Extracting modality from MuData object...")
 mod = mdata.mod[par["modality"]]
 
-if (par.get("input_spatialdata", None) is not None):
+if par.get("input_spatialdata", None) is not None:
     logger.info(f"Reading existing SpatialData from {par['input_spatialdata']}...")
-    
+
     # Disable logger messages from spatialdata when reading
     logger.setLevel(logging.WARNING)
     sdata_existing = sd.read_zarr(par["input_spatialdata"])
@@ -45,7 +46,7 @@ if (par.get("input_spatialdata", None) is not None):
         )
 
 logger.info("Creating SpatialData object...")
-if (par.get("input_spatialdata", None) is not None):
+if par.get("input_spatialdata", None) is not None:
     logger.info("Using existing SpatialData...")
     sdata = sdata_existing
     sdata["table"] = mod
