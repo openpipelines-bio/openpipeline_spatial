@@ -3246,7 +3246,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.0.0"
+      "tag" : "v4.0.2"
     }
   ],
   "links" : {
@@ -3394,7 +3394,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cells2stats_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "4dcb9b1b2f5cc68d817cf4636e692e86ec88265f",
+    "git_commit" : "3d307a5344ad492f18c03dac2d1b40238f995770",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3414,7 +3414,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.0.0"
+        "tag" : "v4.0.2"
       }
     ],
     "viash_version" : "0.9.4",
