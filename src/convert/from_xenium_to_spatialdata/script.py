@@ -60,6 +60,8 @@ sdata = xenium(
     n_jobs=par["n_jobs"],
 )
 
+# Store X as counts
+sdata["table"].layers["counts"] = sdata["table"].X.copy()
 
 logger.info("Writing out SpatialData object to Zarr...")
 sdata.write(par["output"], overwrite=True)
