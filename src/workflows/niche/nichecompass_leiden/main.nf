@@ -28,7 +28,12 @@ workflow run_wf {
     
     | flatMap {id, state ->
       def outputDir = state.output
-      def files = readCsv(state.output_files.toUriString())
+
+      def csv = state.output_types.splitCsv(strip: true, sep: ",").findAll{!it[0].startsWith("#")}
+      def header = csv.head()
+      def files = csv.tail().collect { row ->
+          [header, row].transpose().collectEntries()
+      }
       
       files.collect{ dat ->
         def new_id = dat.name // unique sample ids
