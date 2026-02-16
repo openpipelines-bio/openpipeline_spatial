@@ -29,7 +29,7 @@ workflow run_wf {
     | flatMap {id, state ->
       def outputDir = state.output
 
-      def csv = state.output_types.splitCsv(strip: true, sep: ",").findAll{!it[0].startsWith("#")}
+      def csv = state.output_files.splitCsv(strip: true, sep: ",").findAll{!it[0].startsWith("#")}
       def header = csv.head()
       def files = csv.tail().collect { row ->
           [header, row].transpose().collectEntries()
