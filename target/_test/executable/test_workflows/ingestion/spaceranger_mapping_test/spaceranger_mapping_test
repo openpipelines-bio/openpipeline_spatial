@@ -459,9 +459,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows/ingestion spaceranger_mapping_test"
-LABEL org.opencontainers.image.created="2026-01-26T13:17:33Z"
+LABEL org.opencontainers.image.created="2026-02-16T09:32:37Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="538039b2bb38965412fbdb6355776519100bd406"
+LABEL org.opencontainers.image.revision="4dcb9b1b2f5cc68d817cf4636e692e86ec88265f"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

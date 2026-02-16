@@ -454,14 +454,14 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "anndata~=0.12.7" "awkward" "mudata~=0.3.2" "spatialdata~=0.6.1" "pyarrow~=18.0.0" && \
+  pip install --upgrade --no-cache-dir "anndata~=0.12.7" "awkward" "mudata~=0.3.2" "spatialdata~=0.7.2" "pyarrow~=18.0.0" && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_spatialdata_to_h5mu"
-LABEL org.opencontainers.image.created="2026-01-26T13:17:33Z"
+LABEL org.opencontainers.image.created="2026-02-16T09:32:37Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="538039b2bb38965412fbdb6355776519100bd406"
+LABEL org.opencontainers.image.revision="4dcb9b1b2f5cc68d817cf4636e692e86ec88265f"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

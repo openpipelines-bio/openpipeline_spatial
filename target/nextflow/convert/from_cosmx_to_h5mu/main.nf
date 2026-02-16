@@ -3297,7 +3297,7 @@ meta = [
             "awkward",
             "mudata~=0.3.2",
             "scanpy~=1.10.4",
-            "squidpy~=1.7.0",
+            "squidpy~=1.8.1",
             "pyarrow"
           ],
           "git" : [
@@ -3344,7 +3344,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_h5mu",
     "viash_version" : "0.9.4",
-    "git_commit" : "538039b2bb38965412fbdb6355776519100bd406",
+    "git_commit" : "4dcb9b1b2f5cc68d817cf4636e692e86ec88265f",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
