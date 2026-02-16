@@ -14,7 +14,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.0.1
+    tag: v4.0.2
 
 info:
   test_resources:
