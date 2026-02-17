@@ -453,9 +453,9 @@ apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-02-17T11:36:46Z"
+LABEL org.opencontainers.image.created="2026-02-17T12:04:46Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="b94fec087f38fe49235be71659855c34d39c9a16"
+LABEL org.opencontainers.image.revision="9bb793a6fc5528287aeec31a2c27630010afa7c8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
