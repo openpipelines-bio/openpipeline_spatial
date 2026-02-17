@@ -1,3 +1,11 @@
+# openpipeline_spatial x.x.x
+
+## MINOR CHANGES
+
+* Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
+
+* Update openpipeline dependencies to v4.0.2 (PR #42).
+
 # openpipeline_spatial 0.2.0
 
 ## NEW FUNCTIONALITY
