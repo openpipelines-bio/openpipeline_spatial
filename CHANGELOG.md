@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
+
 ## MINOR CHANGES
 
 * Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
