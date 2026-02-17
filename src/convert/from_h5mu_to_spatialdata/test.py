@@ -125,10 +125,18 @@ def test_execution_without_input_spatialdata(run_component, tmp_path):
     )
 
     # When no existing SpatialData is provided, remaining slots should be empty
-    assert len(sdata.images) == 0, "Expected no images when input_spatialdata is not provided."
-    assert len(sdata.labels) == 0, "Expected no labels when input_spatialdata is not provided."
-    assert len(sdata.shapes) == 0, "Expected no shapes when input_spatialdata is not provided."
-    assert len(sdata.points) == 0, "Expected no points when input_spatialdata is not provided."
+    assert len(sdata.images) == 0, (
+        "Expected no images when input_spatialdata is not provided."
+    )
+    assert len(sdata.labels) == 0, (
+        "Expected no labels when input_spatialdata is not provided."
+    )
+    assert len(sdata.shapes) == 0, (
+        "Expected no shapes when input_spatialdata is not provided."
+    )
+    assert len(sdata.points) == 0, (
+        "Expected no points when input_spatialdata is not provided."
+    )
 
 
 if __name__ == "__main__":
