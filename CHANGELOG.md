@@ -20,6 +20,10 @@
 
 * `workflows/ingestion/spaceranger_mapping`: Added a workflow to ingest Visium data using Spaceranger and convert the count matrix to an H5MU file (PR #33).
 
+* `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
+
+* `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatialneighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)
+
 ## MINOR CHANGES
 
 * Add `scope` to component and workflow configurations (PR #22).
