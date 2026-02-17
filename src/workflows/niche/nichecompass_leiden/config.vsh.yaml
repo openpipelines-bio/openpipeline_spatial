@@ -357,7 +357,6 @@ dependencies:
   - name: neighbors/spatial_neighborhood_graph
   - name: nichecompass/nichecompass
   - name: dataflow/split_h5mu
-    repository: openpipeline
   - name: workflows/multiomics/neighbors_leiden_umap
     repository: openpipeline
 
