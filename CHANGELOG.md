@@ -2,7 +2,7 @@
 
 ## NEW FUNCTIONALITY
 
-* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
+* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40, #44)
 
 ## MINOR CHANGES
 
