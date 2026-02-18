@@ -3707,7 +3707,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.0.2"
+        "tag" : "v4.0.3"
       }
     }
   ],
@@ -3716,7 +3716,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.0.2"
+      "tag" : "v4.0.3"
     }
   ],
   "links" : {
@@ -3807,7 +3807,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/multiomics/spatial_process_samples",
     "viash_version" : "0.9.4",
-    "git_commit" : "9bb793a6fc5528287aeec31a2c27630010afa7c8",
+    "git_commit" : "5927f8d6f28dfb186e99ac23dd2b8a53b1563639",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3827,7 +3827,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.0.2"
+        "tag" : "v4.0.3"
       }
     ],
     "viash_version" : "0.9.4",
@@ -3847,7 +3847,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.0.2/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.0.3/nextflow/workflows/multiomics/process_samples/main.nf"
 spatial_sample_processing = spatial_sample_processing_viashalias.run(key: "spatial_sample_processing")
 
 // inner workflow

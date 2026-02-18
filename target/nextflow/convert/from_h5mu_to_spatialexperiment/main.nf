@@ -3163,7 +3163,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.0.2"
+      "tag" : "v4.0.3"
     }
   ],
   "links" : {
@@ -3328,7 +3328,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "9bb793a6fc5528287aeec31a2c27630010afa7c8",
+    "git_commit" : "5927f8d6f28dfb186e99ac23dd2b8a53b1563639",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3348,7 +3348,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.0.2"
+        "tag" : "v4.0.3"
       }
     ],
     "viash_version" : "0.9.4",

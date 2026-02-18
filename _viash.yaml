@@ -10,7 +10,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.0.2
+    tag: v4.0.3
 info:
   test_resources:
     - type: s3
