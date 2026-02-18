@@ -3323,7 +3323,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialexperiment",
     "viash_version" : "0.9.4",
-    "git_commit" : "5927f8d6f28dfb186e99ac23dd2b8a53b1563639",
+    "git_commit" : "e323da1303bb34509f90ae27ee88ab4d092b047e",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
