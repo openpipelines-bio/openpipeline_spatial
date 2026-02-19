@@ -95,6 +95,9 @@ adata.obsm[par["obsm_coordinates"]] = coordinates
 adata.uns[par["uns_experiment"]] = specs
 adata.uns[par["uns_metrics"]] = metrics_summary
 
+# Store X as counts
+adata.layers["counts"] = adata.X.copy()
+
 # Write output MuData
 mdata = mu.MuData({"rna": adata})
 mdata.write_h5mu(par["output"], compression=par["output_compression"])

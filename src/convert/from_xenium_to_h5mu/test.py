@@ -42,6 +42,7 @@ def test_simple_execution(run_component, tmp_path):
         "segmentation_method",
     ]
 
+    assert list(adata.layers.keys()) == ["counts"]
     assert list(adata.uns.keys()) == ["xenium_experiment", "xenium_metrics"]
     assert list(adata.obsm.keys()) == ["spatial"]
     assert list(adata.var.keys()) == ["gene_ids", "feature_types", "genome"]
@@ -105,6 +106,7 @@ def test_compressed_input(run_component, tmp_path):
         "segmentation_method",
     ]
 
+    assert list(adata.layers.keys()) == ["counts"]
     assert list(adata.uns.keys()) == ["xenium_experiment", "xenium_metrics"]
     assert list(adata.obsm.keys()) == ["spatial"]
     assert list(adata.var.keys()) == ["gene_ids", "feature_types", "genome"]
