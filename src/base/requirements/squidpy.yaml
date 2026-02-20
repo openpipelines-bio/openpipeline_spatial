@@ -1,3 +1,4 @@
 __merge__: [/src/base/requirements/spatialdata.yaml, .]
 packages:
-  - squidpy~=1.6.5
+  - squidpy~=1.8.1
+__merge__: [/src/base/requirements/scanpy.yaml, .]
