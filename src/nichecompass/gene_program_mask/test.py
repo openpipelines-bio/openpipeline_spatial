@@ -1,5 +1,5 @@
 import pytest
-
+from pathlib import Path
 import json
 
 ## VIASH START
@@ -17,10 +17,14 @@ ortholog_file = f"{meta['resources_dir']}/niche/human_mouse_gene_orthologs.csv"
 enzymes_file = f"{meta['resources_dir']}/niche/mouse_metabolite_enzymes.tsv"
 sensors_file = f"{meta['resources_dir']}/niche/mouse_metabolite_sensors.tsv"
 omnipath_lr_network_file = f"{meta['resources_dir']}/niche/omnipath_lr_network.csv"
+nichenet_lr_network_file = f"{meta['resources_dir']}/niche/nichenet_lr_network.csv"
+nichenet_matrix_file = (
+    f"{meta['resources_dir']}/niche/nichenet_ligand_target_matrix_v2_mouse.csv"
+)
 collectri_tf_network_file = f"{meta['resources_dir']}/niche/collectri_tf_network.csv"
 
 
-def test_simple_execution(run_component, tmp_path):
+def test_api_execution(run_component, tmp_path):
     output = tmp_path / "output.json"
 
     args = [
@@ -73,55 +77,153 @@ def test_simple_execution(run_component, tmp_path):
         )
 
 
-def test_inputs_and_outputs(run_component, tmp_path):
-    """Test loading from input files instead of querying APIs.
-    
-    This test uses pre-downloaded omnipath and collectri network files
-    to avoid API rate limits when running tests in parallel.
-    """
+def test_omnipath_gene_program_mask(run_component, tmp_path):
     output = tmp_path / "output.json"
     omnipath_distr = tmp_path / "omnipath_distr.svg"
-    nichenet_distr = tmp_path / "nichenet_distr.svg"
-    mebocost_distr = tmp_path / "mebocost_distr.svg"
-    collectri_distr = tmp_path / "collectri_distr.svg"
 
     args = [
+        "--create_omnipath_gene_program_mask",
+        "True",
+        "--create_nichenet_gene_program_mask",
+        "False",
+        "--create_mebocost_gene_program_mask",
+        "False",
+        "--create_collectri_tf_gene_program_mask",
+        "False",
         "--input_gene_orthologs_mapping_file",
         ortholog_file,
-        "--input_metabolite_enzymes",
-        enzymes_file,
-        "--input_metabolite_sensors",
-        sensors_file,
         "--input_omnipath_lr_network",
         omnipath_lr_network_file,
-        "--input_collectri_tf_network",
-        collectri_tf_network_file,
         "--species",
         "mouse",
         "--output",
         output,
         "--output_omnipath_gp_gene_count_distributions",
         omnipath_distr,
+    ]
+
+    run_component(args)
+
+    expected_outputs = [output, omnipath_distr]
+
+    for output_file in expected_outputs:
+        assert output_file.is_file(), (
+            f"Expected output file {output_file} does not exist"
+        )
+
+
+def test_nichenet_gene_program_mask(run_component, tmp_path):
+    output = tmp_path / "output.json"
+    nichenet_distr = tmp_path / "nichenet_distr.svg"
+
+    args = [
+        "--create_omnipath_gene_program_mask",
+        "False",
+        "--create_nichenet_gene_program_mask",
+        "True",
+        "--create_mebocost_gene_program_mask",
+        "False",
+        "--create_collectri_tf_gene_program_mask",
+        "False",
+        "--input_gene_orthologs_mapping_file",
+        ortholog_file,
+        "--input_nichenet_lrt_network",
+        nichenet_lr_network_file,
+        "--input_nichenet_ligand_target_matrix",
+        nichenet_matrix_file,
+        "--species",
+        "mouse",
+        "--output",
+        output,
         "--output_nichenet_gp_gene_count_distributions",
         nichenet_distr,
+    ]
+    assert Path(nichenet_lr_network_file).is_file(), (
+        f"NicheNet LR network file {nichenet_lr_network_file} does not exist"
+    )
+
+    run_component(args)
+
+    expected_outputs = [
+        output,
+        nichenet_distr,
+        # nichenet_lt_matrix
+    ]
+
+    for output_file in expected_outputs:
+        assert output_file.is_file(), (
+            f"Expected output file {output_file} does not exist"
+        )
+
+
+def test_mebocost_gene_program_mask(run_component, tmp_path):
+    output = tmp_path / "output.json"
+    mebocost_distr = tmp_path / "omnipath_distr.svg"
+
+    args = [
+        "--create_omnipath_gene_program_mask",
+        "False",
+        "--create_nichenet_gene_program_mask",
+        "False",
+        "--create_mebocost_gene_program_mask",
+        "True",
+        "--create_collectri_tf_gene_program_mask",
+        "False",
+        "--input_metabolite_enzymes",
+        enzymes_file,
+        "--input_metabolite_sensors",
+        sensors_file,
+        "--species",
+        "mouse",
+        "--output",
+        output,
         "--output_mebocost_gp_gene_count_distributions",
         mebocost_distr,
+    ]
+
+    run_component(args)
+
+    expected_outputs = [output, mebocost_distr]
+
+    for output_file in expected_outputs:
+        assert output_file.is_file(), (
+            f"Expected output file {output_file} does not exist"
+        )
+
+
+def test_collectri_tf_gene_program_mask(run_component, tmp_path):
+    output = tmp_path / "output.json"
+    collectri_distr = tmp_path / "collectri_distr.svg"
+
+    args = [
+        "--create_omnipath_gene_program_mask",
+        "False",
+        "--create_nichenet_gene_program_mask",
+        "False",
+        "--create_mebocost_gene_program_mask",
+        "False",
+        "--create_collectri_tf_gene_program_mask",
+        "True",
+        "--input_gene_orthologs_mapping_file",
+        ortholog_file,
+        "--input_collectri_tf_network",
+        collectri_tf_network_file,
+        "--species",
+        "mouse",
+        "--output",
+        output,
         "--output_collectri_tf_gp_gene_count_distributions",
         collectri_distr,
     ]
 
     run_component(args)
 
-    expected_outputs = [
-        output,
-        omnipath_distr,
-        nichenet_distr,
-        mebocost_distr,
-        collectri_distr,
-    ]
+    expected_outputs = [output, collectri_distr]
 
     for output_file in expected_outputs:
-        assert output_file.is_file(), f"Expected output file {output_file} does not exist"
+        assert output_file.is_file(), (
+            f"Expected output file {output_file} does not exist"
+        )
 
 
 if __name__ == "__main__":

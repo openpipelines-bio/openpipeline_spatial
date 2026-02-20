@@ -6,7 +6,10 @@ description: Generation of a prior knowledge gene program mask for NicheCompass.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
-
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ maintainer ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
 argument_groups:
   - name: Inputs
     arguments: 
@@ -35,6 +38,21 @@ argument_groups:
           Path to the OmniPath ligand-receptor network CSV file.
           If provided, the network will be loaded from this file instead of querying the OmniPath API.
           Cannot be used together with `--output_omnipath_lr_network`.
+      - name: "--input_nichenet_ligand_target_matrix"
+        type: file
+        required: false
+        description: |
+          Path to the NicheNet ligand-target gene regulatory potential matrix file.
+          If provided, the matrix will be loaded from this file instead of querying the NicheNet API.
+          Cannot be used together with `--output_nichenet_ligand_target_matrix`.
+        example: nichenet_ligand_target_matrix.csv
+      - name: "--input_nichenet_lrt_network"
+        type: file
+        required: false
+        description: |
+          Path to the NicheNet ligand-receptor network CSV file.
+          If provided, the network will be loaded from this file instead of querying the NicheNet API.
+          Cannot be used together with `--output_nichenet_lrt_network`.
       - name: "--input_collectri_tf_network"
         type: file
         required: false
@@ -118,7 +136,7 @@ argument_groups:
         required: false
         description: Path to the output OmniPath ligand-receptor network CSV file.
         example: omnipath_lr_network.csv
-      - name: "--output_nichenet_lr_network"
+      - name: "--output_nichenet_lrt_network"
         type: file
         direction: output
         required: false
