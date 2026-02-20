@@ -208,6 +208,8 @@ def test_collectri_tf_gene_program_mask(run_component, tmp_path):
         ortholog_file,
         "--input_collectri_tf_network",
         collectri_tf_network_file,
+        "--input_collectri_ligand_target_matrix",
+        collectri_tf_network_file,
         "--species",
         "mouse",
         "--output",

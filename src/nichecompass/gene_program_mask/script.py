@@ -138,15 +138,14 @@ def create_nichenet_gene_program_mask():
     plot_gp_gene_count_distributions = (
         True if par["output_nichenet_gp_gene_count_distributions"] else False
     )
-    load_from_disk = bool(par["input_nichenet_lrt_network"])
-    save_to_disk = bool(par["output_nichenet_lrt_network"]) and not load_from_disk
 
-    # Warn if both input and output are provided
-    if par["input_nichenet_lrt_network"] and par["output_nichenet_lrt_network"]:
-        logger.warning(
-            "Both --input_nichenet_lrt_network and --output_nichenet_lrt_network are provided. "
-            "Using input file (load_from_disk=True), output will not be saved."
-        )
+    # Validate Nichenet I/O
+    load_from_disk = bool(par["input_nichenet_lrt_network"]) and bool(
+        par["input_nichenet_ligand_target_matrix"]
+    )
+    save_to_disk = bool(par["output_nichenet_lrt_network"]) or bool(
+        par["output_nichenet_ligand_target_matrix"]
+    )
 
     # Use input file path if provided, otherwise use output file path
     lr_network_file_path = (
