@@ -1,7 +1,8 @@
-import os
-import sys
-import shutil
 import json
+import os
+import shutil
+import sys
+from pathlib import Path
 
 import pandas as pd
 
@@ -40,7 +41,7 @@ par = {
     # filter and combine programs
     "overlap_thresh_target_genes": 1.0,
     # output paths
-    "output": "prior_knowledge_gene_program_mask.json",
+    "output": "collectri_gp_mask.json",
     "output_omnipath_lr_network": "resources_test/niche/omnipath_lr_network.csv",
     "output_nichenet_lrt_network": "resources_test/niche/nichenet_lr_network.csv",
     "output_nichenet_ligand_target_matrix": "nichenet_ligand_target_matrix_v2_mouse.csv",
@@ -59,64 +60,79 @@ from setup_logger import setup_logger
 logger = setup_logger()
 
 
-def sanitize_omnipath_csv(file_path: str) -> None:
+def _sanitize_omnipath_csv(file_path: str) -> None:
     """
-    Fix the OmniPath CSV file format for compatibility with NicheCompass load_from_disk.
-
-    WORKAROUND for NicheCompass library bugs:
+    Sanitize the OmniPath CSV file format for compatibility with NicheCompass
+    `load_from_disk`.
 
     Bug 1 - CSV index inconsistency:
-    The library saves with `to_csv(path, index=False)` but loads with `read_csv(path, index_col=0)`.
-    This causes the first data column to be incorrectly treated as the index when loading.
+    The library saves with `to_csv(path, index=False)` but loads with
+    `read_csv(path, index_col=0)`. This causes the first data column to be
+    incorrectly treated as the index when loading.
 
     Bug 2 - Missing NaN handling:
-    OmniPath contains proteins (TrEMBL/unreviewed entries like A0A2R8YE73) that don't have
-    gene symbol mappings. These appear as NaN in genesymbol columns.
-    The resolve_protein_complexes function doesn't handle NaN, causing TypeError.
-    When fetching from API, groupby operations implicitly filter some NaN rows, but
-    load_from_disk doesn't have this filtering.
+    OmniPath contains proteins (TrEMBL/unreviewed entries like A0A2R8YE73) that
+    don't have gene symbol mappings. These appear as NaN in genesymbol columns.
+    The `resolve_protein_complexes` function doesn't handle NaN, causing
+    `TypeError`. When fetching from the API, groupby operations implicitly
+    filter some NaN rows, but `load_from_disk` doesn't have this filtering.
 
-    This function fixes the saved CSV by:
-    1. Dropping rows with NaN in genesymbol columns (these are unusable for gene programs)
+    This function sanitizes the loaded CSV by:
+     1. Dropping rows with NaN in genesymbol columns
+         (unusable for gene programs)
     2. Rewriting with an index column (to fix the load inconsistency)
 
-    See: https://github.com/Lotfollahi-lab/nichecompass/blob/main/src/nichecompass/utils/gene_programs.py
+    See:
+    https://github.com/Lotfollahi-lab/nichecompass/blob/main/src/nichecompass/utils/gene_programs.py
 
     Args:
         file_path: Path to the OmniPath CSV file to fix.
     """
-    if file_path and os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        # Find all genesymbol columns dynamically and drop rows where any are NaN
-        # These proteins don't have gene mappings and cannot be used in gene programs
-        genesymbol_cols = [c for c in df.columns if "genesymbol" in c.lower()]
-        if genesymbol_cols:
-            df = df.dropna(subset=genesymbol_cols)
-        df.to_csv(file_path, index=True)  # Rewrite with index column
+    if not file_path or not os.path.exists(file_path):
+        return
+
+    df = pd.read_csv(file_path)
+
+    # Find all genesymbol columns dynamically and drop rows where any are NaN.
+    # These proteins don't have gene mappings and cannot be used in gene programs.
+    genesymbol_cols = [c for c in df.columns if "genesymbol" in c.lower()]
+    if genesymbol_cols:
+        df = df.dropna(subset=genesymbol_cols)
+
+    # Rewrite with an index column so downstream `read_csv(..., index_col=0)` is stable.
+    os.makedirs(meta["temp_dir"], exist_ok=True)
+
+    lr_network_file_path = os.path.join(
+        meta["temp_dir"],
+        "input_omnipath_lr_network_sanitized.csv",
+    )
+    df.to_csv(lr_network_file_path, index=True)
+    return lr_network_file_path
 
 
-def create_omnipath_gene_program_mask():
+def create_omnipath_gene_program_mask() -> dict:
     # Generate omnipath gene program mask
     # Determine output distribution
-    plot_gp_gene_count_distributions = (
-        True if par["output_omnipath_gp_gene_count_distributions"] else False
+    plot_gp_gene_count_distributions = bool(
+        par["output_omnipath_gp_gene_count_distributions"]
     )
 
-    # Determine load_from_disk and save_to_disk based on input/output parameters
+    # Determine load_from_disk and save_to_disk from I/O params.
     load_from_disk = bool(par["input_omnipath_lr_network"])
-    save_to_disk = bool(par["output_omnipath_lr_network"]) and not load_from_disk
+    save_to_disk = bool(par["output_omnipath_lr_network"]) and (not load_from_disk)
 
     # Warn if both input and output are provided
     if par["input_omnipath_lr_network"] and par["output_omnipath_lr_network"]:
         logger.warning(
-            "Both --input_omnipath_lr_network and --output_omnipath_lr_network are provided. "
-            "Using input file (load_from_disk=True), output will not be saved."
+            "Both Omnipath input and output paths are provided. "
+            "Using input file; output will not be saved."
         )
 
-    # Use input file path if provided, otherwise use output file path
-    lr_network_file_path = (
-        par["input_omnipath_lr_network"] or par["output_omnipath_lr_network"]
-    )
+    # Use input file path if provided, otherwise use output file path.
+    if load_from_disk:
+        lr_network_file_path = _sanitize_omnipath_csv(par["input_omnipath_lr_network"])
+    else:
+        lr_network_file_path = par.get("output_omnipath_lr_network", None)
 
     omnipath_gp_dict = extract_gp_dict_from_omnipath_lr_interactions(
         species=par["species"],
@@ -134,27 +150,43 @@ def create_omnipath_gene_program_mask():
     return omnipath_gp_dict
 
 
-def create_nichenet_gene_program_mask():
-    plot_gp_gene_count_distributions = (
-        True if par["output_nichenet_gp_gene_count_distributions"] else False
+def create_nichenet_gene_program_mask() -> dict:
+    plot_gp_gene_count_distributions = bool(
+        par["output_nichenet_gp_gene_count_distributions"]
     )
 
-    # Validate Nichenet I/O
+    # Validate NicheNet I/O.
     load_from_disk = bool(par["input_nichenet_lrt_network"]) and bool(
         par["input_nichenet_ligand_target_matrix"]
     )
-    save_to_disk = bool(par["output_nichenet_lrt_network"]) or bool(
-        par["output_nichenet_ligand_target_matrix"]
+
+    save_to_disk = (
+        bool(
+            par["output_nichenet_lrt_network"]
+            or par["output_nichenet_ligand_target_matrix"]
+        )
+        and not load_from_disk
     )
 
-    # Use input file path if provided, otherwise use output file path
-    lr_network_file_path = (
-        par["input_nichenet_lrt_network"] or par["output_nichenet_lrt_network"]
-    )
-    lf_target_matrix_file_path = (
-        par["input_nichenet_ligand_target_matrix"]
+    # Warn if both input and output are provided.
+    if load_from_disk and bool(
+        par["output_nichenet_lrt_network"]
         or par["output_nichenet_ligand_target_matrix"]
-    )
+    ):
+        logger.warning(
+            "Both NicheNet input and output paths are provided. "
+            "Using input files; outputs will not be saved."
+        )
+
+    # Use input file path if provided, otherwise use output file path.
+    if load_from_disk:
+        lr_network_file_path = par["input_nichenet_lrt_network"]
+        ligand_target_matrix_file_path = par["input_nichenet_ligand_target_matrix"]
+    else:
+        lr_network_file_path = par.get("output_nichenet_lrt_network", None)
+        ligand_target_matrix_file_path = par.get(
+            "output_nichenet_ligand_target_matrix", None
+        )
 
     nichenet_gp_dict = extract_gp_dict_from_nichenet_lrt_interactions(
         species=par["species"],
@@ -164,7 +196,7 @@ def create_nichenet_gene_program_mask():
         load_from_disk=load_from_disk,
         save_to_disk=save_to_disk,
         lr_network_file_path=lr_network_file_path,
-        ligand_target_matrix_file_path=lf_target_matrix_file_path,
+        ligand_target_matrix_file_path=ligand_target_matrix_file_path,
         gene_orthologs_mapping_file_path=par["input_gene_orthologs_mapping_file"],
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
         gp_gene_count_distributions_save_path=par[
@@ -174,17 +206,28 @@ def create_nichenet_gene_program_mask():
     return nichenet_gp_dict
 
 
-def create_mobocost_gene_program_mask():
+def create_mebocost_gene_program_mask() -> dict:
+    os.makedirs(meta["temp_dir"], exist_ok=True)
+
+    metabolite_enzymes_path = os.path.join(
+        meta["temp_dir"],
+        f"{par['species']}_metabolite_enzymes.tsv",
+    )
+    metabolite_sensors_path = os.path.join(
+        meta["temp_dir"],
+        f"{par['species']}_metabolite_sensors.tsv",
+    )
+
     shutil.copy2(
         par["input_metabolite_enzymes"],
-        os.path.join(meta["temp_dir"], f"{par['species']}_metabolite_enzymes.tsv"),
+        metabolite_enzymes_path,
     )
     shutil.copy2(
         par["input_metabolite_sensors"],
-        os.path.join(meta["temp_dir"], f"{par['species']}_metabolite_sensors.tsv"),
+        metabolite_sensors_path,
     )
-    plot_gp_gene_count_distributions = (
-        True if par["output_mebocost_gp_gene_count_distributions"] else False
+    plot_gp_gene_count_distributions = bool(
+        par["output_mebocost_gp_gene_count_distributions"]
     )
 
     mebocost_gp_dict = extract_gp_dict_from_mebocost_ms_interactions(
@@ -198,20 +241,20 @@ def create_mobocost_gene_program_mask():
     return mebocost_gp_dict
 
 
-def create_collectri_tf_gene_program_mask():
-    plot_gp_gene_count_distributions = (
-        True if par["output_collectri_tf_gp_gene_count_distributions"] else False
+def create_collectri_tf_gene_program_mask() -> dict:
+    plot_gp_gene_count_distributions = bool(
+        par["output_collectri_tf_gp_gene_count_distributions"]
     )
 
-    # Determine load_from_disk and save_to_disk based on input/output parameters
+    # Determine load_from_disk and save_to_disk from I/O params.
     load_from_disk = bool(par["input_collectri_tf_network"])
     save_to_disk = bool(par["output_collectri_tf_network"]) and not load_from_disk
 
     # Warn if both input and output are provided
     if par["input_collectri_tf_network"] and par["output_collectri_tf_network"]:
         logger.warning(
-            "Both --input_collectri_tf_network and --output_collectri_tf_network are provided. "
-            "Using input file (load_from_disk=True), output will not be saved."
+            "Both CollecTRI input and output paths are provided. "
+            "Using input file; output will not be saved."
         )
 
     # Use input file path if provided, otherwise use output file path
@@ -249,7 +292,8 @@ def main():
         and not par["input_gene_orthologs_mapping_file"]
     ):
         raise ValueError(
-            "For mouse species, a --input_gene_orthologs_mapping_file file must be provided for generating the omnipath mask."
+            "Mouse species requires --input_gene_orthologs_mapping_file "
+            "to generate the Omnipath mask."
         )
     if (
         par["create_nichenet_gene_program_mask"]
@@ -257,13 +301,15 @@ def main():
         and not par["input_gene_orthologs_mapping_file"]
     ):
         raise ValueError(
-            "For mouse species, a --input_gene_orthologs_mapping_file file must be provided for generating the nichenet mask."
+            "Mouse species requires --input_gene_orthologs_mapping_file "
+            "to generate the NicheNet mask."
         )
     if par["create_mebocost_gene_program_mask"] and (
-        not par["input_metabolite_enzymes"] or not par["input_metabolite_sensors"]
+        (not par["input_metabolite_enzymes"]) or (not par["input_metabolite_sensors"])
     ):
         raise ValueError(
-            "For mebocost gene program mask, both --input_metabolite_enzymes and --input_metabolite_sensors files must be provided."
+            "MeBocost mask requires --input_metabolite_enzymes "
+            "and --input_metabolite_sensors."
         )
 
     # Assemble gene program dictionaries
@@ -281,7 +327,7 @@ def main():
 
     if par["create_mebocost_gene_program_mask"]:
         logger.info("Generating MeBocost gene program mask...")
-        mebocost_gp_dict = create_mobocost_gene_program_mask()
+        mebocost_gp_dict = create_mebocost_gene_program_mask()
         gp_dicts.append(mebocost_gp_dict)
 
     if par["create_collectri_tf_gene_program_mask"]:
@@ -300,11 +346,15 @@ def main():
 
     logger.info("Gene program mask generation completed.")
     logger.info(
-        f"Number of gene programs after filtering and combining: {len(combined_gp_dict)}."
+        "Number of gene programs after filtering and combining: %s.",
+        len(combined_gp_dict),
     )
 
-    logger.info(f"Saving combined gene program mask to: {par['output']}")
-    with open(par["output"], "w") as f:
+    output_path = Path(par["output"])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Saving combined gene program mask to: %s", str(output_path))
+    with output_path.open("w", encoding="utf-8") as f:
         json.dump(combined_gp_dict, f)
 
 

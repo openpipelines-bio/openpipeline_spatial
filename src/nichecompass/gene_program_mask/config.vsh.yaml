@@ -44,7 +44,6 @@ argument_groups:
         description: |
           Path to the NicheNet ligand-target gene regulatory potential matrix file.
           If provided, the matrix will be loaded from this file instead of querying the NicheNet API.
-          Cannot be used together with `--output_nichenet_ligand_target_matrix`.
         example: nichenet_ligand_target_matrix.csv
       - name: "--input_nichenet_lrt_network"
         type: file
@@ -52,14 +51,12 @@ argument_groups:
         description: |
           Path to the NicheNet ligand-receptor network CSV file.
           If provided, the network will be loaded from this file instead of querying the NicheNet API.
-          Cannot be used together with `--output_nichenet_lrt_network`.
       - name: "--input_collectri_tf_network"
         type: file
         required: false
         description: |
           Path to the CollecTRI TF-target gene regulatory network CSV file.
-          If provided, the network will be loaded from this file instead of querying the decoupler API.
-          Cannot be used together with `--output_collectri_tf_network`.
+          If provided, the network will be loaded from this file instead of querying the CollecTRI API.
 
   - name: Parameters
     arguments:
@@ -134,25 +131,33 @@ argument_groups:
         type: file
         direction: output
         required: false
-        description: Path to the output OmniPath ligand-receptor network CSV file.
+        description: |
+          Path to the output OmniPath ligand-receptor network CSV file.
+          If `--input_omnipath_lr_network` is not provided, the network will be saved to this file after querying the OmniPath API.
         example: omnipath_lr_network.csv
       - name: "--output_nichenet_lrt_network"
         type: file
         direction: output
         required: false
-        description: Path to the output NicheNet ligand-receptor network CSV file.
-        example: nichenet_lr_network.csv
+        description: |
+          Path to the output NicheNet ligand-receptor network CSV file.
+          If `--input_nichenet_lrt_network` is not provided, the network will be saved to this file after querying the NicheNet API.
+        example: nichenet_lrt_network.csv
       - name: "--output_nichenet_ligand_target_matrix"
         type: file
         direction: output
         required: false
-        description: Path to the output NicheNet ligand-target gene regulatory potential matrix file.
+        description: |
+          Path to the output NicheNet ligand-target gene regulatory potential matrix file.
+          If `--input_nichenet_ligand_target_matrix` is not provided, the matrix will be saved to this file after querying the NicheNet API.
         example: nichenet_ligand_target_matrix.csv
       - name: "--output_collectri_tf_network"
         type: file
         direction: output
         required: false
-        description: Path to the output CollecTRI TF-target gene regulatory potential network CSV file.
+        description: |
+          Path to the output CollecTRI TF-target gene regulatory potential network CSV file.
+          If `--input_collectri_tf_network` is not provided, the network will be saved to this file after querying the CollecTRI API.
         example: collectri_tf_network.csv
       - name: "--output_omnipath_gp_gene_count_distributions"
         type: file
@@ -207,9 +212,8 @@ engines:
       packages:
         - numpy<2
         - nichecompass
-  test_setup:
-    - type: python
-      __merge__: [ /src/base/requirements/viashpy.yaml, .]
+  __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
 
 runners:
 - type: executable
