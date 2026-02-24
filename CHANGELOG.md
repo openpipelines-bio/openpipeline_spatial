@@ -4,6 +4,8 @@
 
 * `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
 
+* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheCompass analysis (PR #27).
+
 ## MINOR CHANGES
 
 * Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
@@ -53,8 +55,6 @@
 * `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
 
 * `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
-
-* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheCompass analysis (PR #27).
 
 # openpipeline_spatial 0.1.0
 
