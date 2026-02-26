@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## NEW FUNCTIONALITY
+
+* `feature_annotation/spatial_autocorr`: Added a spatial autocorrelation component (PR #45).
+
 # openpipeline_spatial 0.3.0
 
 ## NEW FUNCTIONALITY
