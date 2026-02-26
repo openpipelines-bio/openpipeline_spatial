@@ -1,0 +1,109 @@
+name: spatial_autocorr
+namespace: feature_annotation
+label: Spatial Autocorrelation
+summary: Calculate spatial autocorrelation for genes using Moran's I or Geary's C.
+description: |
+  Calculate spatial autocorrelation for genes using Moran's I or Geary's C.
+  This allows identifying spatially variable genes.
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        required: true
+        description: Input h5mu file.
+      - name: --modality
+        type: string
+        default: rna
+        description: Modality to use.
+
+  - name: Parameters
+    arguments:
+      - name: --graph_key
+        type: string
+        default: spatial_connectivities
+        description: Key in .obsp where spatial connectivities are stored.
+      - name: --mode
+        type: string
+        default: moran
+        choices: [moran, geary]
+        description: Mode of spatial autocorrelation.
+      - name: --genes
+        type: string
+        multiple: true
+        multiple_sep: ","
+        description: |
+          Column names or indices to calculate autocorrelation for. Meaning depends on `--attr`:
+          - If `attr` is 'X' (default), these are gene names in `.var_names`. If not provided, all genes are used (or `.var['highly_variable']` if present).
+          - If `attr` is 'obs', these are column names in `.obs`. If not provided, all numerical columns are used.
+          - If `attr` is 'obsm', these are indices in `.obsm[layer]`.
+      - name: --attr
+        type: string
+        default: X
+        choices: [X, obs, obsm]
+        description: |
+          The attribute of the AnnData object to use for calculation.
+          - 'X': Use gene expression data (default).
+          - 'obs': Use cell metadata.
+          - 'obsm': Use multidimensional embeddings.
+      - name: --n_perms
+        type: integer
+        default: 100
+        description: Number of permutations for p-value calculation.
+      - name: --layer
+        type: string
+        description: |
+            Layer in the AnnData object to use.
+            - If `attr` is 'X', this is the key in `.layers` to use. If not provided, `.X` is used.
+            - If `attr` is 'obsm', this is the key in `.obsm` to use.
+      - name: --use_raw
+        type: boolean
+        default: false
+        description: Whether to use .raw attribute of AnnData.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        required: true
+        description: Output h5mu file with results in .uns.
+
+resources:
+  - type: python_script
+    path: script.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny_neighbors.h5mu
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        packages:
+          - mudata~=0.3.0
+          - anndata
+          - scanpy
+          - squidpy
+          - scipy
+          - pandas
+          - numpy
+    test_setup:
+      - type: python
+        packages:
+          - pytest
+          - viashpy
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, midmem]
