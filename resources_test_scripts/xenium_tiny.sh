@@ -19,14 +19,16 @@ function clean_up {
 trap clean_up EXIT
 
 if [ ! -d "$OUT" ]; then
-    tiny_dataset="https://raw.githubusercontent.com/nf-core/test-datasets/spatialxe/Xenium_Prime_Mouse_Ileum_tiny_outs.zip"
-    wget "$tiny_dataset" -O "$TMPDIR/xenium_tiny.zip"
+    tiny_dataset="https://raw.githubusercontent.com/nf-core/test-datasets/spatialxe/Xenium_Prime_Mouse_Ileum_tiny_outs.tar.gz"
+    wget "$tiny_dataset" -O "$TMPDIR/xenium_tiny.tar.gz"
 
-    unzip -q "$TMPDIR/xenium_tiny.zip" -d "$TMPDIR/xenium_tiny"
+    mkdir -p "$TMPDIR/xenium_tiny"
+    tar -xzf "$TMPDIR/xenium_tiny.tar.gz" -C "$TMPDIR/xenium_tiny"
     mkdir -p "$OUT"
     mv "$TMPDIR/xenium_tiny/Xenium_Prime_Mouse_Ileum_tiny_outs/"* "$OUT/"
 fi
 
+# rm -rf "$DIR/$ID.zarr"
 viash run "$REPO_ROOT/src/convert/from_xenium_to_spatialdata/config.vsh.yaml" -- \
     --input "$OUT" \
     --output "$DIR/$ID.zarr"
@@ -34,6 +36,10 @@ viash run "$REPO_ROOT/src/convert/from_xenium_to_spatialdata/config.vsh.yaml" --
 viash run "$REPO_ROOT/src/convert/from_spatialdata_to_h5mu/config.vsh.yaml" -- \
     --input "$DIR/$ID.zarr" \
     --output "$DIR/$ID.h5mu"
+
+viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" -- \
+    --input "$DIR/$ID.h5mu" \
+    --output "$DIR/${ID}_neighbors.h5mu"
 
 # Sync to S3
 aws s3 sync \
