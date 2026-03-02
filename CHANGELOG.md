@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## NEW FUNCTIONALITY
+
+* `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
+
 # openpipeline_spatial 0.3.0
 
 ## NEW FUNCTIONALITY
