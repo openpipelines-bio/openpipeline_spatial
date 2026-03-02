@@ -1,6 +1,6 @@
-name: spatial_statistics
-namespace: statistics
-label: Spatial Statistics
+name: xenium_spatial_qc
+namespace: qc
+label: Xenium Spatial QC
 description: |
   Calculate various spatial statistics from Xenium data including cell morphology
   ratios, position-based features, local density metrics, and global spatial patterns.
@@ -26,7 +26,7 @@ argument_groups:
           The name of the modality to use from the MuData object.
           This specifies which AnnData object contains the spatial data.
 
-      - name: --spatial_coords_key
+      - name: --obsm_spatial_coordinates
         type: string
         default: "spatial"
         description: |
@@ -89,14 +89,12 @@ engines:
         packages:
           - procps
       - type: python
+        __merge__: 
+          - /src/base/requirements/anndata_mudata.yaml
+          - /src/base/requirements/scanpy.yaml
+          - /src/base/requirements/squidpy.yaml
         packages:
-          - mudata~=0.3.0
-          - scanpy
-          - squidpy
-          - scipy
           - scikit-learn
-          - pandas
-          - numpy
     test_setup:
       - type: python
         packages:

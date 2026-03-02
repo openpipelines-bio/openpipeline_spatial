@@ -5,7 +5,7 @@ import pytest
 ## VIASH START
 meta = {
     "resources_dir": "resources_test/xenium",
-    "executable": "./calculate_spatial_statistics",
+    "executable": "./xenium_spatial_qc",
 }
 ## VIASH END
 
@@ -23,7 +23,7 @@ def test_calculate_spatial_statistics(run_component, tmp_path):
             str(output_path),
             "--modality",
             "rna",
-            "--spatial_coords_key",
+            "--obsm_spatial_coordinates",
             "spatial",
             "--density_bandwidth",
             "50.0",

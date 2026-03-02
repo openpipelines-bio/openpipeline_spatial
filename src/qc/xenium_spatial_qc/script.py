@@ -12,7 +12,7 @@ par = {
     "input": "resources_test/xenium/xenium_tiny_qc.h5mu",
     "output": "output.h5mu",
     "modality": "rna",
-    "spatial_coords_key": "spatial",
+    "obsm_spatial_coordinates": "spatial",
     "density_bandwidth": 50.0,
     "calculate_ripley_l": False,
     "n_subsample_ripley": -1,
@@ -202,7 +202,7 @@ def calculate_global_statistics(adata, spatial_coords, par):
                 adata_ripley,
                 cluster_key="_temp_global",
                 mode="L",
-                spatial_key=par["spatial_coords_key"],
+                spatial_key=par["obsm_spatial_coordinates"],
                 n_simulations=50,
             )
 
@@ -257,16 +257,16 @@ def main(par):
     print(adata, flush=True)
 
     print(
-        f"\n>>> Extracting spatial coordinates from .obsm['{par['spatial_coords_key']}']...",
+        f"\n>>> Extracting spatial coordinates from .obsm['{par['obsm_spatial_coordinates']}']...",
         flush=True,
     )
-    if par["spatial_coords_key"] not in adata.obsm:
+    if par["obsm_spatial_coordinates"] not in adata.obsm:
         raise KeyError(
-            f"Spatial key '{par['spatial_coords_key']}' not found in .obsm. "
+            f"Spatial key '{par['obsm_spatial_coordinates']}' not found in .obsm. "
             f"Available keys: {list(adata.obsm.keys())}"
         )
 
-    spatial_coords = adata.obsm[par["spatial_coords_key"]]
+    spatial_coords = adata.obsm[par["obsm_spatial_coordinates"]]
     if spatial_coords.shape[1] != 2:
         raise ValueError(
             f"Expected 2D spatial coordinates, got shape {spatial_coords.shape}"
