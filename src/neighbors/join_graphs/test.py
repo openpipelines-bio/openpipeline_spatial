@@ -18,11 +18,16 @@ def test_default_execution(run_component, tmp_path):
 
     run_component(
         [
-            "--input", input_file,
-            "--output", str(output),
-            "--output_obsp_connectivities", "fused_conn",
-            "--alpha", "0.2",
-            "--output_compression", "gzip",
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--output_obsp_connectivities",
+            "fused_conn",
+            "--alpha",
+            "0.2",
+            "--output_compression",
+            "gzip",
         ]
     )
 
@@ -34,9 +39,7 @@ def test_default_execution(run_component, tmp_path):
     assert "fused_conn" in adata.obsp.keys(), (
         "Expected output obsp connectivities key to be present."
     )
-    assert "fused_conn" in adata.uns.keys(), (
-        "Expected metadata for fusion in .uns."
-    )
+    assert "fused_conn" in adata.uns.keys(), "Expected metadata for fusion in .uns."
     assert adata.uns["fused_conn"]["params"]["alpha"] == 0.2, (
         "Expected alpha parameter to be stored in .uns."
     )
@@ -53,15 +56,19 @@ def test_alpha_zero_equals_expression(run_component, tmp_path):
     output = tmp_path / "alpha_zero.h5mu"
     run_component(
         [
-            "--input", input_file,
-            "--output", str(output),
-            "--alpha", "0.0",
-            "--output_obsp_connectivities", "fused_zero",
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--alpha",
+            "0.0",
+            "--output_obsp_connectivities",
+            "fused_zero",
         ]
     )
     mdata = mu.read_h5mu(output)
     adata = mdata.mod["rna"]
-    
+
     fused = adata.obsp["fused_zero"]
     # Should equal expression graph exactly (dense check might be heavy, check nnz or sum)
     expr = adata.obsp["connectivities"]
@@ -72,15 +79,19 @@ def test_alpha_one_equals_spatial(run_component, tmp_path):
     output = tmp_path / "alpha_one.h5mu"
     run_component(
         [
-            "--input", input_file,
-            "--output", str(output),
-            "--alpha", "1.0",
-            "--output_obsp_connectivities", "fused_one",
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--alpha",
+            "1.0",
+            "--output_obsp_connectivities",
+            "fused_one",
         ]
     )
     mdata = mu.read_h5mu(output)
     adata = mdata.mod["rna"]
-    
+
     fused = adata.obsp["fused_one"]
     # Should equal spatial graph exactly
     spatial = adata.obsp["spatial_connectivities"]
