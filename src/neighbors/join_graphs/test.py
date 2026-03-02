@@ -49,7 +49,7 @@ def test_default_execution(run_component, tmp_path):
     spatial = adata.obsp["spatial_connectivities"]
     expr = adata.obsp["connectivities"]
 
-    assert fused.shape == expr.shape
+    assert fused.shape == expr.shape == spatial.shape, "Fused graph should have same shape as input graphs."
 
 
 def test_alpha_zero_equals_expression(run_component, tmp_path):
