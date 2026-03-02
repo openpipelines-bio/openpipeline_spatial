@@ -6,13 +6,13 @@ par = {
     "input": "resources_test/xenium/xenium_tiny_qc_graph.h5mu",
     "output": "output.h5mu",
     "modality": "rna",
-    "graph_key": "spatial_connectivities",
     "mode": "moran",
-    "genes": None,
+    "input_genes": None,
     "attr": "X",
     "n_perms": 100,
     "layer": None,
     "use_raw": False,
+    "obsp_neighborhood_graph": "spatial_connectivities",
 }
 ## VIASH END
 
@@ -23,12 +23,12 @@ def main():
     adata = mdata.mod[par["modality"]]
 
     # Check for connectivity key
-    if par["graph_key"] not in adata.obsp:
+    if par["obsp_neighborhood_graph"] not in adata.obsp:
         raise ValueError(
-            f"Connectivity key '{par['graph_key']}' not found in .obsp of modality '{par['modality']}'."
+            f"Connectivity key '{par['obsp_neighborhood_graph']}' not found in .obsp of modality '{par['modality']}'."
         )
 
-    genes = par["genes"]
+    genes = par["input_genes"]
     if genes and len(genes) == 0:
         genes = None
 
@@ -43,7 +43,7 @@ def main():
     # Note: sq.gr.spatial_autocorr modifies adata in-place, adding results to .uns
     sq.gr.spatial_autocorr(
         adata,
-        connectivity_key=par["graph_key"],
+        connectivity_key=par["obsp_neighborhood_graph"],
         genes=genes,
         mode=par["mode"],
         attr=par["attr"],
