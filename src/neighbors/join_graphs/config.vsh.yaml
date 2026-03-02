@@ -1,0 +1,91 @@
+name: join_graphs
+namespace: neighbors
+description: |
+  Combine spatial and expression neighborhood graphs into a single graph for 
+  use in downstream clustering or trajectory analysis.
+  
+  The fusion is a linear combination of the expression connectivities 
+  and spatial connectivities matrices, weighted by `alpha`.
+  
+  $C_{joint} = (1 - \alpha) \cdot C_{expression} + \alpha \cdot C_{spatial}$
+
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ maintainer ]
+
+argument_groups:
+  - name: "Inputs"
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input H5MU file with pre-computed expression and spatial neighborhood graphs.
+      - name: "--modality"
+        type: string
+        default: "rna"
+        required: false
+        description: Modality from the input MuData file to process.
+      - name: "--input_obsp_expression_connectivities"
+        type: string
+        default: "connectivities"
+        description: |
+          Key in `adata.obsp` containing the expression connectivity matrix.
+      - name: "--input_obsp_spatial_connectivities"
+        type: string
+        default: "spatial_connectivities"
+        description: |
+          Key in `adata.obsp` containing the spatial connectivity matrix.
+
+  - name: "Parameters"
+    arguments:
+      - name: "--alpha"
+        type: double
+        default: 0.2
+        min: 0.0
+        max: 1.0
+        description: |
+          Weight of the spatial graph in the connection fusion. 
+          A value of 0 results in the original expression graph; 
+          a value of 1 results in the spatial graph only.
+
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file path.
+        example: output.h5mu
+      - name: "--output_obsp_connectivities"
+        type: string
+        default: "spatial_expression_connectivities"
+        description: |
+          Key under which to store the fused connectivity matrix in `adata.obsp`.
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [ /src/base/requirements/scanpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, midmem, middisk]

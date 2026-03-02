@@ -5,18 +5,16 @@ import mudata as mu
 ## VIASH START
 par = {
     # Inputs
-    "input": "resources_test/xenium/xenium_tiny.qc.neighbors.h5mu",
+    "input": "resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu",
     "modality": "rna",
     "input_obsp_expression_connectivities": "connectivities",
     "input_obsp_spatial_connectivities": "spatial_connectivities",
-    # Clustering options
+    # Fusion options
     "alpha": 0.2,
-    "resolution": 1.0,
-    "n_iterations": -1,
-    "obs_label": "leiden_spatial",
     # Outputs
     "output": "foo.h5mu",
     "output_compression": None,
+    "output_obsp_connectivities": "spatial_expression_connectivities",
 }
 meta = {"resources_dir": "src/utils/"}
 ## VIASH END
@@ -30,22 +28,19 @@ logger = setup_logger()
 logger.info("Reading input data...")
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
-## Validate spatial graph
+## Validate inputs
 spatial_key = par["input_obsp_spatial_connectivities"]
 if spatial_key not in adata.obsp:
     raise ValueError(
-        f"Spatial connectivities key '{spatial_key}' not found in .obsp. "
-        "Run the neighbors/spatial_neighborhood_graph component first."
+        f"Spatial connectivities key '{spatial_key}' not found in .obsp."
     )
 
-## Validate and read expression connectivity graph
 expr_key = par["input_obsp_expression_connectivities"]
 if expr_key not in adata.obsp:
     raise ValueError(
-        f"Expression connectivities key '{expr_key}' not found in .obsp. "
-        "Run a neighbors component before this component."
+        f"Expression connectivities key '{expr_key}' not found in .obsp."
     )
-logger.info(f"Using expression graph from .obsp['{expr_key}']...")
+
 nn_graph_genes = adata.obsp[expr_key]
 nn_graph_space = adata.obsp[spatial_key]
 
@@ -56,21 +51,13 @@ logger.info(
     f"{1 - alpha:.2f}: expression weight)..."
 )
 joint_graph = (1 - alpha) * nn_graph_genes + alpha * nn_graph_space
-
-## Run Leiden
-logger.info(
-    f"Running Leiden clustering (resolution={par['resolution']})..."
-)
-sc.tl.leiden(
-    adata,
-    adjacency=joint_graph,
-    resolution=par["resolution"],
-    key_added=par["obs_label"],
-    n_iterations=par["n_iterations"],
-)
-
-n_domains = adata.obs[par["obs_label"]].nunique()
-logger.info(f"Identified {n_domains} spatial domain(s), stored in .obs['{par['obs_label']}'].")
+out_key = par["output_obsp_connectivities"]
+logger.info(f"Storing result in .obsp['{out_key}']...")
+adata.obsp[out_key] = joint_graph
+adata.uns[out_key] = {
+    "params": {"alpha": alpha},
+    "inputs": {"expression_connectivities": expr_key, "spatial_connectivities": spatial_key},
+}
 
 ## Write output
 logger.info("Saving output data...")
