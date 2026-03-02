@@ -41,13 +41,13 @@ viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" 
     --input "$DIR/$ID.h5mu" \
     --output "$DIR/${ID}_neighbors.h5mu"
 
-# Run PCA via openpipeline on the existing xenium_tiny.qc.neighbors.h5mu,
+# Run PCA via openpipeline on the existing xenium_tiny_neighbors.h5mu,
 # which already has the spatial neighborhood graph pre-computed.
 cat > /tmp/pca.yaml <<EOF
 param_list:
   - id: xenium_tiny
     input: "$DIR/${ID}_neighbors.h5mu"
-output: '\$id.qc.neighbors.pca.h5mu'
+output: '\$id.pca.h5mu'
 output_compression: gzip
 publish_dir: "$TMPDIR"
 EOF
@@ -67,8 +67,8 @@ nextflow run openpipelines-bio/openpipeline \
 cat > /tmp/find_neighbors.yaml <<EOF
 param_list:
   - id: xenium_tiny
-    input: "$TMPDIR/xenium_tiny.qc.neighbors.pca.h5mu"
-output: '\$id.qc.neighbors.h5mu'
+    input: "$TMPDIR/xenium_tiny.pca.h5mu"
+output: '\$id.spatial_expression_neighbors.h5mu'
 output_compression: gzip
 publish_dir: "$TMPDIR"
 EOF
@@ -83,7 +83,7 @@ nextflow run openpipelines-bio/openpipeline \
   -resume
 
 # Move the final output to the destination directory
-mv "$TMPDIR/xenium_tiny.qc.neighbors.h5mu" "$DIR/xenium_tiny.qc.neighbors.h5mu"
+mv "$TMPDIR/xenium_tiny.spatial_expression_neighbors.h5mu" "$DIR/xenium_tiny.spatial_expression_neighbors.h5mu"
 
 # Sync to S3
 aws s3 sync \

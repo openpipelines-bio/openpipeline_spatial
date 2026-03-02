@@ -12,6 +12,7 @@ par = {
     # Clustering options
     "alpha": 0.2,
     "resolution": 1.0,
+    "n_iterations": -1,
     "obs_label": "leiden_spatial",
     # Outputs
     "output": "foo.h5mu",
@@ -65,8 +66,7 @@ sc.tl.leiden(
     adjacency=joint_graph,
     resolution=par["resolution"],
     key_added=par["obs_label"],
-    flavor="igraph",
-    n_iterations=2,
+    n_iterations=par["n_iterations"],
 )
 
 n_domains = adata.obs[par["obs_label"]].nunique()

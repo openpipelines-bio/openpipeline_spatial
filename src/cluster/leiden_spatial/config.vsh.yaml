@@ -53,11 +53,19 @@ argument_groups:
           clustering; a value of 1 means pure spatial clustering.
       - name: "--resolution"
         type: double
-        default: 1.0
-        min: 0.0
         description: |
-          Resolution parameter for the Leiden algorithm. Higher values produce more and
-          smaller clusters.
+          A parameter value controlling the coarseness of the clustering. Higher values lead to more clusters.
+          Multiple values will result in clustering being performed multiple times.
+        default: [1]
+        required: true
+        multiple: true
+      - name: "--n_iterations"
+        type: integer
+        default: -1
+        description: |
+          How many iterations of the Leiden clustering algorithm to perform.
+          Positive values above 2 define the total number of iterations to perform,
+          -1 has the algorithm run until it reaches a stable partition.
       - name: "--obs_label"
         type: string
         default: "leiden_spatial"
@@ -81,7 +89,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_tiny.qc.neighbors.h5mu
+  - path: /resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu
 
 engines:
   - type: docker
