@@ -30,11 +30,11 @@ adata = mu.read_h5ad(par["input"], mod=par["modality"])
 ## Validate inputs
 spatial_key = par["input_obsp_spatial_graph"]
 if spatial_key not in adata.obsp:
-    raise ValueError(f"Spatial connectivities key '{spatial_key}' not found in .obsp.")
+    raise ValueError(f"Spatial graph key '{spatial_key}' not found in .obsp.")
 
 expr_key = par["input_obsp_expression_graph"]
 if expr_key not in adata.obsp:
-    raise ValueError(f"Expression connectivities key '{expr_key}' not found in .obsp.")
+    raise ValueError(f"Expression graph key '{expr_key}' not found in .obsp.")
 
 nn_graph_genes = adata.obsp[expr_key]
 nn_graph_space = adata.obsp[spatial_key]
@@ -52,8 +52,8 @@ adata.obsp[out_key] = joint_graph
 adata.uns[out_key] = {
     "params": {"alpha": alpha},
     "inputs": {
-        "expression_connectivities": expr_key,
-        "spatial_connectivities": spatial_key,
+        "expression_graph": expr_key,
+        "spatial_graph": spatial_key,
     },
 }
 
