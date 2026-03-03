@@ -95,9 +95,9 @@ def _sanitize_omnipath_csv(file_path: str) -> None:
 
     # Find all genesymbol columns dynamically and drop rows where any are NaN.
     # These proteins don't have gene mappings and cannot be used in gene programs.
-    genesymbol_cols = [c for c in df.columns if "genesymbol" in c.lower()]
-    if genesymbol_cols:
-        df = df.dropna(subset=genesymbol_cols)
+    genesymbol_cols = df.columns.str.lower().str.contains("genesymbol")
+    if genesymbol_cols.any():
+        df = df.dropna(subset=df.columns[genesymbol_cols])
 
     # Rewrite with an index column so downstream `read_csv(..., index_col=0)` is stable.
     os.makedirs(meta["temp_dir"], exist_ok=True)
@@ -110,19 +110,22 @@ def _sanitize_omnipath_csv(file_path: str) -> None:
     return lr_network_file_path
 
 
-def create_omnipath_gene_program_mask() -> dict:
+def create_omnipath_gene_program_mask(
+    output_lr_network: str | None,
+    output_count_distr: str | None,
+    input_lr_network: str | None,
+    input_orthologs: str | None,
+) -> dict:
     # Generate omnipath gene program mask
     # Determine output distribution
-    plot_gp_gene_count_distributions = bool(
-        par["output_omnipath_gp_gene_count_distributions"]
-    )
+    plot_gp_gene_count_distributions = bool(output_count_distr)
 
     # Determine load_from_disk and save_to_disk from I/O params.
-    load_from_disk = bool(par["input_omnipath_lr_network"])
-    save_to_disk = bool(par["output_omnipath_lr_network"]) and (not load_from_disk)
+    load_from_disk = bool(input_lr_network)
+    save_to_disk = bool(output_lr_network) and (not load_from_disk)
 
     # Warn if both input and output are provided
-    if par["input_omnipath_lr_network"] and par["output_omnipath_lr_network"]:
+    if input_lr_network and output_lr_network:
         logger.warning(
             "Both Omnipath input and output paths are provided. "
             "Using input file; output will not be saved."
@@ -130,9 +133,9 @@ def create_omnipath_gene_program_mask() -> dict:
 
     # Use input file path if provided, otherwise use output file path.
     if load_from_disk:
-        lr_network_file_path = _sanitize_omnipath_csv(par["input_omnipath_lr_network"])
+        lr_network_file_path = _sanitize_omnipath_csv(input_lr_network)
     else:
-        lr_network_file_path = par.get("output_omnipath_lr_network", None)
+        lr_network_file_path = output_lr_network
 
     omnipath_gp_dict = extract_gp_dict_from_omnipath_lr_interactions(
         species=par["species"],
@@ -140,39 +143,33 @@ def create_omnipath_gene_program_mask() -> dict:
         load_from_disk=load_from_disk,
         save_to_disk=save_to_disk,
         lr_network_file_path=lr_network_file_path,
-        gene_orthologs_mapping_file_path=par["input_gene_orthologs_mapping_file"],
+        gene_orthologs_mapping_file_path=input_orthologs,
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
-        gp_gene_count_distributions_save_path=par[
-            "output_omnipath_gp_gene_count_distributions"
-        ],
+        gp_gene_count_distributions_save_path=output_count_distr,
     )
 
     return omnipath_gp_dict
 
 
-def create_nichenet_gene_program_mask() -> dict:
-    plot_gp_gene_count_distributions = bool(
-        par["output_nichenet_gp_gene_count_distributions"]
-    )
+def create_nichenet_gene_program_mask(
+    output_lrt_network: str | None,
+    output_lt_matrix: str | None,
+    output_count_distr: str | None,
+    input_lrt_network: str | None,
+    input_lt_matrix: str | None,
+    input_orthologs: str | None,
+) -> dict:
+    plot_gp_gene_count_distributions = bool(output_count_distr)
 
     # Validate NicheNet I/O.
-    load_from_disk = bool(par["input_nichenet_lrt_network"]) and bool(
-        par["input_nichenet_ligand_target_matrix"]
-    )
+    load_from_disk = bool(input_lrt_network) and bool(input_lt_matrix)
 
     save_to_disk = (
-        bool(
-            par["output_nichenet_lrt_network"]
-            or par["output_nichenet_ligand_target_matrix"]
-        )
-        and not load_from_disk
+        bool(output_lrt_network) or bool(output_lt_matrix) and not load_from_disk
     )
 
     # Warn if both input and output are provided.
-    if load_from_disk and bool(
-        par["output_nichenet_lrt_network"]
-        or par["output_nichenet_ligand_target_matrix"]
-    ):
+    if load_from_disk and (bool(output_lrt_network) or bool(output_lt_matrix)):
         logger.warning(
             "Both NicheNet input and output paths are provided. "
             "Using input files; outputs will not be saved."
@@ -180,13 +177,11 @@ def create_nichenet_gene_program_mask() -> dict:
 
     # Use input file path if provided, otherwise use output file path.
     if load_from_disk:
-        lr_network_file_path = par["input_nichenet_lrt_network"]
-        ligand_target_matrix_file_path = par["input_nichenet_ligand_target_matrix"]
+        lr_network_file_path = input_lrt_network
+        ligand_target_matrix_file_path = input_lt_matrix
     else:
-        lr_network_file_path = par.get("output_nichenet_lrt_network", None)
-        ligand_target_matrix_file_path = par.get(
-            "output_nichenet_ligand_target_matrix", None
-        )
+        lr_network_file_path = output_lrt_network
+        ligand_target_matrix_file_path = output_lt_matrix
 
     nichenet_gp_dict = extract_gp_dict_from_nichenet_lrt_interactions(
         species=par["species"],
@@ -197,16 +192,18 @@ def create_nichenet_gene_program_mask() -> dict:
         save_to_disk=save_to_disk,
         lr_network_file_path=lr_network_file_path,
         ligand_target_matrix_file_path=ligand_target_matrix_file_path,
-        gene_orthologs_mapping_file_path=par["input_gene_orthologs_mapping_file"],
+        gene_orthologs_mapping_file_path=input_orthologs,
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
-        gp_gene_count_distributions_save_path=par[
-            "output_nichenet_gp_gene_count_distributions"
-        ],
+        gp_gene_count_distributions_save_path=output_count_distr,
     )
     return nichenet_gp_dict
 
 
-def create_mebocost_gene_program_mask() -> dict:
+def create_mebocost_gene_program_mask(
+    output_count_distr: str | None,
+    input_metabolite_enzymes: str,
+    input_metabolite_sensors: str,
+) -> dict:
     os.makedirs(meta["temp_dir"], exist_ok=True)
 
     metabolite_enzymes_path = os.path.join(
@@ -219,48 +216,44 @@ def create_mebocost_gene_program_mask() -> dict:
     )
 
     shutil.copy2(
-        par["input_metabolite_enzymes"],
+        input_metabolite_enzymes,
         metabolite_enzymes_path,
     )
     shutil.copy2(
-        par["input_metabolite_sensors"],
+        input_metabolite_sensors,
         metabolite_sensors_path,
     )
-    plot_gp_gene_count_distributions = bool(
-        par["output_mebocost_gp_gene_count_distributions"]
-    )
+    plot_gp_gene_count_distributions = bool(output_count_distr)
 
     mebocost_gp_dict = extract_gp_dict_from_mebocost_ms_interactions(
         dir_path=meta["temp_dir"],
         species=par["species"],
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
-        gp_gene_count_distributions_save_path=par[
-            "output_mebocost_gp_gene_count_distributions"
-        ],
+        gp_gene_count_distributions_save_path=output_count_distr,
     )
     return mebocost_gp_dict
 
 
-def create_collectri_tf_gene_program_mask() -> dict:
-    plot_gp_gene_count_distributions = bool(
-        par["output_collectri_tf_gp_gene_count_distributions"]
-    )
+def create_collectri_tf_gene_program_mask(
+    output_count_distr: str | None,
+    output_tf_network: str | None,
+    input_tf_network: str | None,
+) -> dict:
+    plot_gp_gene_count_distributions = bool(output_count_distr)
 
     # Determine load_from_disk and save_to_disk from I/O params.
-    load_from_disk = bool(par["input_collectri_tf_network"])
-    save_to_disk = bool(par["output_collectri_tf_network"]) and not load_from_disk
+    load_from_disk = bool(input_tf_network)
+    save_to_disk = bool(output_tf_network) and not load_from_disk
 
     # Warn if both input and output are provided
-    if par["input_collectri_tf_network"] and par["output_collectri_tf_network"]:
+    if input_tf_network and output_tf_network:
         logger.warning(
             "Both CollecTRI input and output paths are provided. "
             "Using input file; output will not be saved."
         )
 
     # Use input file path if provided, otherwise use output file path
-    tf_network_file_path = (
-        par["input_collectri_tf_network"] or par["output_collectri_tf_network"]
-    )
+    tf_network_file_path = input_tf_network if load_from_disk else output_tf_network
 
     collectri_gp_dict = extract_gp_dict_from_collectri_tf_network(
         species=par["species"],
@@ -268,9 +261,7 @@ def create_collectri_tf_gene_program_mask() -> dict:
         save_to_disk=save_to_disk,
         tf_network_file_path=tf_network_file_path,
         plot_gp_gene_count_distributions=plot_gp_gene_count_distributions,
-        gp_gene_count_distributions_save_path=par[
-            "output_collectri_tf_gp_gene_count_distributions"
-        ],
+        gp_gene_count_distributions_save_path=output_count_distr,
     )
     return collectri_gp_dict
 
@@ -315,25 +306,57 @@ def main():
     # Assemble gene program dictionaries
     gp_dicts = []
 
-    if par["create_omnipath_gene_program_mask"]:
-        logger.info("Generating Omnipath gene program mask...")
-        omnipath_gp_dict = create_omnipath_gene_program_mask()
-        gp_dicts.append(omnipath_gp_dict)
+    masks = {
+        "create_omnipath_gene_program_mask": (
+            "Omnipath",
+            create_omnipath_gene_program_mask,
+        ),
+        "create_nichenet_gene_program_mask": (
+            "NicheNet",
+            create_nichenet_gene_program_mask,
+        ),
+        "create_mebocost_gene_program_mask": (
+            "MeBocost",
+            create_mebocost_gene_program_mask,
+        ),
+        "create_collectri_tf_gene_program_mask": (
+            "CollecTRI TF",
+            create_collectri_tf_gene_program_mask,
+        ),
+    }
 
-    if par["create_nichenet_gene_program_mask"]:
-        logger.info("Generating NicheNet gene program mask...")
-        nichenet_gp_dict = create_nichenet_gene_program_mask()
-        gp_dicts.append(nichenet_gp_dict)
+    mask_args = {
+        "create_omnipath_gene_program_mask": (
+            par["output_omnipath_lr_network"],
+            par["output_omnipath_gp_gene_count_distributions"],
+            par["input_omnipath_lr_network"],
+            par["input_gene_orthologs_mapping_file"],
+        ),
+        "create_nichenet_gene_program_mask": (
+            par["output_nichenet_lrt_network"],
+            par["output_nichenet_ligand_target_matrix"],
+            par["output_nichenet_gp_gene_count_distributions"],
+            par["input_nichenet_lrt_network"],
+            par["input_nichenet_ligand_target_matrix"],
+            par["input_gene_orthologs_mapping_file"],
+        ),
+        "create_mebocost_gene_program_mask": (
+            par["output_mebocost_gp_gene_count_distributions"],
+            par["input_metabolite_enzymes"],
+            par["input_metabolite_sensors"],
+        ),
+        "create_collectri_tf_gene_program_mask": (
+            par["output_collectri_tf_gp_gene_count_distributions"],
+            par["output_collectri_tf_network"],
+            par["input_collectri_tf_network"],
+        ),
+    }
 
-    if par["create_mebocost_gene_program_mask"]:
-        logger.info("Generating MeBocost gene program mask...")
-        mebocost_gp_dict = create_mebocost_gene_program_mask()
-        gp_dicts.append(mebocost_gp_dict)
-
-    if par["create_collectri_tf_gene_program_mask"]:
-        logger.info("Generating CollecTRI TF gene program mask...")
-        collectri_gp_dict = create_collectri_tf_gene_program_mask()
-        gp_dicts.append(collectri_gp_dict)
+    for mask, (mask_name, mask_function) in masks.items():
+        if par[mask]:
+            logger.info(f"Generating {mask_name} gene program mask...")
+            gp_dict = mask_function(*mask_args[mask])
+            gp_dicts.append(gp_dict)
 
     # Filter and combine GPs
     assert len(gp_dicts) > 0, "No gene program dictionaries were created."
