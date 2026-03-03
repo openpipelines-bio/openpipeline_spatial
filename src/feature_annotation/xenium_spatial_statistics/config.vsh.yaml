@@ -1,6 +1,6 @@
-name: xenium_spatial_qc
-namespace: qc
-label: Xenium Spatial QC
+name: xenium_spatial_statistics
+namespace: feature_annotation
+label: Xenium Spatial Statistics
 description: |
   Calculate various spatial statistics from Xenium data including cell morphology
   ratios, position-based features, local density metrics, and global spatial patterns.

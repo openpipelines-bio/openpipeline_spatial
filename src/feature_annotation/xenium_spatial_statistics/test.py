@@ -5,7 +5,7 @@ import pytest
 ## VIASH START
 meta = {
     "resources_dir": "resources_test/xenium",
-    "executable": "./xenium_spatial_qc",
+    "executable": "./xenium_spatial_statistics",
 }
 ## VIASH END
 
