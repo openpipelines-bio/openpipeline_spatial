@@ -93,15 +93,6 @@ def gene_program_io(nichenet_io, omnipath_io, mebocost_io, collectri_io):
     }
 
 
-@pytest.mark.parametrize(
-    "mask_type,expected_gp_keys",
-    [
-        ("nichenet", ["ligand_receptor_target_gene_GP"]),
-        ("omnipath", ["ligand_receptor_GP", "combined_GP"]),
-        ("mebocost", ["metabolite_enzyme_sensor_GP", "combined_GP"]),
-        ("collectri", ["TF_target_genes_GP"]),
-    ],
-)
 def test_api_execution(run_component, tmp_path):
     output = tmp_path / "output.json"
 
@@ -163,6 +154,15 @@ def test_api_execution(run_component, tmp_path):
         )
 
 
+@pytest.mark.parametrize(
+    "mask_type,expected_gp_keys",
+    [
+        ("nichenet", ["ligand_receptor_target_gene_GP"]),
+        ("omnipath", ["ligand_receptor_GP", "combined_GP"]),
+        ("mebocost", ["metabolite_enzyme_sensor_GP", "combined_GP"]),
+        ("collectri", ["TF_target_genes_GP"]),
+    ],
+)
 def test_io_gene_program_mask(
     run_component, tmp_path, mask_type, expected_gp_keys, gene_program_io
 ):
