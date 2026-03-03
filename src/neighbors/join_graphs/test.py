@@ -22,7 +22,7 @@ def test_default_execution(run_component, tmp_path):
             input_file,
             "--output",
             str(output),
-            "--output_obsp_connectivities",
+            "--output_obsp_graph",
             "fused_conn",
             "--alpha",
             "0.2",
@@ -64,7 +64,7 @@ def test_alpha_zero_equals_expression(run_component, tmp_path):
             str(output),
             "--alpha",
             "0.0",
-            "--output_obsp_connectivities",
+            "--output_obsp_graph",
             "fused_zero",
         ]
     )
@@ -87,7 +87,7 @@ def test_alpha_one_equals_spatial(run_component, tmp_path):
             str(output),
             "--alpha",
             "1.0",
-            "--output_obsp_connectivities",
+            "--output_obsp_graph",
             "fused_one",
         ]
     )

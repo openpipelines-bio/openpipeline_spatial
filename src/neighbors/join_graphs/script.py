@@ -6,14 +6,14 @@ par = {
     # Inputs
     "input": "resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu",
     "modality": "rna",
-    "input_obsp_expression_connectivities": "connectivities",
-    "input_obsp_spatial_connectivities": "spatial_connectivities",
+    "input_obsp_expression_graph": "connectivities",
+    "input_obsp_spatial_graph": "spatial_connectivities",
     # Fusion options
     "alpha": 0.2,
     # Outputs
     "output": "foo.h5mu",
     "output_compression": None,
-    "output_obsp_connectivities": "spatial_expression_connectivities",
+    "output_obsp_graph": "spatial_expression_connectivities",
 }
 meta = {"resources_dir": "src/utils/"}
 ## VIASH END
@@ -28,11 +28,11 @@ logger.info("Reading input data...")
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
 ## Validate inputs
-spatial_key = par["input_obsp_spatial_connectivities"]
+spatial_key = par["input_obsp_spatial_graph"]
 if spatial_key not in adata.obsp:
     raise ValueError(f"Spatial connectivities key '{spatial_key}' not found in .obsp.")
 
-expr_key = par["input_obsp_expression_connectivities"]
+expr_key = par["input_obsp_expression_graph"]
 if expr_key not in adata.obsp:
     raise ValueError(f"Expression connectivities key '{expr_key}' not found in .obsp.")
 
@@ -46,7 +46,7 @@ logger.info(
     f"{1 - alpha:.2f}: expression weight)..."
 )
 joint_graph = (1 - alpha) * nn_graph_genes + alpha * nn_graph_space
-out_key = par["output_obsp_connectivities"]
+out_key = par["output_obsp_graph"]
 logger.info(f"Storing result in .obsp['{out_key}']...")
 adata.obsp[out_key] = joint_graph
 adata.uns[out_key] = {

@@ -25,12 +25,12 @@ argument_groups:
         default: "rna"
         required: false
         description: Modality from the input MuData file to process.
-      - name: "--input_obsp_expression_connectivities"
+      - name: "--input_obsp_expression_graph"
         type: string
         default: "connectivities"
         description: |
           Key in `adata.obsp` containing the expression connectivity matrix.
-      - name: "--input_obsp_spatial_connectivities"
+      - name: "--input_obsp_spatial_graph"
         type: string
         default: "spatial_connectivities"
         description: |
@@ -40,7 +40,7 @@ argument_groups:
     arguments:
       - name: "--alpha"
         type: double
-        default: 0.2
+        default: 0.5
         min: 0.0
         max: 1.0
         description: |
@@ -56,7 +56,7 @@ argument_groups:
         required: true
         description: Output H5MU file path.
         example: output.h5mu
-      - name: "--output_obsp_connectivities"
+      - name: "--output_obsp_graph"
         type: string
         default: "spatial_expression_connectivities"
         description: |
