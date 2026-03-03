@@ -145,5 +145,57 @@ def test_calculate_spatial_autocorrelation_obs(run_component, tmp_path):
         assert feature in df.index, f"Feature {feature} missing from index: {df.index}"
 
 
+def test_calculate_spatial_autocorrelation_use_all_genes(run_component, tmp_path):
+    input_path = meta["resources_dir"] + "/xenium_tiny_neighbors.h5mu"
+    temp_input_path = tmp_path / "xenium_tiny_hvg.h5mu"
+    output_path_hvg = tmp_path / "output_hvg.h5mu"
+    output_path_all = tmp_path / "output_all.h5mu"
+
+    # Create dataset with highly variable genes
+    mdata = mu.read_h5mu(input_path)
+    adata = mdata.mod["rna"]
+    
+    # Mark first 5 genes as highly variable
+    adata.var["highly_variable"] = False
+    genes = list(adata.var_names)
+    for g in genes[:5]:
+         adata.var.loc[g, "highly_variable"] = True
+    
+    mdata.write_h5mu(temp_input_path)
+    
+    # Test 1: Default behavior (should use only HVG)
+    print("Running component with default settings (expecting HVG usage)")
+    run_component([
+        "--input", str(temp_input_path),
+        "--output", str(output_path_hvg),
+        "--modality", "rna",
+        "--obsp_neighborhood_graph", "spatial_connectivities",
+        "--mode", "moran",
+        "--n_perms", "10"
+    ])
+    
+    assert output_path_hvg.exists()
+    mdata_hvg = mu.read_h5mu(output_path_hvg)
+    df_hvg = mdata_hvg.mod["rna"].uns["moranI"]
+    assert len(df_hvg) == 5, f"Expected 5 genes (HVG), got {len(df_hvg)}"
+    
+    # Test 2: Override to use all genes
+    print("Running component with --use_all_genes (expecting all genes)")
+    run_component([
+        "--input", str(temp_input_path),
+        "--output", str(output_path_all),
+        "--modality", "rna",
+        "--obsp_neighborhood_graph", "spatial_connectivities",
+        "--mode", "moran",
+        "--n_perms", "10",
+        "--use_all_genes", "true"
+    ])
+    
+    assert output_path_all.exists()
+    mdata_all = mu.read_h5mu(output_path_all)
+    df_all = mdata_all.mod["rna"].uns["moranI"]
+    assert len(df_all) == len(genes), f"Expected all {len(genes)} genes, got {len(df_all)}"
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))

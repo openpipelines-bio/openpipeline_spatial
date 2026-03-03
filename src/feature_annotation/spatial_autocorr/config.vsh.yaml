@@ -31,6 +31,7 @@ argument_groups:
           The features to calculate autocorrelation for. Meaning depends on `--attr`:
           - If `attr` is 'X' (default), this must be a list of gene names from `.var_names`. 
             If not provided, it defaults to using genes in `.var['highly_variable']` (if present), or all genes.
+            This behavior can be overridden by setting `--use_all_genes` to `true`.
             Note: You cannot pass a column name from `.var` here.
           - If `attr` is 'obs', this must be a list of column names from `.obs`. 
           - If `attr` is 'obsm', this must be indices in `.obsm[layer]` (as strings).
@@ -38,6 +39,12 @@ argument_groups:
         type: string
         default: spatial_connectivities
         description: Key in .obsp where spatial connectivities are stored.
+      - name: --use_all_genes
+        type: boolean
+        default: false
+        description: |
+          Whether to use all genes even if highly variable genes are present in .var.
+          If set to true, all genes will be used.
 
   - name: Parameters
     arguments:

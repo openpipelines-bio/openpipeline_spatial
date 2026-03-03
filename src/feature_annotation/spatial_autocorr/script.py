@@ -13,6 +13,7 @@ par = {
     "layer": None,
     "use_raw": False,
     "obsp_neighborhood_graph": "spatial_connectivities",
+    "use_all_genes": False,
 }
 ## VIASH END
 
@@ -31,6 +32,9 @@ def main():
     genes = par["input_genes"]
     if genes and len(genes) == 0:
         genes = None
+
+    if genes is None and par["use_all_genes"] and par["attr"] == "X":
+        genes = list(adata.var_names)
 
     # Handle layer
     layer = par["layer"]
