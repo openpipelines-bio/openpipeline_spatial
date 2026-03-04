@@ -1,93 +1,131 @@
-name: "from_cosmx_to_spatialexperiment"
-namespace: "convert"
+name: "spatial_autocorr"
+namespace: "feature_annotation"
 version: "build_main"
-authors:
-- name: "Dorien Roosen"
-  roles:
-  - "author"
-  - "maintainer"
-  info:
-    role: "Core Team Member"
-    links:
-      email: "dorien@data-intuitive.com"
-      github: "dorien-er"
-      linkedin: "dorien-roosen"
-    organizations:
-    - name: "Data Intuitive"
-      href: "https://www.data-intuitive.com"
-      role: "Data Scientist"
 argument_groups:
-- name: "Arguments"
+- name: "Inputs"
   arguments:
   - type: "file"
     name: "--input"
-    alternatives:
-    - "-i"
-    description: "Input CosMx directory"
+    description: "Input h5mu file."
     info: null
-    example:
-    - "path/to/cosmx_bundle"
     must_exist: true
     create_parent: true
     required: true
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "boolean"
-    name: "--add_tx_path"
-    description: "Whether to add parquet paths to the metadata. \nIf True, `*_tx_file.csv`\
-      \ file will be converted to .parquet and added to the metadata. \n"
+  - type: "string"
+    name: "--modality"
+    description: "Modality to use."
     info: null
     default:
-    - true
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "boolean"
-    name: "--add_polygon_path"
-    description: "Whether to add polygon path to the metadata.\nIf True, `*_polygons.csv`\
-      \ file will be converted to .parquet and be added to the metadata.\n"
-    info: null
-    default:
-    - true
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "boolean"
-    name: "--add_fov_positions"
-    description: "Whether to add fov positions to the metadata.\nIf True, `fov_positions_file.csv`\
-      \ will be added to the metadata.\n"
-    info: null
-    default:
-    - true
+    - "rna"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "string"
-    name: "--alternative_experiment_features"
-    description: "Feature names containing these strings will be moved to altExps(sxe)\
-      \ slots as separate SpatialExperiment objects."
+    name: "--layer"
+    description: "Layer in the AnnData object to use.\n- If `attr` is 'X', this is\
+      \ the key in `.layers` to use. If not provided, `.X` is used.\n- If `attr` is\
+      \ 'obsm', this is the key in `.obsm` to use.\n"
     info: null
-    default:
-    - "NegPrb"
-    - "Negative"
-    - "SystemControl"
-    - "FalseCode"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_genes"
+    description: "The features to calculate autocorrelation for. Meaning depends on\
+      \ `--attr`:\n- If `attr` is 'X' (default), this must be a list of gene names\
+      \ from `.var_names`. \n  If not provided, it defaults to using genes in `.var['highly_variable']`\
+      \ (if present), or all genes.\n  This behavior can be overridden by setting\
+      \ `--use_all_genes` to `true`.\n  Note: You cannot pass a column name from `.var`\
+      \ here.\n- If `attr` is 'obs', this must be a list of column names from `.obs`.\
+      \ \n- If `attr` is 'obsm', this must be indices in `.obsm[layer]` (as strings).\n"
+    info: null
     required: false
     direction: "input"
     multiple: true
+    multiple_sep: ","
+  - type: "string"
+    name: "--obsp_neighborhood_graph"
+    description: "Key in .obsp where spatial connectivities are stored."
+    info: null
+    default:
+    - "spatial_connectivities"
+    required: false
+    direction: "input"
+    multiple: false
     multiple_sep: ";"
+  - type: "boolean"
+    name: "--use_all_genes"
+    description: "Whether to use all genes even if highly variable genes are present\
+      \ in .var.\nIf set to true, all genes will be used.\n"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Parameters"
+  arguments:
+  - type: "string"
+    name: "--mode"
+    description: "Mode of spatial autocorrelation."
+    info: null
+    default:
+    - "moran"
+    required: false
+    choices:
+    - "moran"
+    - "geary"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--attr"
+    description: "The attribute of the AnnData object to use for calculation.\n- 'X':\
+      \ Use gene expression data (default).\n- 'obs': Use cell metadata.\n- 'obsm':\
+      \ Use multidimensional embeddings.\n"
+    info: null
+    default:
+    - "X"
+    required: false
+    choices:
+    - "X"
+    - "obs"
+    - "obsm"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_perms"
+    description: "Number of permutations for p-value calculation."
+    info: null
+    default:
+    - 100
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--use_raw"
+    description: "Whether to use .raw attribute of AnnData."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
   - type: "file"
     name: "--output"
-    alternatives:
-    - "-o"
-    description: "Output SpatialExperiment file"
+    description: "Output h5mu file with results in .uns."
     info: null
-    example:
-    - "output.rds"
     must_exist: true
     create_parent: true
     required: true
@@ -95,27 +133,22 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
 resources:
-- type: "r_script"
-  path: "script.R"
+- type: "python_script"
+  path: "script.py"
   is_executable: true
-- type: "file"
-  path: "unzip_archived_folder.R"
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "Creates a SpatialExperiment object from the downloaded unzipped CosMx\
-  \ directory for Nanostring\nCosMx spatial gene expression data, and saves it as\
-  \ a SpatialExperiment object.\nThe constructor assumes the downloaded unzipped CosMx\
-  \ Folder has the following structure:\n\nMandatory files\n· | — *_exprMat_file.csv\n\
-  · | — *_metadata_file.csv\nOptional files, by default added to the metadata() as\
-  \ a list of paths (will be converted to parquet):\n· | —*_fov_positions_file.csv\n\
-  · | — *_tx_file.csv\n· | — *_polygons.csv\n"
+label: "Spatial Autocorrelation"
+summary: "Calculate spatial autocorrelation for genes using Moran's I or Geary's C."
+description: "Calculate spatial autocorrelation for genes using Moran's I or Geary's\
+  \ C.\nThis allows identifying spatially variable genes.\n"
 test_resources:
-- type: "r_script"
-  path: "test.R"
+- type: "python_script"
+  path: "test.py"
   is_executable: true
 - type: "file"
-  path: "Lung5_Rep2_tiny"
+  path: "xenium_tiny.qc.neighbors.h5mu"
 info: null
 status: "enabled"
 scope:
@@ -137,8 +170,8 @@ runners:
   id: "nextflow"
   directives:
     label:
-    - "lowmem"
-    - "singlecpu"
+    - "midcpu"
+    - "midmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -202,33 +235,44 @@ runners:
 engines:
 - type: "docker"
   id: "docker"
-  image: "rocker/r2u:24.04"
+  image: "python:3.13-slim"
   namespace_separator: "/"
   setup:
   - type: "apt"
     packages:
-    - "libhdf5-dev"
-    - "libgeos-dev"
+    - "procps"
     interactive: false
-  - type: "r"
-    bioc:
-    - "SpatialExperimentIO"
-    bioc_force_install: false
-    warnings_as_errors: true
+  - type: "python"
+    user: false
+    packages:
+    - "anndata~=0.12.7"
+    - "awkward"
+    - "mudata~=0.3.2"
+    - "scanpy~=1.10.4"
+    - "scanpy~=1.10.4"
+    - "squidpy~=1.8.1"
+    script:
+    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
+      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
+      ).partition(\\\".\\\")[0]) > 2\")"
+    upgrade: true
   test_setup:
-  - type: "r"
-    cran:
-    - "testthat"
-    bioc_force_install: false
-    warnings_as_errors: true
+  - type: "python"
+    user: false
+    packages:
+    - "pytest"
+    - "viashpy"
+    upgrade: true
   entrypoint: []
   cmd: null
+- type: "native"
+  id: "native"
 build_info:
-  config: "src/convert/from_cosmx_to_spatialexperiment/config.vsh.yaml"
-  runner: "nextflow"
-  engine: "docker"
-  output: "target/nextflow/convert/from_cosmx_to_spatialexperiment"
-  executable: "target/nextflow/convert/from_cosmx_to_spatialexperiment/main.nf"
+  config: "src/feature_annotation/spatial_autocorr/config.vsh.yaml"
+  runner: "executable"
+  engine: "docker|native"
+  output: "target/executable/feature_annotation/spatial_autocorr"
+  executable: "target/executable/feature_annotation/spatial_autocorr/spatial_autocorr"
   viash_version: "0.9.4"
   git_commit: "d516b1879b8a3f5e689176328626f87026918c14"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
