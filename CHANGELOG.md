@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## NEW FUNCTIONALITY
+
+* `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
+
 # openpipeline_spatial 0.3.0
 
 ## NEW FUNCTIONALITY
