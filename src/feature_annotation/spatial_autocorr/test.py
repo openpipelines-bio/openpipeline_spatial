@@ -12,7 +12,7 @@ meta = {
 
 
 def test_calculate_spatial_autocorrelation_moran(run_component, tmp_path):
-    input_path = meta["resources_dir"] + "/xenium_tiny_neighbors.h5mu"
+    input_path = meta["resources_dir"] + "/xenium_tiny.qc.neighbors.h5mu"
     output_path = tmp_path / "output_moran.h5mu"
 
     print(f"Running component with Moran's I on {input_path}")
@@ -55,7 +55,7 @@ def test_calculate_spatial_autocorrelation_moran(run_component, tmp_path):
 
 
 def test_calculate_spatial_autocorrelation_geary(run_component, tmp_path):
-    input_path = meta["resources_dir"] + "/xenium_tiny_neighbors.h5mu"
+    input_path = meta["resources_dir"] + "/xenium_tiny.qc.neighbors.h5mu"
     output_path = tmp_path / "output_geary.h5mu"
 
     mdata = mu.read_h5mu(input_path)
@@ -101,7 +101,7 @@ def test_calculate_spatial_autocorrelation_geary(run_component, tmp_path):
 
 
 def test_calculate_spatial_autocorrelation_obs(run_component, tmp_path):
-    input_path = meta["resources_dir"] + "/xenium_tiny_neighbors.h5mu"
+    input_path = meta["resources_dir"] + "/xenium_tiny.qc.neighbors.h5mu"
     output_path = tmp_path / "output_obs.h5mu"
 
     features = "total_counts,cell_area,nucleus_area"
@@ -146,7 +146,7 @@ def test_calculate_spatial_autocorrelation_obs(run_component, tmp_path):
 
 
 def test_calculate_spatial_autocorrelation_use_all_genes(run_component, tmp_path):
-    input_path = meta["resources_dir"] + "/xenium_tiny_neighbors.h5mu"
+    input_path = meta["resources_dir"] + "/xenium_tiny.qc.neighbors.h5mu"
     temp_input_path = tmp_path / "xenium_tiny_hvg.h5mu"
     output_path_hvg = tmp_path / "output_hvg.h5mu"
     output_path_all = tmp_path / "output_all.h5mu"
