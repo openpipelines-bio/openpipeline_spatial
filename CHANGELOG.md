@@ -4,6 +4,10 @@
 
 * `feature_annotation/spatial_autocorr`: Added a spatial autocorrelation component (PR #45).
 
+* `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
+
+* `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
+
 # openpipeline_spatial 0.3.0
 
 ## NEW FUNCTIONALITY
