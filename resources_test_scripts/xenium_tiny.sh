@@ -37,17 +37,35 @@ viash run "$REPO_ROOT/src/convert/from_spatialdata_to_h5mu/config.vsh.yaml" -- \
     --input "$DIR/$ID.zarr" \
     --output "$DIR/$ID.h5mu"
 
-viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" -- \
-    --input "$DIR/$ID.h5mu" \
-    --output "$DIR/${ID}_neighbors.h5mu"
+cat > /tmp/qc.yaml <<EOF
+param_list:
+  - id: xenium_tiny
+    input: "$DIR/$ID.h5mu"
+var_name_mitochondrial_genes: mitochondrial
+var_name_ribosomal_genes: ribosomal
+output: '\$id.qc.h5mu'
+output_compression: gzip
+publish_dir: "$DIR"
+EOF
 
-# Run PCA via openpipeline on the existing xenium_tiny_neighbors.h5mu,
-# which already has the spatial neighborhood graph pre-computed.
+nextflow run openpipelines-bio/openpipeline \
+  -latest \
+  -r 2.1.0 \
+  -main-script target/nextflow/workflows/qc/qc/main.nf \
+  -profile docker \
+  -params-file /tmp/qc.yaml \
+  -resume \
+  -config src/workflows/utils/labels_ci.config
+
+viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" -- \
+    --input "$DIR/$ID.qc.h5mu" \
+    --output "$DIR/${ID}.qc.neighbors.h5mu"
+
 cat > /tmp/pca.yaml <<EOF
 param_list:
   - id: xenium_tiny
-    input: "$DIR/${ID}_neighbors.h5mu"
-output: '\$id.pca.h5mu'
+    input: "$DIR/${ID}.qc.neighbors.h5mu"
+output: '\$id.qc.neighbors.pca.h5mu'
 output_compression: gzip
 publish_dir: "$TMPDIR"
 EOF
@@ -61,14 +79,11 @@ nextflow run openpipelines-bio/openpipeline \
   -config src/workflows/utils/labels_ci.config \
   -resume
 
-# Run find_neighbors to add expression connectivities to .obsp.
-# The input already contains spatial_connectivities; find_neighbors adds
-# connectivities (expression) and distances without overwriting spatial keys.
 cat > /tmp/find_neighbors.yaml <<EOF
 param_list:
   - id: xenium_tiny
-    input: "$TMPDIR/xenium_tiny.pca.h5mu"
-output: '\$id.spatial_expression_neighbors.h5mu'
+    input: "$TMPDIR/xenium_tiny.qc.neighbors.pca.h5mu"
+output: '\$id.qc.all_neighbors.pca.h5mu'
 output_compression: gzip
 publish_dir: "$TMPDIR"
 EOF
@@ -83,7 +98,7 @@ nextflow run openpipelines-bio/openpipeline \
   -resume
 
 # Move the final output to the destination directory
-mv "$TMPDIR/xenium_tiny.spatial_expression_neighbors.h5mu" "$DIR/xenium_tiny.spatial_expression_neighbors.h5mu"
+mv "$TMPDIR/xenium_tiny.qc.all_neighbors.pca.h5mu" "$DIR/xenium_tiny.qc.all_neighbors.pca.h5mu"
 
 # Sync to S3
 aws s3 sync \

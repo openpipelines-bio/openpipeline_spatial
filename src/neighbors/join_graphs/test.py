@@ -9,8 +9,7 @@ meta = {
 }
 ## VIASH END
 
-# This file has spatial_connectivities, X_pca, and connectivities pre-computed.
-input_file = f"{meta['resources_dir']}/xenium_tiny.spatial_expression_neighbors.h5mu"
+input_file = f"{meta['resources_dir']}/xenium_tiny.qc.all_neighbors.pca.h5mu"
 
 
 def test_default_execution(run_component, tmp_path):

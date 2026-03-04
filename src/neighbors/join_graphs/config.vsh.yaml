@@ -71,7 +71,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu
+  - path: /resources_test/xenium/xenium_tiny.qc.all_neighbors.pca.h5mu
 
 engines:
   - type: docker
