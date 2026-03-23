@@ -1,10 +1,24 @@
-# openpipeline_spatial x.x.x
+# openpipeline_spatial 0.4.0
+
+## NEW FUNCTIONALITY
+
+* `feature_annotation/spatial_autocorr`: Added a spatial autocorrelation component (PR #45).
+
+* `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
+
+* `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
+
+# openpipeline_spatial 0.3.0
+
+## NEW FUNCTIONALITY
+
+* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
 
 ## MINOR CHANGES
 
 * Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
 
-* Update openpipeline dependencies to v4.0.2 (PR #42).
+* Update openpipeline dependencies to v4.0.3 (PR #42, PR #44).
 
 # openpipeline_spatial 0.2.0
 
