@@ -1,4 +1,4 @@
-name: "≈"
+name: "from_spatialdata_to_h5mu"
 namespace: "convert"
 scope: "public"
 description: |
