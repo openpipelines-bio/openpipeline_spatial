@@ -63,12 +63,6 @@ argument_groups:
       Options for adding the id to .obs on the MuData object. Having a sample 
       id present in a requirement of several components for this pipeline.
     arguments:
-      - name: "--include_sample_as_covariate"
-        description: |
-          Whether to include the sample information as a categorical covariate for the 
-          NicheCompass model.
-        type: boolean
-        default: true
       - name: "--add_id_to_obs"
         description: "Add the value passed with --id to .obs."
         type: boolean
