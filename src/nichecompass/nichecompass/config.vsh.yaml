@@ -33,6 +33,12 @@ argument_groups:
         type: string
         required: false
         description: "Input layer to use. If None, X is used"
+      - name: "--var_input"
+        type: string
+        default: "filter_with_hvg"
+        description: |
+          Key in adata.var that indicates which features to include as input for the NicheCompass model.
+          If not provided, all features will be included.
       - name: "--input_obsp_spatial_connectivities"
         type: string
         default: "spatial_connectivities"

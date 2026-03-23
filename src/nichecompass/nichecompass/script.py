@@ -15,6 +15,7 @@ par = {
     "input_gp_mask": "resources_test/niche/prior_knowledge_gp_mask.json",
     "input_obs_covariates": None,
     "input_obsp_spatial_connectivities": "spatial_connectivities",
+    "var_input": "filter_with_hvg",
     ## GP Mask
     "min_genes_per_gp": 2,
     "min_source_genes_per_gp": 1,
@@ -89,6 +90,7 @@ meta = {"resources_dir": "src/utils/"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from subset_vars import subset_vars
 
 logger = setup_logger()
 
@@ -100,6 +102,11 @@ logger.info(f"GPU count: {torch.cuda.device_count()}")
 
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
+
+# Subset to HVG
+if par["var_input"]:
+    # Subset to HVG
+    adata = subset_vars(adata, subset_col=par["var_input"]).copy()
 
 # Counts need to be float32 to be processed by nichecompass model
 # See https://discuss.pytorch.org/t/runtimeerror-mat1-and-mat2-must-have-the-same-dtype/166759
