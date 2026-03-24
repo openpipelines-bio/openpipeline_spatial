@@ -57,6 +57,12 @@ argument_groups:
         type: string
         default: "spatial"
         description: "Key in adata.obsm where spatial coordinates are stored"
+      - name: "--var_input"
+        type: string
+        default: "filter_with_hvg"
+        description: |
+          Key in adata.var that indicates which features to include as input for the NicheCompass model.
+          If not provided, all features will be included.
 
   - name: "Sample ID options"
     description: |

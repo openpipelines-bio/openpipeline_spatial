@@ -117,6 +117,7 @@ workflow run_wf {
         "input": state.input,
         "input_gp_mask": state.input_gp_mask,
         "input_obs_covariates": state.input_obs_covariates,
+        "var_input": state.var_input,
         "modality": state.modality,
         "layer": state.layer,
         "min_genes_per_gp": state.min_genes_per_gp,
