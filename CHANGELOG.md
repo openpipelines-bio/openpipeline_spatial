@@ -1,4 +1,9 @@
+
 # openpipeline_spatial 0.4.0
+
+## BUG FIXES
+
+* Pin `ome-zarr~=0.12.2` to avoid a chunk shape incompatibility with zarr 3.x that caused `TypeError: Expected an iterable of integers` when writing raster images in `convert/from_xenium_to_spatialdata`.
 
 ## NEW FUNCTIONALITY
 
