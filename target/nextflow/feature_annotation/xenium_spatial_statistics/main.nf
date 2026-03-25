@@ -3329,7 +3329,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/feature_annotation/xenium_spatial_statistics",
     "viash_version" : "0.9.4",
-    "git_commit" : "14475ee7233efdcb194b1c49e58431ddaf424013",
+    "git_commit" : "b1d157d4cee8bab189e5f5b569050bc29d66cd91",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
