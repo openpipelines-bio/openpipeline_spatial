@@ -20,6 +20,8 @@
 
 * `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
 
+* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheCompass analysis (PR #27).
+
 ## MINOR CHANGES
 
 * Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
