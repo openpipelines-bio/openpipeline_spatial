@@ -37,6 +37,10 @@ viash run "$REPO_ROOT/src/convert/from_spatialdata_to_h5mu/config.vsh.yaml" -- \
     --input "$DIR/$ID.zarr" \
     --output "$DIR/$ID.h5mu"
 
+viash run src/neighbors/spatial_neighborhood_graph/config.vsh.yaml -- \
+    --input "$DIR/$ID.h5mu" \
+    --output "$DIR/$ID.h5mu"
+
 cat > /tmp/qc.yaml <<EOF
 param_list:
   - id: xenium_tiny

@@ -1,3 +1,6 @@
 packages:
   - spatialdata~=0.7.2
+  - ome-zarr~=0.12.2
   - pyarrow~=18.0.0
+script: |
+    exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")

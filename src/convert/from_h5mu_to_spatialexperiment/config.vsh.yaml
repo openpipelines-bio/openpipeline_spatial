@@ -64,6 +64,7 @@ engines:
           - python3-pip
           - python3-dev
           - python-is-python3
+          - cmake
       - type: r
         cran: [ reticulate, testthat ]
       - type: python
