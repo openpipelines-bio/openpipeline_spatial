@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## MINOR CHANGES
+
+* Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
+
 # openpipeline_spatial 0.4.0
 
 ## NEW FUNCTIONALITY
