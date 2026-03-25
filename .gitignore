@@ -1,0 +1,63 @@
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+.vscode
+
+# Temp
+gitignore
+test_results
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Nextflow
+work
+.nextflow*
+
+# viash
+check_results/
+out/
+output*
+output_log/
+resources_test
+/viash_tools/
+/test/
+
+# jupyter notebook
+/.ipynb_checkpoints/
+*.ipynb
+
+# compress
+/__MACOSX/
+
+# python
+*__pycache__*
+
+# Python virtual environments
+.venv
+
+# temporary files related
+temp
+
+# NextFlow
+work/
+.nextflow.log
+.nextflow*
+out/ 
+trace*.txt
+
+# Macos
+.DS_Store
+
+# vscode
+.vscode/launch.json
+.vscode/settings.json
+
+# linting
+renv.lock
+.Rprofile
+renv/

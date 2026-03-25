@@ -1,0 +1,22 @@
+viash_version: 0.9.4
+source: src
+target: target
+name: openpipeline_spatial
+organization: openpipelines-bio
+links:
+  repository: https://github.com/openpipelines-bio/openpipeline_spatial
+  docker_registry: ghcr.io
+repositories:
+  - name: openpipeline
+    repo: openpipeline
+    type: vsh
+    tag: v4.0.3
+info:
+  test_resources:
+    - type: s3
+      path: s3://openpipelines-bio/openpipeline_spatial/resources_test
+      dest: resources_test
+config_mods: |-
+  .resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}
+  .runners[.type == 'nextflow'].config.script := 'includeConfig("nextflow_labels.config")'
+version: build_niche_compass

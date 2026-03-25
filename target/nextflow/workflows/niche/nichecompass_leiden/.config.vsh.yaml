@@ -1,0 +1,828 @@
+name: "nichecompass_leiden"
+namespace: "workflows/niche"
+version: "build_niche_compass"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+- name: "Weiwei Schultz"
+  roles:
+  - "contributor"
+  info:
+    role: "Contributor"
+    organizations:
+    - name: "Janssen R&D US"
+      role: "Associate Director Data Sciences"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    alternatives:
+    - "-i"
+    description: "Path to the sample."
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input_gp_mask"
+    description: "JSON file containing a nested dictionary containing the gene programs,\n\
+      with keys being gene program names and values being dictionaries with keys `targets`\
+      \ and `sources`,\nwhere `targets` contains a list of the names of genes in the\
+      \ gene program for the reconstruction of the gene expression of the node itself\
+      \ (receiving node)\nand `sources` contains a list of the names of genes in the\
+      \ gene program for the reconstruction of the gene expression of the node's neighbors\
+      \ (transmitting nodes).\n"
+    info: null
+    example:
+    - "prior_knowledge_gp_mask.json"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Which modality to process."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--layer"
+    description: "Use specified layer for calculation of qc metrics. If not specified,\
+      \ adata.X is used."
+    info: null
+    example:
+    - "raw_counts"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_batch_key"
+    description: "Key of the adata.obs field that contains the batch information."
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_covariates"
+    description: "Keys of the adata.obs fields to use as covariates."
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obsm_spatial_coords"
+    description: "Key in adata.obsm where spatial coordinates are stored"
+    info: null
+    default:
+    - "spatial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_input"
+    description: "Key in adata.var that indicates which features to include as input\
+      \ for the NicheCompass model.\nIf not provided, all features will be included.\n"
+    info: null
+    default:
+    - "filter_with_hvg"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Sample ID options"
+  description: "Options for adding the id to .obs on the MuData object. Having a sample\
+    \ \nid present in a requirement of several components for this pipeline.\n"
+  arguments:
+  - type: "boolean"
+    name: "--add_id_to_obs"
+    description: "Add the value passed with --id to .obs."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--add_id_obs_output"
+    description: ".Obs column to add the sample IDs to. Required and only used when\
+      \ \n--add_id_to_obs is set to 'true'\n"
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--add_id_make_observation_keys_unique"
+    description: "Join the id to the .obs index (.obs_names). \nOnly used when --add_id_to_obs\
+      \ is set to 'true'.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Spatial Neighbors Calculation"
+  description: "Options for the calculation of the spatial neighborhood graph.\n"
+  arguments:
+  - type: "string"
+    name: "--coord_type"
+    description: "Type of coordinate system. Valid options are:\n`grid` - grid coordinates.\
+      \ Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming\
+      \ a regular grid topology, where neighbors aredefined by grid adjacency rather\
+      \ than distance.\n`generic` - Generic coordinates. Recommended for imaging-based\
+      \ data. This option is appropriate for irregularly spaced points, such as cell\
+      \ centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx).\
+      \ Setting this option avoids grid-assumption artifacts and ensures each node\
+      \ has spatial neighbors as defined by distance. \n"
+    info: null
+    default:
+    - "generic"
+    required: false
+    choices:
+    - "generic"
+    - "grid"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_spatial_neighbors"
+    description: "Depending on `--coord_type`:\n`grid` - number of neighboring tiles.\n\
+      `generic` - number of neighborhoods for non-grid data. Only used when `--delaunay\
+      \ False`.\n"
+    info: null
+    default:
+    - 6
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--delaunay"
+    description: "Whether to use Delaunay triangulation to determine spatial neighborhood\
+      \ graph.\nOnly used when `--coord_type generic`.\n"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Gene Program Mask"
+  description: "Options for filtering gene programs based on the number of genes available\
+    \ in the data."
+  arguments:
+  - type: "integer"
+    name: "--min_genes_per_gp"
+    description: "Minimum number of genes in a gene program inluding both target and\
+      \ source genes that need to be available in the input data (gene expression\
+      \ has been probed) for a gene program not to be discarded.\n"
+    info: null
+    default:
+    - 1
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--min_source_genes_per_gp"
+    description: "Minimum number of source genes in a gene program that need to be\
+      \ available in the input data (gene expression has been probed) for a gene program\
+      \ not to be discarded.\n"
+    info: null
+    default:
+    - 0
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--min_target_genes_per_gp"
+    description: "Minimum number of target genes in a gene program that need to be\
+      \ available in the input data (gene expression has been probed) for a gene program\
+      \ not to be discarded.\n"
+    info: null
+    default:
+    - 0
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_genes_per_gp"
+    description: "Maximum number of genes in a gene program inluding both target and\
+      \ source genes that can be available in the input data (gene expression has\
+      \ been probed) for a gene program not to be discarded.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_source_genes_per_gp"
+    description: "Maximum number of source genes in a gene program that can be available\
+      \ in the input data (gene expression has been probed) for a gene program not\
+      \ to be discarded.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_target_genes_per_gp"
+    description: "Maximum number of target genes in a gene program that can be available\
+      \ in the input data (gene expression has been probed) for a gene program not\
+      \ to be discarded.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--filter_genes_not_in_masks"
+    description: "Whether to remove the genes that are not in the gp masks from the\
+      \ input data.\n"
+    info: null
+    direction: "input"
+- name: "NicheCompass Model Architecture"
+  description: "Options for the NicheCompass model architecture."
+  arguments:
+  - type: "boolean"
+    name: "--covariate_edges"
+    description: "List of booleans that indicate whether there can be edges between\
+      \ different categories of the categorical covariates.\nIf this is `True` for\
+      \ a specific categorical covariate, this covariate will be excluded from the\
+      \ edge reconstruction loss.\nNeeds to match the length and order of `--input_obs_covariates`.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--gene_expr_recon_dist"
+    description: "The distribution used for gene expression reconstruction. \nIf `nb`,\
+      \ uses a negative binomial distribution. \nIf `zinb`, uses a zero-inflated negative\
+      \ binomial distribution.\n"
+    info: null
+    default:
+    - "nb"
+    required: false
+    choices:
+    - "nb"
+    - "zinb"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--log_variational"
+    description: "Whether to transform x by log(x+1) prior to encoding for numerical\
+      \ stability (not for normalization).\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--node_label_method"
+    description: "Node label method that will be used for omics reconstruction.\n\
+      If `one-hop-sum`, uses a concatenation of the node's input features with the\
+      \ sum of the input features of all nodes in the node's one-hop neighborhood.\n\
+      If `one-hop-norm`, uses a concatenation of the node's input features with the\
+      \ node's one-hop neighbors input features normalized as per Kipf, T. N. & Welling,\
+      \ M. Semi-Supervised Classification with Graph Convolutional Networks. arXiv\
+      \ [cs.LG] (2016).\nIf `one-hop-attention`, uses a concatenation of the node's\
+      \ input features with the node's one-hop neighbors input features weighted by\
+      \ an attention mechanism.\n"
+    info: null
+    default:
+    - "one-hop-norm"
+    required: false
+    choices:
+    - "one-hop-norm"
+    - "two-hop-norm"
+    - "one-hop-attention"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--active_gp_thresh_ratio"
+    description: "Ratio that determines which gene programs are considered active\
+      \ and are used in the latent representation after model training.\nAll inactive\
+      \ gene programs will be dropped during model training after a determined number\
+      \ of epochs.\nAggregations of the absolute values of the gene weights of the\
+      \ gene expression decoder per gene program are calculated.\nThe maximum value,\
+      \ i.e. the value of the gene program with the highest aggregated value will\
+      \ be used as a benchmark and all gene programs whose aggregated value is smaller\
+      \ than `--active_gp_thresh_ratio` times this maximum value will be set to inactive.\n\
+      If set to 0, all gene programs will be considered active.\n"
+    info: null
+    default:
+    - 0.1
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--active_gp_type"
+    description: "Type to determine active gene programs. \nCan be `mixed`, in which\
+      \ case active gene programs are determined across prior and add-on gene programs\
+      \ jointly,\nor `separate` in which case they are determined separately for prior\
+      \ and add-on gene programs.\n"
+    info: null
+    default:
+    - "separate"
+    required: false
+    choices:
+    - "mixed"
+    - "separate"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_addon_gp"
+    description: "Number of addon gene programs (i.e. gene programs that are not included\
+      \ in masks but can be learned de novo).\n"
+    info: null
+    default:
+    - 100
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--cat_covariates_embeds_nums"
+    description: "Number of embedding nodes for all categorical covariates.\nMust\
+      \ be the same length as `--input_obs_covariates`.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--random_state"
+    description: "Random seed for reproducibility.\n"
+    info: null
+    default:
+    - 0
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "NicheCompass Training Parameters"
+  description: "Options for training the NicheCompass model."
+  arguments:
+  - type: "integer"
+    name: "--n_epochs"
+    description: "Number of training epochs"
+    info: null
+    default:
+    - 100
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_epochs_all_gps"
+    description: "Number of epochs during which all gene programs are used for model\
+      \ training.\nAfter that only active gene programs are retained.\n"
+    info: null
+    default:
+    - 25
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_epochs_no_edge_recon"
+    description: "Number of epochs during which the edge reconstruction loss is excluded\
+      \ from backpropagation for pretraining using the other loss components.\n"
+    info: null
+    default:
+    - 0
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_epochs_no_cat_covariates_contrastive"
+    description: "Number of epochs during which the categorical covariates contrastive\
+      \ loss is excluded from backpropagation for pretraining using the other loss\
+      \ components.\n"
+    info: null
+    default:
+    - 5
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--lr"
+    description: "Learning rate"
+    info: null
+    default:
+    - 0.001
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--weight_decay"
+    description: "Weight decay (L2 penalty)."
+    info: null
+    default:
+    - 0.001
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--edge_val_ratio"
+    description: "Fraction of the data that is used as validation set on edge-level.\
+      \ The rest of the data will be used as training set on edge-level.\n"
+    info: null
+    default:
+    - 0.1
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--node_val_ratio"
+    description: "Fraction of the data that is used as validation set on node-level.\
+      \ The rest of the data will be used as training set on node-level.\n"
+    info: null
+    default:
+    - 0.1
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--edge_batch_size"
+    description: "Batch size for the edge-level dataloaders.\n"
+    info: null
+    default:
+    - 256
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--node_batch_size"
+    description: "Batch size for the node-level dataloaders.\nIf not provided, is\
+      \ automatically determined based on `--edge_batch_size`.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_sampled_neighbors"
+    description: "Number of neighbors that are sampled during model training from\
+      \ the spatial neighborhood graph.\nIf set to -1, all direct neighbors are included.\n"
+    info: null
+    default:
+    - -1
+    required: false
+    min: -1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Clustering options"
+  arguments:
+  - type: "string"
+    name: "--obs_cluster"
+    description: "Prefix for the .obs keys under which to add the cluster labels.\
+      \ Newly created columns in .obs will \nbe created from the specified value for\
+      \ '--obs_cluster' suffixed with an underscore and one of the resolutions\nresolutions\
+      \ specified in '--leiden_resolution'.\n"
+    info: null
+    default:
+    - "nichecompass_leiden"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--leiden_resolution"
+    description: "Control the coarseness of the clustering. Higher values lead to\
+      \ more clusters."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Umap options"
+  arguments:
+  - type: "string"
+    name: "--obsm_umap"
+    description: "In which .obsm slot to store the resulting UMAP embedding."
+    info: null
+    default:
+    - "X_leiden_nichecompass_umap"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Neighbour calculation"
+  arguments:
+  - type: "string"
+    name: "--uns_neighbors"
+    description: "In which .uns slot to store various neighbor output objects."
+    info: null
+    default:
+    - "nichecompass_neighbors"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obsp_neighbor_distances"
+    description: "In which .obsp slot to store the distance matrix between the resulting\
+      \ neighbors."
+    info: null
+    default:
+    - "nichecompass_distances"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obsp_neighbor_connectivities"
+    description: "In which .obsp slot to store the connectivities matrix between the\
+      \ resulting neighbors."
+    info: null
+    default:
+    - "nichecompass_connectivities"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "Destination path to the output."
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_model"
+    description: "Directory to save the trained NicheCompass model."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_obsm_embedding"
+    description: "Key of the obsm field where the latent / gene program representation\
+      \ of active gene programs will be stored after NicheCompass model training.\n"
+    info: null
+    default:
+    - "nichecompass_latent"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "A pipeline to compute the spatial neighborhood graph, perform nichecompass\
+  \ embedding followed by Leiden clustering."
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "file"
+  path: "xenium_tiny.h5mu"
+- type: "file"
+  path: "Lung5_Rep2_tiny.h5mu"
+- type: "file"
+  path: "prior_knowledge_gp_mask.json"
+info:
+  test_dependencies:
+  - name: "nichecompass_leiden_test"
+    namespace: "test_workflows/niche"
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+dependencies:
+- name: "dataflow/concatenate_h5mu"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.0.3"
+- name: "neighbors/spatial_neighborhood_graph"
+  repository:
+    type: "local"
+- name: "nichecompass/nichecompass"
+  repository:
+    type: "local"
+- name: "dataflow/split_h5mu"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.0.3"
+- name: "workflows/multiomics/neighbors_leiden_umap"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.0.3"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.0.3"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/workflows/niche/nichecompass_leiden/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/workflows/niche/nichecompass_leiden"
+  executable: "target/nextflow/workflows/niche/nichecompass_leiden/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "9da21219dafb6daed78560ab8076b75d7e38554a"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  dependencies:
+  - "target/dependencies/vsh/vsh/openpipeline/v4.0.3/nextflow/dataflow/concatenate_h5mu"
+  - "target/nextflow/neighbors/spatial_neighborhood_graph"
+  - "target/nextflow/nichecompass/nichecompass"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.0.3/nextflow/dataflow/split_h5mu"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.0.3/nextflow/workflows/multiomics/neighbors_leiden_umap"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_niche_compass"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.0.3"
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"

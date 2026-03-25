@@ -1,0 +1,302 @@
+name: "spatial_autocorr"
+namespace: "feature_annotation"
+version: "build_niche_compass"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "Input h5mu file."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Modality to use."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--layer"
+    description: "Layer in the AnnData object to use.\n- If `attr` is 'X', this is\
+      \ the key in `.layers` to use. If not provided, `.X` is used.\n- If `attr` is\
+      \ 'obsm', this is the key in `.obsm` to use.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_genes"
+    description: "The features to calculate autocorrelation for. Meaning depends on\
+      \ `--attr`:\n- If `attr` is 'X' (default), this must be a list of gene names\
+      \ from `.var_names`. \n  If not provided, it defaults to using genes in `.var['highly_variable']`\
+      \ (if present), or all genes.\n  This behavior can be overridden by setting\
+      \ `--use_all_genes` to `true`.\n  Note: You cannot pass a column name from `.var`\
+      \ here.\n- If `attr` is 'obs', this must be a list of column names from `.obs`.\
+      \ \n- If `attr` is 'obsm', this must be indices in `.obsm[layer]` (as strings).\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ","
+  - type: "string"
+    name: "--obsp_neighborhood_graph"
+    description: "Key in .obsp where spatial connectivities are stored."
+    info: null
+    default:
+    - "spatial_connectivities"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--use_all_genes"
+    description: "Whether to use all genes even if highly variable genes are present\
+      \ in .var.\nIf set to true, all genes will be used.\n"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Parameters"
+  arguments:
+  - type: "string"
+    name: "--mode"
+    description: "Mode of spatial autocorrelation."
+    info: null
+    default:
+    - "moran"
+    required: false
+    choices:
+    - "moran"
+    - "geary"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--attr"
+    description: "The attribute of the AnnData object to use for calculation.\n- 'X':\
+      \ Use gene expression data (default).\n- 'obs': Use cell metadata.\n- 'obsm':\
+      \ Use multidimensional embeddings.\n"
+    info: null
+    default:
+    - "X"
+    required: false
+    choices:
+    - "X"
+    - "obs"
+    - "obsm"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_perms"
+    description: "Number of permutations for p-value calculation."
+    info: null
+    default:
+    - 100
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--use_raw"
+    description: "Whether to use .raw attribute of AnnData."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "Output h5mu file with results in .uns."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+label: "Spatial Autocorrelation"
+summary: "Calculate spatial autocorrelation for genes using Moran's I or Geary's C."
+description: "Calculate spatial autocorrelation for genes using Moran's I or Geary's\
+  \ C.\nThis allows identifying spatially variable genes.\n"
+test_resources:
+- type: "python_script"
+  path: "test.py"
+  is_executable: true
+- type: "file"
+  path: "xenium_tiny.qc.neighbors.h5mu"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.0.3"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  docker_registry: "ghcr.io"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "midcpu"
+    - "midmem"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "python:3.13-slim"
+  namespace_separator: "/"
+  setup:
+  - type: "apt"
+    packages:
+    - "procps"
+    interactive: false
+  - type: "python"
+    user: false
+    packages:
+    - "anndata~=0.12.7"
+    - "awkward"
+    - "mudata~=0.3.2"
+    - "scanpy~=1.10.4"
+    - "scanpy~=1.10.4"
+    - "squidpy~=1.8.1"
+    script:
+    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
+      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
+      ).partition(\\\".\\\")[0]) > 2\")"
+    upgrade: true
+  test_setup:
+  - type: "python"
+    user: false
+    packages:
+    - "pytest"
+    - "viashpy"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+- type: "native"
+  id: "native"
+build_info:
+  config: "src/feature_annotation/spatial_autocorr/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker|native"
+  output: "target/nextflow/feature_annotation/spatial_autocorr"
+  executable: "target/nextflow/feature_annotation/spatial_autocorr/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "9da21219dafb6daed78560ab8076b75d7e38554a"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_niche_compass"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.0.3"
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"
