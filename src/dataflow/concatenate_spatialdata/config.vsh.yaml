@@ -29,48 +29,74 @@ argument_groups:
         default: output.zarr
         required: true
         description: |
-          Path to the output SpatialData Zarr store.
+          The output Zarr store containing the concatenated SpatialData object.
 
   - name: SpatialData options
     description: |
-      Options passed to spatialdata.concatenate when combining SpatialData slots.
+      Options for how to concatenate the SpatialData objects, passed to
+      `spatialdata.concatenate`.
     arguments:
       - name: --attrs_merge
         type: string
         choices: [same, unique, first, only]
         description: |
-          Merge policy for SpatialData attrs.
+          The method to use for merging elements in `attrs` when concatenating
+          the SpatialData objects. See `anndata_merge` for options and details.
 
   - name: AnnData options
     description: |
-      Options passed to anndata.concat for concatenating the main table.
+      Options for how to concatenate the AnnData objects when concatenating the
+      main tables of the SpatialData objects using `anndata.concat`.
     arguments:
       - name: --anndata_join
         type: string
         choices: [inner, outer]
         default: inner
         description: |
-          Join policy for variables during AnnData concatenation.
+          The type of join to perform on the AnnData objects when concatenating
+          the main tables of the SpatialData objects:
+
+          - "inner": Only variables (genes) that are present in all objects are
+            kept.
+          - "outer": All variables (genes) that are present in any object are
+            kept. Sparse arrays are padded with zeros, other objects are filled
+            with missing values.
+
+          See `anndata.concat` for details.
       - name: --anndata_merge
         type: string
         choices: [same, unique, first, only]
         description: |
-          Merge policy for non-obs aligned AnnData elements.
+          The method to use for merging elements that are not aligned with `obs`
+          when concatenating the main tables of the SpatialData objects:
+
+          - None: No elements are kept.
+          - "same": Only elements that are the same across all objects are kept.
+          - "unique": Elements for which there is only one possible value are
+            kept.
+          - "first": The first element at each position is kept.
+          - "only": Elements that are only in one object are kept.
+
+          See `anndata.concat` for details.
       - name: --anndata_uns_merge
         type: string
         choices: [same, unique, first, only]
         description: |
-          Merge policy for AnnData uns values.
+          The method to use for merging elements in `uns` when concatenating the
+          main tables of the SpatialData objects. See `anndata_merge` for
+          options and details. Merging is applied recursively.
       - name: --anndata_label
         type: string
         example: sample
         description: |
-          Optional obs column name to store per-input batch labels.
+          The name of the column in `obs` of the concatenated main table to
+          store batch label information. If not provided, no batch label column
+          is added.
       - name: --anndata_pairwise
         type: boolean
         default: false
         description: |
-          Whether to concatenate pairwise elements (obsp/varp).
+          Whether pairwise elements (`obsp`/`varp`) are concatenated.
 
 resources:
   - type: python_script
