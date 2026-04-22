@@ -1,0 +1,100 @@
+name: concatenate_spatialdata
+namespace: dataflow
+scope: public
+description: |
+  Concatenate multiple SpatialData objects into one SpatialData output.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --inputs
+        type: file
+        multiple: true
+        multiple_sep: ","
+        required: true
+        description: |
+          Paths to Zarr stores containing the SpatialData objects to concatenate.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        default: output.zarr
+        required: true
+        description: |
+          Path to the output SpatialData Zarr store.
+
+  - name: SpatialData options
+    description: |
+      Options passed to spatialdata.concatenate when combining SpatialData slots.
+    arguments:
+      - name: --attrs_merge
+        type: string
+        choices: [same, unique, first, only]
+        description: |
+          Merge policy for SpatialData attrs.
+
+  - name: AnnData options
+    description: |
+      Options passed to anndata.concat for concatenating the main table.
+    arguments:
+      - name: --anndata_join
+        type: string
+        choices: [inner, outer]
+        default: inner
+        description: |
+          Join policy for variables during AnnData concatenation.
+      - name: --anndata_merge
+        type: string
+        choices: [same, unique, first, only]
+        description: |
+          Merge policy for non-obs aligned AnnData elements.
+      - name: --anndata_uns_merge
+        type: string
+        choices: [same, unique, first, only]
+        description: |
+          Merge policy for AnnData uns values.
+      - name: --anndata_label
+        type: string
+        example: sample
+        description: |
+          Optional obs column name to store per-input batch labels.
+      - name: --anndata_pairwise
+        type: boolean
+        default: false
+        description: |
+          Whether to concatenate pairwise elements (obsp/varp).
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [/src/base/requirements/spatialdata.yaml, /src/base/requirements/anndata.yaml]
+    __merge__: [/src/base/requirements/python_test_setup.yaml, .]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [singlecpu, lowmem, lowdisk]
