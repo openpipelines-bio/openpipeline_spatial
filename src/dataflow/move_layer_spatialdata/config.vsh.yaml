@@ -1,0 +1,78 @@
+name: move_layer_spatialdata
+namespace: dataflow
+label: Move layer (SpatialData)
+summary: Move a layer within a SpatialData object to a new name
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        label: Input SpatialData
+        description: Path to the input SpatialData Zarr store
+        example: input.zarr
+        required: true
+      - name: --input_layer
+        type: string
+        label: Input layer name
+        description: |
+          Name of the layer to move. If not provided, X will be moved.
+        example: old_layer
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        default: output.zarr
+        label: Output SpatialData
+        description: Path to the output SpatialData Zarr store
+      - name: --output_layer
+        type: string
+        label: Output layer name
+        description: Name of the new layer to create with the moved data. If not provided, input layer will be moved to X.
+        example: new_layer
+
+  - name: Options
+    arguments:
+      - name: --delete_input_layer
+        type: boolean
+        default: true
+        description: |
+          Whether to delete the input layer after moving it to the new layer.
+          If true (default), the input layer is moved to the new location, if
+          false it is copied to the new location and the original layer is
+          retained.
+
+resources:
+  - type: python_script
+    path: script.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.zarr
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [/src/requirements/spatialdata.yaml]
+    __merge__: [/src/requirements/python_test_setup.yaml, .]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [singlecpu, lowmem, lowdisk]
