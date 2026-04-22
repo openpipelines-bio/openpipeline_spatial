@@ -88,3 +88,44 @@ def test_move_layer_to_layer(run_component, tmp_path):
     assert "test_layer" not in result["table"].layers, "test_layer should be removed"
     assert "layer_2" in result["table"].layers, "layer_2 should exist"
     assert result["table"].layers["layer_2"] is not None, "layer_2 should have data"
+
+
+def test_copy_layer(run_component, tmp_path):
+    """Test copying a layer without deleting the input layer."""
+    input_path = meta["resources_dir"] + "/xenium_tiny.zarr"
+    output_path = tmp_path / "output.zarr"
+
+    sdata = sd.read_zarr(input_path)
+    sdata["table"].layers["test_layer"] = sdata["table"].X.copy()
+    tmp_input = tmp_path / "input_with_layer.zarr"
+    sdata.write(str(tmp_input))
+
+    run_component(
+        [
+            "--input",
+            str(tmp_input),
+            "--output",
+            str(output_path),
+            "--input_layer",
+            "test_layer",
+            "--output_layer",
+            "layer_2",
+            "--delete_input_layer",
+            "false",
+        ]
+    )
+
+    # Verify output
+    assert output_path.exists(), "output zarr was not created"
+    result = sd.read_zarr(str(output_path))
+
+    assert "test_layer" in result["table"].layers, "test_layer should still exist"
+    assert "layer_2" in result["table"].layers, "layer_2 should exist"
+    assert result["table"].layers["layer_2"] is not None, "layer_2 should have data"
+    assert result["table"].layers["test_layer"] is not None, (
+        "test_layer should still have data"
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__]))
