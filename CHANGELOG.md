@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
+
 ## MINOR CHANGES
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
@@ -13,8 +17,6 @@
 * `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
 
 * `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
-
-* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
 
 # openpipeline_spatial 0.3.0
 
