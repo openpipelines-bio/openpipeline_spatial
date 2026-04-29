@@ -1,5 +1,6 @@
 name: "from_spatialdata_to_h5mu"
 namespace: "convert"
+scope: "public"
 description: |
   Reads in the Tables field stored in a SpatialData object and converts it to an h5mu file.
     

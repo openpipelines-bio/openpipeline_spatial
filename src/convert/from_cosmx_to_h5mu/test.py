@@ -2,6 +2,7 @@ import pytest
 import sys
 import mudata as mu
 import subprocess
+import pandas as pd
 
 
 def test_simple_execution(run_component, tmp_path):
@@ -11,10 +12,6 @@ def test_simple_execution(run_component, tmp_path):
         [
             "--input",
             meta["resources_dir"] + "/Lung5_Rep2_tiny",
-            "--dataset_id",
-            "Lung5_Rep2",
-            "--num_fovs",
-            "2",
             "--output",
             output,
         ]
@@ -68,10 +65,6 @@ def test_compressed_input(run_component, tmp_path):
         [
             "--input",
             zipped_input,
-            "--dataset_id",
-            "Lung5_Rep2",
-            "--num_fovs",
-            "2",
             "--output",
             output,
         ]
@@ -109,6 +102,28 @@ def test_compressed_input(run_component, tmp_path):
 
     assert adata.obsm["spatial"].dtype == "int"
     assert adata.obsm["spatial_fov"].dtype == "float"
+
+
+def test_legacy_atomx_input(run_component, tmp_path):
+    output = tmp_path / "cosmx_tiny.h5mu"
+
+    # mimic legacy AtoMx SIP output structure
+    fov_file = (
+        meta["resources_dir"] + "/Lung5_Rep2_tiny/Lung5_Rep2_fov_positions_file.csv"
+    )
+    df = pd.read_csv(fov_file)
+    df.rename(columns={"fov": "FOV"}, inplace=True)
+    df.to_csv(fov_file, index=False)
+
+    run_component(
+        [
+            "--input",
+            meta["resources_dir"] + "/Lung5_Rep2_tiny",
+            "--output",
+            output,
+        ]
+    )
+    assert output.is_file(), "output file was not created"
 
 
 if __name__ == "__main__":

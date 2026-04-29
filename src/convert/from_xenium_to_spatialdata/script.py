@@ -1,11 +1,11 @@
 import sys
 from spatialdata_io import xenium
-import zipfile
+import zipfile_inflate64 as zipfile
 from pathlib import Path
 
 ## VIASH START
 par = {
-    "input": "xenium_tiny.zip",
+    "input": "resources_test/xenium/xenium_tiny",
     "output": "./test/xenium_tiny.zarr",
     "cells_boundaries": True,
     "nucleus_boundaries": True,

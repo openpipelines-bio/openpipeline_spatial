@@ -1,8 +1,8 @@
 import fnmatch
-import zipfile
 import tempfile
 from pathlib import Path
 from typing import Union
+import zipfile_inflate64 as zipfile
 
 
 def unzip_archived_folder(archived_folder: Union[str, Path]) -> Union[str, Path]:

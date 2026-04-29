@@ -1,2 +1,4 @@
 packages:
-  - spatialdata~=0.4.1rc
+  - spatialdata~=0.7.2
+  - pyarrow~=18.0.0
+  - ome-zarr~=0.13.0

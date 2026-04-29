@@ -1,5 +1,6 @@
 name: "from_xenium_to_spatialdata"
 namespace: "convert"
+scope: "public"
 description: |
   Converts the output from 10X Genomics Xenium dataset into a SpatialData objcet.
   By default, the following files will be converted:
@@ -11,7 +12,6 @@ description: |
     - `cells.parquet`: File containing cell metadata.
     - `morphology_mip.ome.tif`: File containing morphology mip.
     - `morphology_focus.ome.tif`: File containing morphology focus.
-    
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ maintainer ]
@@ -90,8 +90,14 @@ engines:
       - type: apt
         packages: 
           - procps
+          - build-essential
+          - zlib1g-dev
+          - git
       - type: python
-        __merge__: [ /src/base/requirements/spatialdata-io.yaml ]
+        # Windows explorer uses DEFLATE64 compression for large ZIP files,
+        # which is not supported by most standard library zipfile module
+        git: [ https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2 ]
+        __merge__: [ /src/base/requirements/spatialdata-io.yaml, . ]
     test_setup:
       - type: apt
         packages:

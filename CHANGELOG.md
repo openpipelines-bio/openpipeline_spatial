@@ -4,6 +4,66 @@
 
 * `convert/from_h5mu_to_seurat`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #23).
 
+## MINOR CHANGES
+
+* Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
+
+# openpipeline_spatial 0.4.0
+
+## NEW FUNCTIONALITY
+
+* `feature_annotation/spatial_autocorr`: Added a spatial autocorrelation component (PR #45).
+
+* `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
+
+* `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
+
+# openpipeline_spatial 0.3.0
+
+## NEW FUNCTIONALITY
+
+* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
+
+* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheCompass analysis (PR #27).
+
+## MINOR CHANGES
+
+* Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
+
+* Update openpipeline dependencies to v4.0.3 (PR #42, PR #44).
+
+# openpipeline_spatial 0.2.0
+
+## NEW FUNCTIONALITY
+
+* `neighbors/spatial_neighborhood_graph`: Calculate the spatial neighborhood graph (PR #29).
+
+* `convert/from_spaceranger_to_h5mu`: Added converter component for convert Spaceranger output to H5MU files (PR #33).
+
+* `workflows/ingestion/spaceranger_mapping`: Added a workflow to ingest Visium data using Spaceranger and convert the count matrix to an H5MU file (PR #33).
+
+## MINOR CHANGES
+
+* Add `scope` to component and workflow configurations (PR #22).
+
+* `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
+
+* `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
+
+* Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
+
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #24, #34).
+
+* Bump squidpy to 1.7.0 (PR #36).
+
+* Update openpipeline dependencies to v4.0.0 (PR #37).
+
+## BUG FIXES
+
+* `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
+
+* `mapping/spaceranger_count`: Fixed issue with long temporary folder paths causing write failures (PR #31).
+
 # openpipeline_spatial 0.1.1
 
 ## MINOR CHANGES
@@ -12,7 +72,9 @@
 
 ## NEW FUNCTIONALITY
 
-* `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19).
+* `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
+
+* `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
 
 # openpipeline_spatial 0.1.0
 
