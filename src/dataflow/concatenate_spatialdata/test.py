@@ -10,9 +10,12 @@ def test_two_inputs(run_component, tmp_path):
 
     run_component(
         [
-            "--inputs", zarr_path,
-            "--inputs", zarr_path,
-            "--output", str(output),
+            "--inputs",
+            zarr_path,
+            "--inputs",
+            zarr_path,
+            "--output",
+            str(output),
         ]
     )
 
@@ -55,10 +58,14 @@ def test_anndata_label(run_component, tmp_path):
 
     run_component(
         [
-            "--inputs", zarr_path,
-            "--inputs", zarr_path,
-            "--output", str(output),
-            "--anndata_label", "batch",
+            "--inputs",
+            zarr_path,
+            "--inputs",
+            zarr_path,
+            "--output",
+            str(output),
+            "--anndata_label",
+            "batch",
         ]
     )
 
@@ -80,8 +87,10 @@ def test_single_input_passthrough(run_component, tmp_path):
 
     run_component(
         [
-            "--inputs", zarr_path,
-            "--output", str(output),
+            "--inputs",
+            zarr_path,
+            "--output",
+            str(output),
         ]
     )
 
