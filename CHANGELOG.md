@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
+
 ## MINOR CHANGES
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
