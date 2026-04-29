@@ -2,7 +2,7 @@
 
 ## NEW FUNCTIONALITY
 
-* `convert/from_h5mu_to_seurat`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #23).
+* `convert/from_h5mu_to_seurat_with_fov`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #23).
 
 ## MINOR CHANGES
 

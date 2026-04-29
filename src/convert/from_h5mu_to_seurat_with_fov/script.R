@@ -64,6 +64,14 @@ seurat_obj <- read_h5ad(
 
 # Create Centroids object
 if (!is.null(par$obsm_centroid_coordinates)) {
+  available_reductions <- names(seurat_obj@reductions)
+  if (!par$obsm_centroid_coordinates %in% available_reductions) {
+    stop(
+      "Centroid coordinates '", par$obsm_centroid_coordinates,
+      "' not found in .obsm. Available keys: ",
+      paste(available_reductions, collapse = ", ")
+    )
+  }
   reductions <- seurat_obj@reductions[[par$obsm_centroid_coordinates]]
   spatial_coords <- as.data.frame(reductions@cell.embeddings)
   colnames(spatial_coords) <- c("x_coord", "y_coord")
@@ -73,7 +81,7 @@ if (!is.null(par$obsm_centroid_coordinates)) {
   }
 
   if (is.null(par$centroid_theta)) {
-    par$centroid_theta <- 0L
+    par$centroid_theta <- 0
   }
 
   centroids <- CreateCentroids(

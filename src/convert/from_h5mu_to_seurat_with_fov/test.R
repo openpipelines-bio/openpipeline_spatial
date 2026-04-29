@@ -4,9 +4,9 @@ library(Seurat)
 
 ## VIASH START
 meta <- list(
-  executable = "target/executable/convert/from_h5ad_to_spatial_seurat",
+  executable = "target/executable/convert/from_h5mu_to_seurat_with_fov",
   resources_dir = "resources_test",
-  name = "from_h5ad_to_spatial_seurat"
+  name = "from_h5mu_to_seurat_with_fov"
 )
 ## VIASH END
 
@@ -201,3 +201,29 @@ centroid_coords <- centroids@coords
 expect_true(is.numeric(centroid_coords[, 1]))
 expect_true(is.numeric(centroid_coords[, 2]))
 expect_false(any(is.na(centroid_coords)))
+
+
+# ---- Missing obsm key ----------------------------------------------
+
+cat("> Test that a missing obsm centroid key fails cleanly\n")
+
+in_h5mu <- paste0(
+  meta[["resources_dir"]],
+  "/xenium_tiny.h5mu"
+)
+out_rds <- "output.rds"
+
+out <- processx::run(
+  meta[["executable"]],
+  c(
+    "--input", in_h5mu,
+    "--output", out_rds,
+    "--modality", "rna",
+    "--assay", "Xenium",
+    "--obsm_centroid_coordinates", "does_not_exist"
+  ),
+  error_on_status = FALSE
+)
+
+expect_false(out$status == 0)
+expect_match(out$stderr, "does_not_exist", fixed = TRUE)
