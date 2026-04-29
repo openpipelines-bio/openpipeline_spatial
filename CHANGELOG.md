@@ -14,6 +14,8 @@
 
 * `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
 
+* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
+
 # openpipeline_spatial 0.3.0
 
 ## NEW FUNCTIONALITY
