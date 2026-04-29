@@ -2,6 +2,10 @@
 
 ## NEW FUNCTIONALITY
 
+* `dataflow/concatenate_spatialdata`: Concatenate two or more SpatialData objects (PR #49).
+
+* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
+
 * `convert/from_h5mu_to_seurat_with_fov`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #51).
 
 ## MINOR CHANGES
