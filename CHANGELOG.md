@@ -6,6 +6,8 @@
 
 * `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
 
+* `convert/from_h5mu_to_seurat_with_fov`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #51).
+
 ## MINOR CHANGES
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
