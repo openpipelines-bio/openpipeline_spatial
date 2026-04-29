@@ -23,9 +23,9 @@ argument_groups:
       description: Modality of the h5mu file to convert.
     - name: "--obsm_centroid_coordinates"
       type: string
+      default: spatial
       description: |
         Key name of the .obsm slot in the input file that contains the spatial (centroid) coordinates.
-        If not provided, no Field of View (FOV) will be created in the Seurat object.
   - name: Centroid arguments
     arguments:
     - name: "--centroid_nsides"

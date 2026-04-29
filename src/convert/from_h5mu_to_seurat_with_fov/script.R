@@ -62,45 +62,45 @@ seurat_obj <- read_h5ad(
   assay_name = par$assay
 )
 
-# Create Centroids object
-if (!is.null(par$obsm_centroid_coordinates)) {
-  available_reductions <- names(seurat_obj@reductions)
-  if (!par$obsm_centroid_coordinates %in% available_reductions) {
-    stop(
-      "Centroid coordinates '", par$obsm_centroid_coordinates,
-      "' not found in .obsm. Available keys: ",
-      paste(available_reductions, collapse = ", ")
-    )
-  }
-  reductions <- seurat_obj@reductions[[par$obsm_centroid_coordinates]]
-  spatial_coords <- as.data.frame(reductions@cell.embeddings)
-  colnames(spatial_coords) <- c("x_coord", "y_coord")
-  if (ncol(spatial_coords) != 2) {
-    stop(
-      "Centroid coordinates must have 2 columns, but found ",
-      ncol(spatial_coords), " columns"
-    )
-  }
-  if (is.null(par$centroid_nsides)) {
-    par$centroid_nsides <- Inf
-  }
-
-  if (is.null(par$centroid_theta)) {
-    par$centroid_theta <- 0
-  }
-
-  centroids <- CreateCentroids(
-    coords = spatial_coords,
-    nsides = par$centroid_nsides,
-    radius = par$centroid_radius,
-    theta = par$centroid_theta
+# Look up centroid coordinates in .obsm
+available_reductions <- names(seurat_obj@reductions)
+if (!par$obsm_centroid_coordinates %in% available_reductions) {
+  stop(
+    "Centroid coordinates '", par$obsm_centroid_coordinates,
+    "' not found in .obsm. Available keys: ",
+    paste(available_reductions, collapse = ", ")
   )
-
-  # Create FOV object
-  fov <- CreateFOV(coords = centroids, assay = par$assay)
-  seurat_obj[["fov"]] <- fov
-  seurat_obj@reductions[[par$obsm_centroid_coordinates]] <- NULL
 }
 
+reductions <- seurat_obj@reductions[[par$obsm_centroid_coordinates]]
+spatial_coords <- as.data.frame(reductions@cell.embeddings)
+if (ncol(spatial_coords) != 2) {
+  stop(
+    "Centroid coordinates must have 2 columns, but found ",
+    ncol(spatial_coords), " columns"
+  )
+}
+colnames(spatial_coords) <- c("x_coord", "y_coord")
+
+if (is.null(par$centroid_nsides)) {
+  par$centroid_nsides <- Inf
+}
+
+if (is.null(par$centroid_theta)) {
+  par$centroid_theta <- 0
+}
+
+# Create Centroids object
+centroids <- CreateCentroids(
+  coords = spatial_coords,
+  nsides = par$centroid_nsides,
+  radius = par$centroid_radius,
+  theta = par$centroid_theta
+)
+
+# Create FOV object
+fov <- CreateFOV(coords = centroids, assay = par$assay)
+seurat_obj[["fov"]] <- fov
+seurat_obj@reductions[[par$obsm_centroid_coordinates]] <- NULL
 
 saveRDS(seurat_obj, file = par$output)

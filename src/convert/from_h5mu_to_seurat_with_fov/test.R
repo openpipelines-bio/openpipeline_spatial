@@ -11,46 +11,6 @@ meta <- list(
 ## VIASH END
 
 
-# ---- No FOV ----------------------------------------------------------
-cat("> Test conversion without adding FOV\n")
-
-in_h5mu <- paste0(
-  meta[["resources_dir"]],
-  "/xenium_tiny.h5mu"
-)
-out_rds <- "output.rds"
-
-cat("> Running ", meta[["name"]], "\n", sep = "")
-out <- processx::run(
-  meta[["executable"]],
-  c(
-    "--input", in_h5mu,
-    "--output", out_rds,
-    "--modality", "rna",
-    "--assay", "Xenium"
-  )
-)
-
-cat("> Checking whether output file exists\n")
-expect_equal(out$status, 0)
-expect_true(file.exists(out_rds))
-
-cat("> Reading output file\n")
-obj <- readRDS(file = out_rds)
-adata <- H5File$new(in_h5mu, mode = "r")[["/mod/rna/X"]]
-
-cat("> Checking whether Seurat object is in the right format\n")
-expect_equal(Assays(obj), "Xenium")
-expect_true(all(Layers(obj) == c("counts")))
-
-dim_rds <- dim(obj)
-dim_ad <- adata$attr_open("shape")$read()
-
-expect_equal(dim_rds[1], dim_ad[2])
-expect_equal(dim_rds[2], dim_ad[1])
-
-expect_false("fov" %in% names(obj))
-
 # # ---- Xenium ----------------------------------------------------------
 cat("> Test conversion Xenium\n")
 
@@ -66,9 +26,7 @@ out <- processx::run(
   c(
     "--input", in_h5mu,
     "--output", out_rds,
-    "--modality", "rna",
-    "--assay", "Xenium",
-    "--obsm_centroid_coordinates", "spatial"
+    "--assay", "Xenium"
   )
 )
 
@@ -121,9 +79,7 @@ out <- processx::run(
   c(
     "--input", in_h5mu,
     "--output", out_rds,
-    "--modality", "rna",
     "--assay", "Xenium",
-    "--obsm_centroid_coordinates", "spatial",
     "--centroid_nsides", "8",
     "--centroid_radius", "3",
     "--centroid_theta", "0.1"
@@ -162,9 +118,7 @@ out <- processx::run(
   c(
     "--input", in_h5mu,
     "--output", out_rds,
-    "--modality", "rna",
-    "--assay", "CosMx",
-    "--obsm_centroid_coordinates", "spatial"
+    "--assay", "CosMx"
   )
 )
 
@@ -218,7 +172,6 @@ out <- processx::run(
   c(
     "--input", in_h5mu,
     "--output", out_rds,
-    "--modality", "rna",
     "--assay", "Xenium",
     "--obsm_centroid_coordinates", "does_not_exist"
   ),
