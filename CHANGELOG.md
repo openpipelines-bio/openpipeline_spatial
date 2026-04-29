@@ -2,6 +2,8 @@
 
 ## NEW FUNCTIONALITY
 
+* `dataflow/concatenate_spatialdata`: Concatenate two or more SpatialData objects (PR #49).
+
 * `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
 
 ## MINOR CHANGES
