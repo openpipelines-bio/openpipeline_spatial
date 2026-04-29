@@ -3648,7 +3648,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/gene_program_mask",
     "viash_version" : "0.9.4",
-    "git_commit" : "cd60eb045bb9bc7253cd5c6c562b4994e37d0018",
+    "git_commit" : "a20cdf603f4d3961f6185449802c75a379a3edf7",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
