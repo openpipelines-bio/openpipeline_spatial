@@ -1,5 +1,9 @@
 # openpipeline_spatial x.x.x
 
+## NEW FUNCTIONALITY
+
+* `dataflow/concatenate_spatialdata`: Concatenate two or more SpatialData objects (PR #49).
+
 ## MINOR CHANGES
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
