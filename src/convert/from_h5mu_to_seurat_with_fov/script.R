@@ -4,7 +4,7 @@ library(Seurat)
 
 ### VIASH START
 par <- list(
-  input = "resources_test/xenium/xenium_tiny_processed.h5mu",
+  input = "resources_test/xenium/xenium_tiny.h5mu",
   output = "test.rds",
   obsm_centroid_coordinates = "spatial",
   assay = "RNA",

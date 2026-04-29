@@ -69,7 +69,7 @@ test_resources:
   - path: /resources_test/xenium/xenium_tiny.h5mu
 engines:
   - type: docker
-    image: rocker/r2u:22.04
+    image: rocker/r2u:24.04
     setup:
       - type: apt
         packages: [ libhdf5-dev, libgeos-dev, hdf5-tools ]
