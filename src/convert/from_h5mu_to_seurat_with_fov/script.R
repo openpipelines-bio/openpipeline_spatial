@@ -75,12 +75,12 @@ if (!is.null(par$obsm_centroid_coordinates)) {
   reductions <- seurat_obj@reductions[[par$obsm_centroid_coordinates]]
   spatial_coords <- as.data.frame(reductions@cell.embeddings)
   colnames(spatial_coords) <- c("x_coord", "y_coord")
-if (ncol(spatial_coords) != 2) {
-  stop(
-    "Centroid coordinates must have 2 columns, but found ",
-    ncol(spatial_coords), " columns"
-  )
-}
+  if (ncol(spatial_coords) != 2) {
+    stop(
+      "Centroid coordinates must have 2 columns, but found ",
+      ncol(spatial_coords), " columns"
+    )
+  }
   if (is.null(par$centroid_nsides)) {
     par$centroid_nsides <- Inf
   }
