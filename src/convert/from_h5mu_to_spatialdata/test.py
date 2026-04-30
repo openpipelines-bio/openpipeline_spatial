@@ -2,6 +2,7 @@ import os
 import sys
 
 import mudata as mu
+import numpy as np
 import pytest
 import spatialdata as sd
 
@@ -136,6 +137,51 @@ def test_execution_without_input_spatialdata(run_component, tmp_path):
     )
     assert len(sdata.points) == 0, (
         "Expected no points when input_spatialdata is not provided."
+    )
+
+
+def test_execution_with_numpy_region(run_component, tmp_path):
+    """Test that a numpy array region in spatialdata_attrs is handled correctly."""
+    input_original = meta["resources_dir"] + "/xenium_tiny.h5mu"
+    input_spatialdata = meta["resources_dir"] + "/xenium_tiny.zarr"
+    output = tmp_path / "output_numpy_region.zarr"
+
+    # Read the original h5mu and force region to a numpy object array
+    mdata = mu.read_h5mu(input_original)
+    mod = mdata.mod["rna"]
+
+    attrs = mod.uns["spatialdata_attrs"]
+    region = attrs["region"]
+    region_list = (
+        region.tolist()
+        if hasattr(region, "tolist")
+        else (region if isinstance(region, list) else [region])
+    )
+    mod.uns["spatialdata_attrs"]["region"] = np.array(region_list, dtype=object)
+
+    input_modified = tmp_path / "modified_numpy_region.h5mu"
+    mdata.write_h5mu(str(input_modified))
+
+    run_component(
+        [
+            "--input",
+            str(input_modified),
+            "--input_spatialdata",
+            input_spatialdata,
+            "--output",
+            str(output),
+        ]
+    )
+    assert os.path.exists(output), "output zarr was not created"
+
+    sdata = sd.read_zarr(output)
+    table = sdata["table"]
+
+    assert table.n_obs == mod.n_obs, (
+        "The number of observations in the SpatialData table does not match the selected modality."
+    )
+    assert table.obs_names.equals(mod.obs_names), (
+        "The observation names in the SpatialData table do not match the selected modality."
     )
 
 
