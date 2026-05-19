@@ -49,6 +49,19 @@ logger.info("Creating SpatialData object...")
 if par.get("input_spatialdata", None) is not None:
     logger.info("Using existing SpatialData...")
     sdata = sdata_existing
+
+    # Make sure mod is a compatible SpatialData table
+    attrs = mod.uns["spatialdata_attrs"]
+    mod = sd.models.TableModel.parse(
+        mod,
+        region=attrs["region"].tolist()
+        if hasattr(attrs["region"], "tolist")
+        else attrs["region"],
+        region_key=attrs["region_key"],
+        instance_key=attrs["instance_key"],
+        overwrite_metadata=True,
+    )
+
     sdata["table"] = mod
 else:
     logger.info("Creating new SpatialData...")

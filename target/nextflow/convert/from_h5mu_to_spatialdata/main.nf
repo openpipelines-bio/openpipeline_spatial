@@ -3338,7 +3338,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialdata",
     "viash_version" : "0.9.4",
-    "git_commit" : "b26bb58f612703800389094e42ea94edcaced4bf",
+    "git_commit" : "59064624fbaede84a2eaa34fd7da9f10984d6f52",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3460,6 +3460,19 @@ logger.info("Creating SpatialData object...")
 if par.get("input_spatialdata", None) is not None:
     logger.info("Using existing SpatialData...")
     sdata = sdata_existing
+
+    # Make sure mod is a compatible SpatialData table
+    attrs = mod.uns["spatialdata_attrs"]
+    mod = sd.models.TableModel.parse(
+        mod,
+        region=attrs["region"].tolist()
+        if hasattr(attrs["region"], "tolist")
+        else attrs["region"],
+        region_key=attrs["region_key"],
+        instance_key=attrs["instance_key"],
+        overwrite_metadata=True,
+    )
+
     sdata["table"] = mod
 else:
     logger.info("Creating new SpatialData...")
