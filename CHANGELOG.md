@@ -12,6 +12,10 @@
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
 
+## BUG FIXES
+
+* `convert/from_h5mu_to_spatialdata`: Make sure the AnnData table is properly parsed before inserting into the new SpatialData object (PR #53)
+
 # openpipeline_spatial 0.4.0
 
 ## NEW FUNCTIONALITY
