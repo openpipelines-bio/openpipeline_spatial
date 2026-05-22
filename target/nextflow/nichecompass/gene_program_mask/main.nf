@@ -3591,15 +3591,19 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04",
+      "image" : "nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04",
       "namespace_separator" : "/",
       "setup" : [
         {
+          "type" : "docker",
+          "env" : [
+            "PIP_BREAK_SYSTEM_PACKAGES=1"
+          ]
+        },
+        {
           "type" : "apt",
           "packages" : [
-            "libhdf5-dev",
             "python3-pip",
-            "python3-dev",
             "python-is-python3"
           ],
           "interactive" : false
@@ -3607,7 +3611,13 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "pip install torch --index-url https://download.pytorch.org/whl/cu124 \\\\\n&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   \n"
+            "pip install --upgrade --no-cache-dir --ignore-installed pip"
+          ]
+        },
+        {
+          "type" : "docker",
+          "run" : [
+            "pip install torch --index-url https://download.pytorch.org/whl/cu124 \\\\\n&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html\n"
           ]
         },
         {
@@ -3615,9 +3625,16 @@ meta = [
           "user" : false,
           "packages" : [
             "numpy<2",
-            "nichecompass"
+            "nichecompass",
+            "decoupler~=2.1.6"
           ],
           "upgrade" : true
+        },
+        {
+          "type" : "docker",
+          "run" : [
+            "cat > /NOTICE <<'EOF'\nThis image contains software provided by NVIDIA Corporation\nand is governed by the NVIDIA Deep Learning Container License:\nhttps://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf\n\nThe source code for this project is licensed under MIT:\nhttps://github.com/openpipelines-bio/openpipeline_spatial\nEOF\n"
+          ]
         }
       ],
       "test_setup" : [
@@ -3648,7 +3665,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/gene_program_mask",
     "viash_version" : "0.9.4",
-    "git_commit" : "aff9bcd8577fa14d97d9a3270a7fa6a918073d69",
+    "git_commit" : "e087099616271bd0f11e825b7817ec14ebef62d7",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

@@ -448,23 +448,34 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
 ENTRYPOINT []
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y libhdf5-dev python3-pip python3-dev python-is-python3 && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python-is-python3 && \
   rm -rf /var/lib/apt/lists/*
 
+RUN pip install --upgrade --no-cache-dir --ignore-installed pip
 RUN pip install torch --index-url https://download.pytorch.org/whl/cu124 \
-&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
+&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "numpy<2" "nichecompass"
+  pip install --upgrade --no-cache-dir "numpy<2" "nichecompass" "decoupler~=2.1.6"
+
+RUN cat > /NOTICE <<'EOF'
+This image contains software provided by NVIDIA Corporation
+and is governed by the NVIDIA Deep Learning Container License:
+https://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf
+
+The source code for this project is licensed under MIT:
+https://github.com/openpipelines-bio/openpipeline_spatial
+EOF
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Jakub Majercik, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component nichecompass gene_program_mask"
-LABEL org.opencontainers.image.created="2026-05-22T08:01:49Z"
+LABEL org.opencontainers.image.created="2026-05-22T11:46:41Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="aff9bcd8577fa14d97d9a3270a7fa6a918073d69"
+LABEL org.opencontainers.image.revision="e087099616271bd0f11e825b7817ec14ebef62d7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

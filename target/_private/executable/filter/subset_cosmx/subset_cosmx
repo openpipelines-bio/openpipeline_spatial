@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component filter subset_cosmx"
-LABEL org.opencontainers.image.created="2026-05-22T08:01:48Z"
+LABEL org.opencontainers.image.created="2026-05-22T11:46:40Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="aff9bcd8577fa14d97d9a3270a7fa6a918073d69"
+LABEL org.opencontainers.image.revision="e087099616271bd0f11e825b7817ec14ebef62d7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
