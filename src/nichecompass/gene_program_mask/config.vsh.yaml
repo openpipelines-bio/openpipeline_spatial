@@ -196,7 +196,7 @@ test_resources:
 
 engines:
 - type: docker
-  image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+  image: nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
   setup:
     - type: apt
       packages:
@@ -212,6 +212,18 @@ engines:
       packages:
         - numpy<2
         - nichecompass
+        - decoupler~=2.1.6
+    - type: docker
+      run:
+        - |
+          cat > /NOTICE <<'EOF'
+          This image contains software provided by NVIDIA Corporation
+          and is governed by the NVIDIA Deep Learning Container License:
+          https://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf
+
+          The source code for this project is licensed under MIT:
+          https://github.com/openpipelines-bio/openpipeline_rapids
+          EOF
   __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 
