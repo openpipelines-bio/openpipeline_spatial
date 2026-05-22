@@ -225,7 +225,7 @@ engines:
           https://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf
 
           The source code for this project is licensed under MIT:
-          https://github.com/openpipelines-bio/openpipeline_rapids
+          https://github.com/openpipelines-bio/openpipeline_spatial
           EOF
   __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
