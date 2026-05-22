@@ -18,6 +18,8 @@
 
 * `convert/from_h5mu_to_spatialexperiment`: Add `libuv1-dev` to the test image so reticulate imports successfully (#54).
 
+* `nichecompass/gene_program_mask`: Bump container base image to `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04` and pin `decoupler>=2.1.6` to pick up the updated HCOP orthology download URL (PR #55).
+
 # openpipeline_spatial 0.4.0
 
 ## NEW FUNCTIONALITY
