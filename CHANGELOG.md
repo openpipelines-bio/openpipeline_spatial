@@ -14,7 +14,9 @@
 
 ## BUG FIXES
 
-* `convert/from_h5mu_to_spatialdata`: Make sure the AnnData table is properly parsed before inserting into the new SpatialData object (PR #53)
+* `convert/from_h5mu_to_spatialdata`: Make sure the AnnData table is properly parsed before inserting into the new SpatialData object (PR #53).
+
+* `convert/from_h5mu_to_spatialexperiment`: Add `libuv1-dev` to the test image so reticulate imports successfully (#54).
 
 # openpipeline_spatial 0.4.0
 

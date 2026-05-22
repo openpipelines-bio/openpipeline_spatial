@@ -3352,7 +3352,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/dataflow/move_layer_spatialdata",
     "viash_version" : "0.9.4",
-    "git_commit" : "59064624fbaede84a2eaa34fd7da9f10984d6f52",
+    "git_commit" : "aff9bcd8577fa14d97d9a3270a7fa6a918073d69",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
