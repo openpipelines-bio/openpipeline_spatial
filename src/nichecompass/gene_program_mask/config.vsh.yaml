@@ -205,9 +205,12 @@ engines:
         - python3-dev
         - python-is-python3
     - type: docker
+      env:
+        - PIP_BREAK_SYSTEM_PACKAGES=1
+    - type: docker
       run: |
         pip install torch --index-url https://download.pytorch.org/whl/cu124 \
-        && pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
+        && pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
     - type: python
       packages:
         - numpy<2
