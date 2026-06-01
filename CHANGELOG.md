@@ -12,6 +12,16 @@
 
 * Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
 
+* Bump Viash to 0.9.7 (PR #57).
+
+* Bump anndata to 0.12.16 (PR #57).
+
+* Bump mudata to 0.3.8 (PR #57).
+
+* Bump scanpy to 1.11.4 (PR #57)
+
+* Testing: bump viashpy to 0.10.0 (PR #57).
+
 ## BUG FIXES
 
 * `convert/from_h5mu_to_spatialdata`: Make sure the AnnData table is properly parsed before inserting into the new SpatialData object (PR #53).
