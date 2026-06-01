@@ -458,9 +458,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_seurat_with_fov"
-LABEL org.opencontainers.image.created="2026-06-01T08:12:33Z"
+LABEL org.opencontainers.image.created="2026-06-01T08:29:27Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="2596aab58432c1d808e692d5d7c7e129d7cfc931"
+LABEL org.opencontainers.image.revision="4449aa6094a686af0a5fbe99b9aaafd01ae75aff"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

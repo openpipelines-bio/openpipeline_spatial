@@ -3420,6 +3420,17 @@ meta = [
       ]
     },
     {
+      "name" : "Cross-modality filtering",
+      "arguments" : [
+        {
+          "type" : "boolean_true",
+          "name" : "--intersect_obs",
+          "description" : "After per-modality filtering and multisample processing, remove observations\nthat are not present in all processed modalities so that each modality shares\nthe same set of cells.\n",
+          "direction" : "input"
+        }
+      ]
+    },
+    {
       "name" : "Highly variable features detection",
       "arguments" : [
         {
@@ -3717,7 +3728,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.0.3"
+        "tag" : "v4.1.0"
       }
     }
   ],
@@ -3726,7 +3737,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.0.3"
+      "tag" : "v4.1.0"
     }
   ],
   "links" : {
@@ -3817,7 +3828,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/multiomics/spatial_process_samples",
     "viash_version" : "0.9.7",
-    "git_commit" : "2596aab58432c1d808e692d5d7c7e129d7cfc931",
+    "git_commit" : "4449aa6094a686af0a5fbe99b9aaafd01ae75aff",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3837,7 +3848,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.0.3"
+        "tag" : "v4.1.0"
       }
     ],
     "viash_version" : "0.9.7",
@@ -3857,7 +3868,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.0.3/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as spatial_sample_processing_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/multiomics/process_samples/main.nf"
 spatial_sample_processing = spatial_sample_processing_viashalias.run(key: "spatial_sample_processing")
 
 // inner workflow
@@ -3898,6 +3909,7 @@ workflow run_wf {
           "prot_min_proteins_per_cell": state.prot_min_proteins_per_cell,
           "prot_max_proteins_per_cell": state.prot_max_proteins_per_cell,
           "prot_min_cells_per_protein": state.prot_min_cells_per_protein,
+          "intersect_obs": state.intersect_obs,
           "highly_variable_features_var_output": state.highly_variable_features_var_output,
           "highly_variable_features_obs_batch_key": state.highly_variable_features_obs_batch_key,
           "var_gene_names": state.var_gene_names,
