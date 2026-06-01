@@ -10,7 +10,7 @@
 
 ## MAJOR CHANGES
 
-* Pin OpenPipeline dependency to v4.1.0 (PR #).
+* Pin OpenPipeline dependency to v4.1.0 (PR #56).
 
 ## MINOR CHANGES
 
