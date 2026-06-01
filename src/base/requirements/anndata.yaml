@@ -1,3 +1,4 @@
 packages:
-  - anndata~=0.12.7
-  - awkward 
+  - anndata~=0.12.16
+  - awkward
+  - scipy~=1.17.1 # Exclude scipy 1.17.0 because https://github.com/scverse/anndata/issues/339

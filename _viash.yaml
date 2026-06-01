@@ -1,4 +1,4 @@
-viash_version: 0.9.4
+viash_version: 0.9.7
 version: v0.5.0
 
 source: src
@@ -15,7 +15,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.0.3
+    tag: v4.1.0
 
 info:
   test_resources:

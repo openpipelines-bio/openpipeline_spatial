@@ -34,6 +34,7 @@ workflow run_wf {
           "prot_min_proteins_per_cell": state.prot_min_proteins_per_cell,
           "prot_max_proteins_per_cell": state.prot_max_proteins_per_cell,
           "prot_min_cells_per_protein": state.prot_min_cells_per_protein,
+          "intersect_obs": state.intersect_obs,
           "highly_variable_features_var_output": state.highly_variable_features_var_output,
           "highly_variable_features_obs_batch_key": state.highly_variable_features_obs_batch_key,
           "var_gene_names": state.var_gene_names,
