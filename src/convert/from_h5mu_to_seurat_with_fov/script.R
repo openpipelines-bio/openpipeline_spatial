@@ -2,12 +2,18 @@ library(anndataR)
 library(hdf5r)
 library(Seurat)
 
+# anndataR reads HDF5 via rhdf5, which acquires a file lock on open. The temp
+# h5ad is written by hdf5r and read back on a filesystem (e.g. Docker overlay)
+# where locking fails, so disable it to allow rhdf5 to open the file.
+rhdf5::h5disableFileLocking()
+
 ### VIASH START
 par <- list(
   input = "resources_test/xenium/xenium_tiny.h5mu",
   output = "test.rds",
   obsm_centroid_coordinates = "spatial",
   assay = "RNA",
+  x_mapping = "counts",
   centroid_nsides = 8,
   centroid_radius = 3,
   centroid_theta = 0.1,
@@ -52,17 +58,25 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
 }
 
 # Read in H5AD
+cat("Reading modality '", par$modality, "' from '", par$input, "'\n", sep = "")
 h5ad_path <- h5mu_to_h5ad(par$input, par$modality)
 
 # Convert to Seurat
+cat("Converting H5AD to Seurat object (assay: '", par$assay, "')\n", sep = "")
 seurat_obj <- read_h5ad(
   h5ad_path,
   mode = "r",
   as = "Seurat",
-  assay_name = par$assay
+  assay_name = par$assay,
+  x_mapping = par$x_mapping
 )
 
 # Look up centroid coordinates in .obsm
+cat(
+  "Looking up centroid coordinates in '",
+  par$obsm_centroid_coordinates, "'\n",
+  sep = ""
+)
 available_reductions <- names(seurat_obj@reductions)
 if (!par$obsm_centroid_coordinates %in% available_reductions) {
   stop(
@@ -91,6 +105,12 @@ if (is.null(par$centroid_theta)) {
 }
 
 # Create Centroids object
+cat("Creating Centroids object")
+cat(
+  "Creating Centroids (nsides=", par$centroid_nsides,
+  ", radius=", par$centroid_radius,
+  ", theta=", par$centroid_theta, ")"
+)
 centroids <- CreateCentroids(
   coords = spatial_coords,
   nsides = par$centroid_nsides,
@@ -99,8 +119,11 @@ centroids <- CreateCentroids(
 )
 
 # Create FOV object
+cat("Creating FOV and attaching to Seurat object")
 fov <- CreateFOV(coords = centroids, assay = par$assay)
 seurat_obj[["fov"]] <- fov
 seurat_obj@reductions[[par$obsm_centroid_coordinates]] <- NULL
 
+cat("Writing output to '", par$output, "'")
 saveRDS(seurat_obj, file = par$output)
+cat("Done.")
