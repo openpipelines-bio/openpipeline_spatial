@@ -2,9 +2,6 @@ library(anndataR)
 library(hdf5r)
 library(Seurat)
 
-# anndataR reads HDF5 via rhdf5, which acquires a file lock on open. The temp
-# h5ad is written by hdf5r and read back on a filesystem (e.g. Docker overlay)
-# where locking fails, so disable it to allow rhdf5 to open the file.
 rhdf5::h5disableFileLocking()
 
 ### VIASH START
