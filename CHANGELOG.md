@@ -2,7 +2,7 @@
 
 ## MINOR CHANGES
 
-* `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added a `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
+* `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
 # openpipeline_spatial 0.5.0
 
