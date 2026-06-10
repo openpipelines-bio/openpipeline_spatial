@@ -3405,7 +3405,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cells2stats_to_h5mu",
     "viash_version" : "0.9.7",
-    "git_commit" : "4449aa6094a686af0a5fbe99b9aaafd01ae75aff",
+    "git_commit" : "a8ea1260ebf8c4ac4f127f4d4c4db524e0161e55",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

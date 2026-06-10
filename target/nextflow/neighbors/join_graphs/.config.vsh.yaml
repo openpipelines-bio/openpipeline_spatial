@@ -261,7 +261,7 @@ build_info:
   output: "target/nextflow/neighbors/join_graphs"
   executable: "target/nextflow/neighbors/join_graphs/main.nf"
   viash_version: "0.9.7"
-  git_commit: "4449aa6094a686af0a5fbe99b9aaafd01ae75aff"
+  git_commit: "a8ea1260ebf8c4ac4f127f4d4c4db524e0161e55"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"
