@@ -32,7 +32,7 @@ argument_groups:
       - name: "--layer"
         type: string
         required: false
-        description: "Input layer to use. If None, X is used"
+        description: "Input layer containing raw counts to be use. If None, X is used"
       - name: "--var_input"
         type: string
         default: "filter_with_hvg"
@@ -436,6 +436,7 @@ resources:
     path: script.py
   - path: /src/utils/setup_logger.py
   - path: /src/utils/subset_vars.py
+  - path: /src/utils/compress_h5mu.py
 
 test_resources:
   - type: python_script

@@ -1,6 +1,7 @@
 import sys
 import json
 import mudata as mu
+import pandas as pd
 import torch
 
 from nichecompass.models import NicheCompass
@@ -91,6 +92,7 @@ meta = {"resources_dir": "src/utils/"}
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
 from subset_vars import subset_vars
+from compress_h5mu import write_h5ad_to_h5mu_with_compression
 
 logger = setup_logger()
 
@@ -103,24 +105,30 @@ logger.info(f"GPU count: {torch.cuda.device_count()}")
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
-# Subset to HVG
+# Subset to the requested features for model training, but keep the full object
+# so the output retains all features.
 if par["var_input"]:
-    # Subset to HVG
-    adata = subset_vars(adata, subset_col=par["var_input"]).copy()
+    model_adata = subset_vars(adata, subset_col=par["var_input"]).copy()
+else:
+    model_adata = adata.copy()
 
 # Counts need to be float32 to be processed by nichecompass model
 # See https://discuss.pytorch.org/t/runtimeerror-mat1-and-mat2-must-have-the-same-dtype/166759
 counts_dtype = (
-    adata.layers[par["layer"]].dtype if par["layer"] is not None else adata.X.dtype
+    model_adata.layers[par["layer"]].dtype
+    if par["layer"] is not None
+    else model_adata.X.dtype
 )
 if counts_dtype != "float32":
     logger.info(
         f"Converting count data to float32 from {counts_dtype} for model compatibility..."
     )
     if par["layer"] is not None:
-        adata.layers[par["layer"]] = adata.layers[par["layer"]].astype("float32")
+        model_adata.layers[par["layer"]] = model_adata.layers[par["layer"]].astype(
+            "float32"
+        )
     else:
-        adata.X = adata.X.astype("float32")
+        model_adata.X = model_adata.X.astype("float32")
 
 ## Add GP mask to data
 logger.info("Adding prior knowledge gene program mask to data...")
@@ -129,7 +137,7 @@ with open(par["input_gp_mask"], "r") as f:
 
 add_gps_from_gp_dict_to_adata(
     gp_dict=prior_knowledge_gp_mask,
-    adata=adata,
+    adata=model_adata,
     gp_targets_mask_key=par["output_varm_gp_targets_mask"],
     gp_sources_mask_key=par["output_varm_gp_sources_mask"],
     gp_names_key=par["output_uns_gp_names"],
@@ -147,7 +155,7 @@ add_gps_from_gp_dict_to_adata(
 
 logger.info("Initializing NicheCompass model...")
 model = NicheCompass(
-    adata,
+    model_adata,
     counts_key=par["layer"],
     adj_key=par["input_obsp_spatial_connectivities"],
     gp_names_key=par["output_uns_gp_names"],
@@ -218,7 +226,49 @@ model.train(
 
 ## Save model and data
 logger.info("Saving NicheCompass model and data...")
-mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"], compression=par["output_compression"])
 
+# Copy the model outputs from the (possibly subsetted) training object back onto
+# the full input object.
+logger.info("\tStoring latent embedding into .obsm")
+adata.obsm[par["output_obsm_embedding"]] = model_adata.obsm[
+    par["output_obsm_embedding"]
+]
+
+logger.info("\tStoring gene program info into .uns")
+for key in [
+    par["output_uns_gp_names"],
+    par["output_uns_active_gp_names"],
+    par["output_uns_genes_index"],
+    par["output_uns_target_genes_index"],
+    par["output_uns_source_genes_index"],
+    "nichecompass_targets_categories_label_encoder",
+    "nichecompass_sources_categories_label_encoder",
+]:
+    adata.uns[key] = model_adata.uns[key]
+
+# Reindex the masks back to the full feature space, marking features that were
+# not part of the model input as belonging to no gene program (zero).
+logger.info("\tStoring gene program masks into .varm")
+for key in [
+    par["output_varm_gp_targets_mask"],
+    par["output_varm_gp_sources_mask"],
+    "nichecompass_gp_targets_categories",
+    "nichecompass_gp_sources_categories",
+]:
+    adata.varm[key] = (
+        pd.DataFrame(model_adata.varm[key], index=model_adata.var_names)
+        .reindex(adata.var_names, fill_value=0)
+        .to_numpy()
+    )
+
+logger.info("\tWriting output object")
+write_h5ad_to_h5mu_with_compression(
+    par["output"],
+    par["input"],
+    par["modality"],
+    adata,
+    par["output_compression"],
+)
+
+logger.info("\Storing NicheCompass model")
 model.save(par["output_model"], save_adata=False)
