@@ -3601,50 +3601,37 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04",
+      "image" : "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime",
       "namespace_separator" : "/",
       "setup" : [
         {
           "type" : "docker",
-          "env" : [
-            "PIP_BREAK_SYSTEM_PACKAGES=1"
-          ]
-        },
-        {
-          "type" : "apt",
-          "packages" : [
-            "python3-pip",
-            "python-is-python3"
-          ],
-          "interactive" : false
-        },
-        {
-          "type" : "docker",
           "run" : [
-            "pip install --upgrade --no-cache-dir --ignore-installed pip"
-          ]
-        },
-        {
-          "type" : "docker",
-          "run" : [
-            "pip install torch --index-url https://download.pytorch.org/whl/cu124 \\\\\n&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html\n"
+            "pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   \n"
           ]
         },
         {
           "type" : "python",
           "user" : false,
           "packages" : [
-            "numpy<2",
-            "nichecompass",
-            "decoupler~=2.1.6"
+            "anndata~=0.12.16",
+            "awkward",
+            "scipy~=1.17.1",
+            "mudata~=0.3.8"
+          ],
+          "script" : [
+            "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
           ],
           "upgrade" : true
         },
         {
-          "type" : "docker",
-          "run" : [
-            "cat > /NOTICE <<'EOF'\nThis image contains software provided by NVIDIA Corporation\nand is governed by the NVIDIA Deep Learning Container License:\nhttps://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf\n\nThe source code for this project is licensed under MIT:\nhttps://github.com/openpipelines-bio/openpipeline_spatial\nEOF\n"
-          ]
+          "type" : "python",
+          "user" : false,
+          "packages" : [
+            "numpy<2",
+            "nichecompass"
+          ],
+          "upgrade" : true
         }
       ],
       "test_setup" : [
@@ -3675,7 +3662,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/gene_program_mask",
     "viash_version" : "0.9.7",
-    "git_commit" : "a8ea1260ebf8c4ac4f127f4d4c4db524e0161e55",
+    "git_commit" : "f6b26614638569032108e35f233c4926be7e57bf",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

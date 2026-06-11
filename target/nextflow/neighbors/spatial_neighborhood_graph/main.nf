@@ -3378,7 +3378,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/spatial_neighborhood_graph",
     "viash_version" : "0.9.7",
-    "git_commit" : "a8ea1260ebf8c4ac4f127f4d4c4db524e0161e55",
+    "git_commit" : "f6b26614638569032108e35f233c4926be7e57bf",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

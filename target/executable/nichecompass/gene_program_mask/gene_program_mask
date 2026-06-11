@@ -448,34 +448,22 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 ENTRYPOINT []
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python-is-python3 && \
-  rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade --no-cache-dir --ignore-installed pip
-RUN pip install torch --index-url https://download.pytorch.org/whl/cu124 \
-&& pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
+RUN pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "numpy<2" "nichecompass" "decoupler~=2.1.6"
+  pip install --upgrade --no-cache-dir "anndata~=0.12.16" "awkward" "scipy~=1.17.1" "mudata~=0.3.8" && \
+  python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
-RUN cat > /NOTICE <<'EOF'
-This image contains software provided by NVIDIA Corporation
-and is governed by the NVIDIA Deep Learning Container License:
-https://developer.download.nvidia.com/licenses/NVIDIA_Deep_Learning_Container_License.pdf
-
-The source code for this project is licensed under MIT:
-https://github.com/openpipelines-bio/openpipeline_spatial
-EOF
+RUN pip install --upgrade pip && \
+  pip install --upgrade --no-cache-dir "numpy<2" "nichecompass"
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Jakub Majercik, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component nichecompass gene_program_mask"
-LABEL org.opencontainers.image.created="2026-06-10T15:45:32Z"
+LABEL org.opencontainers.image.created="2026-06-11T17:17:02Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="a8ea1260ebf8c4ac4f127f4d4c4db524e0161e55"
+LABEL org.opencontainers.image.revision="f6b26614638569032108e35f233c4926be7e57bf"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
