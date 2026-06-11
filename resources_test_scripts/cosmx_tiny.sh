@@ -51,7 +51,7 @@ HERE
 nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
   -revision v0.1.1 \
   -main-script target/nextflow/filter/subset_cosmx/main.nf \
-  -params-file params.yaml \
+  -params-file /tmp/params.yaml \
   -profile docker \
   -resume \
   -c src/workflows/utils/labels_ci.config \
