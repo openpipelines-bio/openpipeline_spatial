@@ -35,7 +35,7 @@ par = {
     "output_uns_covariate_embeddings": None,
     "output_obsp_reconstructed_adj_edge_proba": "nichecompass_recon_connectivities",
     "output_uns_active_gp_names": "nichecompass_active_gp_names",
-    "output_uns_gene_index": "nichecompass_genes_idx",
+    "output_uns_genes_index": "nichecompass_genes_idx",
     "output_uns_target_genes_index": "nichecompass_target_genes_idx",
     "output_uns_source_genes_index": "nichecompass_source_genes_idx",
     "output_obsp_agg_weights": "nichecompass_agg_weights",
@@ -270,5 +270,5 @@ write_h5ad_to_h5mu_with_compression(
     par["output_compression"],
 )
 
-logger.info("\Storing NicheCompass model")
+logger.info("\tStoring NicheCompass model")
 model.save(par["output_model"], save_adata=False)

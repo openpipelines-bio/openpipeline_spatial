@@ -55,7 +55,7 @@ argument_groups:
         default: 1
         min: 0
         description: |
-          Minimum number of genes in a gene program inluding both target and source genes that need to be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+          Minimum number of genes in a gene program including both target and source genes that need to be available in the adata (gene expression has been probed) for a gene program not to be discarded.
       - name: "--min_source_genes_per_gp"
         type: integer
         default: 0
@@ -72,7 +72,7 @@ argument_groups:
         type: integer
         min: 1
         description: |
-          Maximum number of genes in a gene program inluding both target and source genes that can be available in the adata (gene expression has been probed) for a gene program not to be discarded.
+          Maximum number of genes in a gene program including both target and source genes that can be available in the adata (gene expression has been probed) for a gene program not to be discarded.
       - name: "--max_source_genes_per_gp"
         type: integer
         min: 1

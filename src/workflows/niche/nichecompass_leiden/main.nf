@@ -48,8 +48,6 @@ workflow run_wf {
       [id, newState]
     }
 
-    | view {"After split samples: $it"}
-
     | spatial_neighborhood_graph.run(
       fromState: {id, state -> [
         "input": state.input,
@@ -92,8 +90,6 @@ workflow run_wf {
       def data_state = new_state_non_unique_values + new_state
       [ newId, data_state ]
     }
-
-    | view {"After join samples: $it"}
 
     | concatenate_h5mu.run(
       fromState: { id, state -> [
@@ -138,7 +134,7 @@ workflow run_wf {
         "n_epochs": state.n_epochs,
         "n_epochs_all_gps": state.n_epochs_all_gps,
         "n_epochs_no_edge_recon": state.n_epochs_no_edge_recon,
-        "n_epochs_no_cat_covariates_contrastive": state.n_epochs_no_cat_covariates_contrastive_loss,
+        "n_epochs_no_cat_covariates_contrastive": state.n_epochs_no_cat_covariates_contrastive,
         "lr": state.lr,
         "weight_decay": state.weight_decay,
         "edge_val_ratio": state.edge_val_ratio,
@@ -175,8 +171,6 @@ workflow run_wf {
     )
 
     | setState(["output": "output", "output_model": "output_model"])
-
-    | view()
 
   emit:
     output_ch

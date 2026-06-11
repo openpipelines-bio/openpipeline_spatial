@@ -18,7 +18,7 @@ workflow test_wf {
         n_epochs: 1,
         n_epochs_all_gps: 0,
         n_epochs_no_edge_recon: 0,
-        n_epochs_no_cat_covariates_contrastive_loss: 0,
+        n_epochs_no_cat_covariates_contrastive: 0,
         output_model: "simple_execution_test_model",
         var_input: null
       ]

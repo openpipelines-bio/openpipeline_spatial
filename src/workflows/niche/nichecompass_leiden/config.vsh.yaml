@@ -64,28 +64,6 @@ argument_groups:
           Key in adata.var that indicates which features to include as input for the NicheCompass model.
           If not provided, all features will be included.
 
-  - name: "Sample ID options"
-    description: |
-      Options for adding the id to .obs on the MuData object. Having a sample 
-      id present in a requirement of several components for this pipeline.
-    arguments:
-      - name: "--add_id_to_obs"
-        description: "Add the value passed with --id to .obs."
-        type: boolean
-        default: true
-      - name: --add_id_obs_output
-        description: |
-          .Obs column to add the sample IDs to. Required and only used when 
-          --add_id_to_obs is set to 'true'
-        type: string
-        default: "sample_id"
-      - name: "--add_id_make_observation_keys_unique"
-        type: boolean
-        description: |
-          Join the id to the .obs index (.obs_names). 
-          Only used when --add_id_to_obs is set to 'true'.
-        default: true
-
   - name: "Spatial Neighbors Calculation"
     description: |
       Options for the calculation of the spatial neighborhood graph.
@@ -96,7 +74,7 @@ argument_groups:
         choices: ["generic", "grid"]
         description: |
           Type of coordinate system. Valid options are:
-          `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming a regular grid topology, where neighbors aredefined by grid adjacency rather than distance.
+          `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming a regular grid topology, where neighbors are defined by grid adjacency rather than distance.
           `generic` - Generic coordinates. Recommended for imaging-based data. This option is appropriate for irregularly spaced points, such as cell centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx). Setting this option avoids grid-assumption artifacts and ensures each node has spatial neighbors as defined by distance. 
       - name: "--n_spatial_neighbors"
         type: integer
@@ -120,7 +98,7 @@ argument_groups:
         default: 1
         min: 0
         description: |
-          Minimum number of genes in a gene program inluding both target and source genes that need to be available in the input data (gene expression has been probed) for a gene program not to be discarded.
+          Minimum number of genes in a gene program including both target and source genes that need to be available in the input data (gene expression has been probed) for a gene program not to be discarded.
       - name: "--min_source_genes_per_gp"
         type: integer
         default: 0
@@ -178,7 +156,7 @@ argument_groups:
           Whether to transform x by log(x+1) prior to encoding for numerical stability (not for normalization).
       - name: "--node_label_method"
         type: string
-        choices: ["one-hop-norm", "two-hop-norm", "one-hop-attention"]
+        choices: ["one-hop-norm", "one-hop-sum", "one-hop-attention"]
         default: "one-hop-norm"
         description: |
           Node label method that will be used for omics reconstruction.
