@@ -1,12 +1,19 @@
 # openpipeline_spatial (unreleased)
 
+## NEW FUNCTIONALITY
+
+* `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
+
+* `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatial neighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)
+
+* `nichecompass/gene_program_mask`: Update container base image to `pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime` (28).
+
 ## MINOR CHANGES
 
 * `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
 # openpipeline_spatial 0.5.0
 
-## NEW FUNCTIONALITY
 
 * `dataflow/concatenate_spatialdata`: Concatenate two or more SpatialData objects (PR #49).
 
