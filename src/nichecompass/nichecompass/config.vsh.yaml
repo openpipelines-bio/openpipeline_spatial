@@ -459,7 +459,8 @@ engines:
           - numpy<2
           - nichecompass
     test_setup:
-      __merge__: [ /src/base/requirements/viashpy.yaml, .]
+      - type: python
+        __merge__: [ /src/base/requirements/viashpy.yaml, .]
 
 runners:
 - type: executable
