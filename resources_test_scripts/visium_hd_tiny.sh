@@ -2,13 +2,13 @@
 
 set -eo pipefail
 
-# Visium HD tiny test fixture.
-#  * The cropped SpaceRanger outs come from the official 10x "Visium HD Tiny
-#    3prime Mouse Brain" developer dataset (subset_visium_hd.py crops it to a
-#    small tissue-straddling region, since its bin grid spans the whole slide).
-#  * The raw FASTQs and microscope image — needed to test the ingestion workflow
-#    end to end — are subset from the full "Visium HD 3prime Mouse Brain" dataset
-#    (the same sample), mirroring visium_tiny.sh.
+# Visium HD tiny test fixture, all derived from the official 10x "Visium HD Tiny
+# 3prime Mouse Brain" developer dataset (a downsampled corner of the tissue):
+#  * the cropped SpaceRanger outs (subset_visium_hd.py crops them further to a
+#    small tissue-straddling region, since the bin grid spans the whole slide);
+#  * the raw FASTQs, reconstructed from the outs BAM with 10x bamtofastq, so they
+#    are consistent with the outs and let the ingestion workflow run Space Ranger;
+#  * the microscope image, from the full "Visium HD 3prime Mouse Brain" dataset.
 # Source: https://www.10xgenomics.com/datasets
 
 # get the root of the directory
@@ -19,6 +19,7 @@ DIR="$REPO_ROOT/resources_test/visium_hd"
 ID="Visium_HD_Mouse_Brain"
 TINY_OUTS_URL="https://cf.10xgenomics.com/samples/spatial-exp/4.0.1/Visium_HD_Tiny_3prime_Dataset/Visium_HD_Tiny_3prime_Dataset_outs.zip"
 FULL_BASE="https://cf.10xgenomics.com/samples/spatial-exp/4.0.1/Visium_HD_3prime_Mouse_Brain"
+BAMTOFASTQ_VERSION="1.4.1"
 
 # create tempdir for the (large) public downloads
 MY_TEMP="${VIASH_TEMP:-/tmp}"
@@ -38,16 +39,22 @@ python3 "$SCRIPT_DIR/subset_visium_hd.py" \
     --output "$DIR/${ID}_tiny_spaceranger" \
     --dataset-id "$ID"
 
-# 2. tiny FASTQ run folder (first 10,000 reads) from the full dataset. The full
-#    tar has no L001 (lanes are L002-L008), so take the first R1/R2 lane and
-#    write them under a canonical single-lane name.
-curl -fSL -o "$TMPDIR/fastqs.tar" "$FULL_BASE/Visium_HD_3prime_Mouse_Brain_fastqs.tar"
-mkdir -p "$TMPDIR/fastqs" "$DIR/${ID}_tiny"
-tar -xf "$TMPDIR/fastqs.tar" -C "$TMPDIR/fastqs"
+# 2. tiny FASTQ run folder, reconstructed from the cropped corner's BAM with 10x
+#    bamtofastq. This keeps the reads consistent with the SpaceRanger outs above
+#    and avoids downloading the full (~12 GB) FASTQ tar.
+case "$(uname -s)" in
+  Darwin) bamtofastq_asset="bamtofastq_macos" ;;
+  *) bamtofastq_asset="bamtofastq_linux" ;;
+esac
+curl -fSL -o "$TMPDIR/bamtofastq" \
+  "https://github.com/10XGenomics/bamtofastq/releases/download/v${BAMTOFASTQ_VERSION}/${bamtofastq_asset}"
+chmod +x "$TMPDIR/bamtofastq"
+"$TMPDIR/bamtofastq" --nthreads=4 \
+  "$TMPDIR/outs/possorted_genome_bam.bam" "$TMPDIR/bamfq"
+mkdir -p "$DIR/${ID}_tiny"
 for r in R1 R2; do
-  src=$(find "$TMPDIR/fastqs" -name "*_${r}_*.fastq.gz" | sort | head -1)
-  gzip -cdf "$src" | head -n 40000 | gzip -c \
-    > "$DIR/${ID}_tiny/${ID}_S1_L001_${r}_001.fastq.gz"
+  src=$(find "$TMPDIR/bamfq" -name "*_${r}_001.fastq.gz" | sort | head -1)
+  cp "$src" "$DIR/${ID}_tiny/${ID}_S1_L001_${r}_001.fastq.gz"
 done
 
 # 3. downsized microscope image from the full dataset
