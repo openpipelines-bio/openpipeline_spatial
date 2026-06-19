@@ -34,9 +34,9 @@ mkdir -p "$DIR"
 curl -fSL -o "$TMPDIR/outs.zip" "$TINY_OUTS_URL"
 unzip -q "$TMPDIR/outs.zip" -d "$TMPDIR/outs"
 python3 "$SCRIPT_DIR/subset_visium_hd.py" \
-    "$TMPDIR/outs" \
-    "$DIR/${ID}_tiny_spaceranger" \
-    "$ID"
+    --input "$TMPDIR/outs" \
+    --output "$DIR/${ID}_tiny_spaceranger" \
+    --dataset-id "$ID"
 
 # 2. tiny FASTQ run folder (first 10,000 reads) from the full dataset. The full
 #    tar has no L001 (lanes are L002-L008), so take the first R1/R2 lane and
