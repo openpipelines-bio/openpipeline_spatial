@@ -38,13 +38,15 @@ python3 "$SCRIPT_DIR/subset_visium_hd.py" \
     "$DIR/${ID}_tiny_spaceranger" \
     "$ID"
 
-# 2. tiny FASTQ run folder (first 100,000 reads) from the full dataset
+# 2. tiny FASTQ run folder (first 10,000 reads) from the full dataset. The full
+#    tar has no L001 (lanes are L002-L008), so take the first R1/R2 lane and
+#    write them under a canonical single-lane name.
 curl -fSL -o "$TMPDIR/fastqs.tar" "$FULL_BASE/Visium_HD_3prime_Mouse_Brain_fastqs.tar"
 mkdir -p "$TMPDIR/fastqs" "$DIR/${ID}_tiny"
 tar -xf "$TMPDIR/fastqs.tar" -C "$TMPDIR/fastqs"
 for r in R1 R2; do
-  src=$(find "$TMPDIR/fastqs" -name "*_L001_${r}_001.fastq.gz" | sort | head -1)
-  gzip -cdf "$src" | head -n 400000 | gzip -c \
+  src=$(find "$TMPDIR/fastqs" -name "*_${r}_*.fastq.gz" | sort | head -1)
+  gzip -cdf "$src" | head -n 40000 | gzip -c \
     > "$DIR/${ID}_tiny/${ID}_S1_L001_${r}_001.fastq.gz"
 done
 
