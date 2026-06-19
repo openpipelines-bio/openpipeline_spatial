@@ -180,7 +180,9 @@ def stub_feature_slice(src_path, dst_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True, help="extracted Space Ranger outs dir")
+    parser.add_argument(
+        "--input", required=True, help="extracted Space Ranger outs dir"
+    )
     parser.add_argument("--output", required=True, help="output tiny_spaceranger dir")
     parser.add_argument(
         "--dataset-id", required=True, help="feature_slice prefix / dataset id"
@@ -205,7 +207,9 @@ def main():
         os.makedirs(f"{out_dir}/spatial")
 
         positions = pd.read_parquet(f"{src_dir}/spatial/tissue_positions.parquet")
-        assert list(positions.columns) == TISSUE_POSITION_COLUMNS, list(positions.columns)
+        assert list(positions.columns) == TISSUE_POSITION_COLUMNS, list(
+            positions.columns
+        )
         region = positions[
             (positions.pxl_row_in_fullres >= row_min)
             & (positions.pxl_row_in_fullres <= row_max)
