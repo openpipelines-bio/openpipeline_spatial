@@ -3240,7 +3240,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_test/nextflow/test_workflows/niche/nichecompass_leiden_test",
     "viash_version" : "0.9.7",
-    "git_commit" : "f6b26614638569032108e35f233c4926be7e57bf",
+    "git_commit" : "760c71fe012264b328651677954d26286f83d972",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
