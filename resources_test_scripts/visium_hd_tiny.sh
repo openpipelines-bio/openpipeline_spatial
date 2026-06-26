@@ -61,6 +61,18 @@ done
 curl -fSL -o "$TMPDIR/image.tif" "$FULL_BASE/Visium_HD_3prime_Mouse_Brain_image.tif"
 convert "$TMPDIR/image.tif" -resize 2000x2000 "$DIR/${ID}_image_tiny.jpg"
 
+# 4. CytAssist image from the tiny dataset outs. Visium HD chemistry requires a
+#    --cytaimage input (the microscope image alone is not enough), and this one
+#    carries the slide/area metadata so the ingestion workflow needs no --unknown-slide.
+cp "$TMPDIR/outs/spatial/cytassist_image.tiff" "$DIR/${ID}_cytassist_tiny.tiff"
+
+# 5. mouse probe set, taken from the Space Ranger bundle (mm10-2020-A v2.0). The
+#    Visium HD 3' assay is probe-based, so the ingestion workflow needs this; it
+#    must match the mm10 reference built by reference_mm10_tiny.sh.
+PROBE_SET="Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
+docker run --rm -v "$DIR:/out" --entrypoint bash "ghcr.io/data-intuitive/spaceranger:3.1" -c \
+  "cp /opt/spaceranger*/probe_sets/$PROBE_SET /out/probe_set.csv"
+
 # Sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
     --profile di \
