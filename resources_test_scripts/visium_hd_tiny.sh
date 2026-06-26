@@ -66,12 +66,11 @@ convert "$TMPDIR/image.tif" -resize 2000x2000 "$DIR/${ID}_image_tiny.jpg"
 #    carries the slide/area metadata so the ingestion workflow needs no --unknown-slide.
 cp "$TMPDIR/outs/spatial/cytassist_image.tiff" "$DIR/${ID}_cytassist_tiny.tiff"
 
-# 5. mouse probe set, taken from the Space Ranger bundle (mm10-2020-A v2.0). The
-#    Visium HD 3' assay is probe-based, so the ingestion workflow needs this; it
-#    must match the mm10 reference built by reference_mm10_tiny.sh.
-PROBE_SET="Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
-docker run --rm -v "$DIR:/out" --entrypoint bash "ghcr.io/data-intuitive/spaceranger:3.1" -c \
-  "cp /opt/spaceranger*/probe_sets/$PROBE_SET /out/probe_set.csv"
+# 5. mouse probe set (mm10-2020-A v2.0), downloaded from 10x. The Visium HD 3'
+#    assay is probe-based, so the ingestion workflow needs this; it must match the
+#    mm10 reference fetched by reference_mm10_tiny.sh.
+curl -fSL -o "$DIR/probe_set.csv" \
+  "https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
 
 # Sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
