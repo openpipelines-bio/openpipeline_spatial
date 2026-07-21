@@ -59,6 +59,11 @@ argument_groups:
       type: string
       default: "RNA"
       description: Name of the assay to be created.
+    - name: "--x_mapping"
+      type: string
+      default: "counts"
+      description: |
+        Name of the Seurat layer in which the AnnData .X matrix is stored.
 resources:
   - type: r_script
     path: script.R
@@ -75,7 +80,7 @@ engines:
         packages: [ libhdf5-dev, libgeos-dev, hdf5-tools ]
       - type: r
         cran: [ anndata, hdf5r, Seurat, SeuratObject ]
-        github: scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a
+        bioc: [ anndataR, rhdf5 ]
     test_setup:
       - type: r
         cran: [ testthat ]

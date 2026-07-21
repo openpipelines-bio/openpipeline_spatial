@@ -108,6 +108,12 @@ viash run src/convert/from_cells2stats_to_h5mu/config.vsh.yaml -- \
 
 echo "> Conversion to H5MU complete"
 
+viash run src/neighbors/spatial_neighborhood_graph/config.vsh.yaml -- \
+    --input "$DIR/aviti_teton_tiny.h5mu" \
+    --output "$DIR/aviti_teton_tiny.h5mu"
+
+echo "> Spatial neighbor graph calculation complete"
+
 aws s3 sync \
     --profile di \
     "$DIR" \
