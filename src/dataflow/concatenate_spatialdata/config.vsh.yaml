@@ -6,7 +6,7 @@ description: |
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
+    roles: [ author ]
   - __merge__: /src/authors/luke_zappia.yaml
     roles: [ author ]
 

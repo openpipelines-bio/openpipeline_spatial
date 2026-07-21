@@ -4,10 +4,8 @@ scope: "public"
 description: "A pipeline to add basic qc statistics to a MuData containing spatial data."
 authors:
   - __merge__: /src/authors/dries_schaumont.yaml
-    roles: [ author, maintainer ]
+    roles: [ author ]
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ contributor ]
-  - __merge__: /src/authors/weiwei_schultz.yaml
     roles: [ contributor ]
 info:
   test_dependencies:
