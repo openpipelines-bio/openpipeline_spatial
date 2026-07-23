@@ -13,6 +13,7 @@ probe_set = (
 image = (
     meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg"
 )
+slidefile = meta["resources_dir"] + "/visium/V10L13-020.gpr"
 reference = meta["resources_dir"] + "/GRCh38"
 
 
@@ -32,6 +33,8 @@ def test_simple_execution(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--create_bam",
             "false",
             "--output",
@@ -70,6 +73,8 @@ def test_with_fastqs(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--create_bam",
             "false",
             "--output",
@@ -106,13 +111,14 @@ def test_with_optional_params(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--nosecondary",
-            "true",
             "--r1_length",
             "100",
             "--r2_length",
             "100",
-            "filter_probes",
+            "--filter_probes",
             "false",
             "--create_bam",
             "true",

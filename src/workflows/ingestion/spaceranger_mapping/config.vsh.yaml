@@ -48,8 +48,10 @@ argument_groups:
         example: "/path/to/refdata-gex-GRCh38-2020-A"
       - name: --probe_set
         type: file
-        required: true
-        description: CSV file specifying the probe set used
+        required: false
+        description: |
+          CSV file specifying the probe set used. Required for probe-based assays
+          (FFPE / standard Visium and Visium HD). Omit for Visium HD 3' data.
         example: "Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
       - name: --cytaimage
         type: file
@@ -187,9 +189,69 @@ argument_groups:
         description: Whether to filter the probe set using the "included" column
       - name: --custom_bin_size
         type: integer
-        description: Bin Visium HD data to specified size in microns (4-100, even values only) in addition to the standard binning size (2 µm, 8 µm, 16 µm)
+        description: Bin Visium HD data to specified size in microns (4-100, even values only) in addition to the standard binning size (2 um, 8 um, 16 um)
         min: 4
         max: 100
+      - name: --include_introns
+        type: boolean
+        required: false
+        description: |
+          Include intronic reads in the count. When unset, Space Ranger applies its own default
+          (true for Visium HD 3' and Visium v1, false otherwise).
+
+  - name: Segmentation Options
+    arguments:
+      - name: --nucleus_segmentation
+        type: boolean
+        required: false
+        description: |
+          Enable or disable nucleus and cell segmentation for Visium HD / HD 3' H&E samples.
+          When unset, Space Ranger runs segmentation by default if an H&E image is provided.
+      - name: --custom_segmentation_file
+        type: file
+        required: false
+        description: |
+          Custom nucleus segmentation mask to use instead of the built-in algorithm.
+          Requires --nucleus_expansion_distance_micron.
+        example: "nucleus_segmentation.geojson"
+      - name: --nucleus_expansion_distance_micron
+        type: double
+        required: false
+        description: Distance in microns to expand each nucleus to approximate the cell boundary.
+      - name: --max_nucleus_diameter_px
+        type: integer
+        required: false
+        description: Maximum nucleus diameter in pixels, for samples with exceptionally large cells.
+        min: 1
+      - name: --umi_registration
+        type: boolean
+        required: false
+        description: |
+          Enable or disable UMI-based registration that aligns the microscope image to the UMI
+          count data for Visium HD. When unset, Space Ranger applies its default.
+      - name: --umi_to_image_offset
+        type: string
+        required: false
+        description: |
+          Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image
+          registration when automatic convergence is incorrect.
+
+  - name: Cell Annotation
+    arguments:
+      - name: --cell_annotation_model
+        type: string
+        required: false
+        description: |
+          Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).
+        choices: [auto, human_pca_v1_beta, mouse_pca_v1_beta]
+      - name: --tenx_cloud_token_path
+        type: file
+        required: false
+        description: Path to a 10x Cloud token JSON, required for cloud-based annotation models.
+        example: "tenx_cloud_token.json"
+      - name: --disable_cell_annotation
+        type: boolean_true
+        description: Disable cell type annotation.
 
 dependencies:
   - name: mapping/spaceranger_count

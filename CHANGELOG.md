@@ -8,7 +8,13 @@
 
 * `nichecompass/gene_program_mask`: Update container base image to `pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime` (28).
 
+## MAJOR CHANGES
+
+* `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Update Space Ranger from 3.1 to 4.1.0. `--probe_set` is now optional (omit for Visium HD 3' data), and telemetry and the web UI are disabled for non-interactive runs (PR #64).
+
 ## MINOR CHANGES
+
+* `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Expose Space Ranger 4.x arguments for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64).
 
 * `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
