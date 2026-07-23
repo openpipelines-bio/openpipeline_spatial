@@ -16,6 +16,8 @@
 
 * `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Expose Space Ranger 4.x arguments for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64).
 
+* `mapping/spaceranger_count`: Add Nextflow resource labels (`highcpu`, `veryhighmem`, `highdisk`) so compute is allocated appropriately (PR #64).
+
 * `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
 
