@@ -1,4 +1,4 @@
-# openpipeline_spatial (unreleased)
+# openpipeline_spatial 0.6.0
 
 ## NEW FUNCTIONALITY
 

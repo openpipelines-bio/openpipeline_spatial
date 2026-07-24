@@ -3413,7 +3413,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/dataflow/concatenate_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "a0e9a8f91e043669406e207c0087f2292141de61",
+    "git_commit" : "0cf07ba7d1bab2bf25d9a5332a078e72379b40d3",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
