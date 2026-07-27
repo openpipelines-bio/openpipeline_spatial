@@ -14,7 +14,6 @@
 
 * Bump `spatialdata` to version 0.8.0 and `ome-zarr` to 0.18.0 (PR #65).
 
-
 ## BUG FIXES
 
 * `dataflow/concatenate_spatialdata`: Handle a single input and make sure regions are properly tracked with the appropriate `"spatialdata_attrs"` (PR #58) 
