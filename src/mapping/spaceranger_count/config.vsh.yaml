@@ -169,7 +169,7 @@ argument_groups:
 
       - type: integer
         name: --custom_bin_size
-        description: Bin Visium HD data to specified size in microns (4-100, even values only) in addition to the standard binning size (2 um, 8 um, 16 um)
+        description: Bin Visium HD data to specified size in microns (4-100, even values only) in addition to the standard binning size (2 µm, 8 µm, 16 µm)
         min: 4
         max: 100
 
