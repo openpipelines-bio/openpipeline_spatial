@@ -12,6 +12,8 @@
 
 * `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
+* `convert/from_h5mu_to_spatialdata`, `convert_from_spatialdata_to_h5mu`, `convert/from_xenium_to_spatialdata`, `dataflow/concatenate_spatialdata`, `dataflow_move_layer_spatialdata`: Bump `spatialdata` to version 0.8.0` (PR #65).
+
 
 ## BUG FIXES
 
