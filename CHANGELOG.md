@@ -1,0 +1,144 @@
+# openpipeline_spatial 0.6.0
+
+## NEW FUNCTIONALITY
+
+* `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
+
+* `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatial neighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)
+
+* `nichecompass/gene_program_mask`: Update container base image to `pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime` (28).
+
+## MINOR CHANGES
+
+* `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
+
+* Bump `spatialdata` to version 0.8.0 and `ome-zarr` to 0.18.0 (PR #65).
+
+## BUG FIXES
+
+* `dataflow/concatenate_spatialdata`: Handle a single input and make sure regions are properly tracked with the appropriate `"spatialdata_attrs"` (PR #58) 
+
+# openpipeline_spatial 0.5.0
+
+
+* `dataflow/concatenate_spatialdata`: Concatenate two or more SpatialData objects (PR #49).
+
+* `dataflow/move_layer_spatialdata`: Move/rename a layer in a SpatialData object (PR #50).
+
+* `convert/from_h5mu_to_seurat_with_fov`: Added converter component for H5MU data to Seurat objects with spatial FOV (PR #51).
+
+## MAJOR CHANGES
+
+* Pin OpenPipeline dependency to v4.1.0 (PR #56).
+
+## MINOR CHANGES
+
+* Pin ome-zarr to 0.13.0 to avoid a chunk shape incompatibility with zarr 3.x (PR #48).
+
+* Bump Viash to 0.9.7 (PR #57).
+
+* Bump anndata to 0.12.16 (PR #57).
+
+* Bump mudata to 0.3.8 (PR #57).
+
+* Bump scanpy to 1.11.4 (PR #57)
+
+* Testing: bump viashpy to 0.10.0 (PR #57).
+
+## BUG FIXES
+
+* `convert/from_h5mu_to_spatialdata`: Make sure the AnnData table is properly parsed before inserting into the new SpatialData object (PR #53).
+
+* `convert/from_h5mu_to_spatialexperiment`: Add `libuv1-dev` to the test image so reticulate imports successfully (#54).
+
+* `nichecompass/gene_program_mask`: Bump container base image to `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04` and pin `decoupler>=2.1.6` to pick up the updated HCOP orthology download URL (PR #55).
+
+# openpipeline_spatial 0.4.0
+
+## NEW FUNCTIONALITY
+
+* `feature_annotation/spatial_autocorr`: Added a spatial autocorrelation component (PR #45).
+
+* `feature_annotation/xenium_spatial_statistics`: Added a component to calculate spatial statistics on Xenium-ingested data (PR #46).
+
+* `neighbors/join_graphs`: Combine spatial and expression neighborhood graphs into a single graph (PR #47).
+
+# openpipeline_spatial 0.3.0
+
+## NEW FUNCTIONALITY
+
+* `convert/from_h5mu_to_spatialdata`: Added a converter component to convert from H5MU to SpatialData (PR #40)
+
+* `nichecompass/gene_program_mask`: Added a component to create a prior knowledge gene program mask for NicheCompass analysis (PR #27).
+
+## MINOR CHANGES
+
+* Bump squidpy to 1.8.1 and spatialdata to 0.7.2 (PR #41).
+
+* Update openpipeline dependencies to v4.0.3 (PR #42, PR #44).
+
+# openpipeline_spatial 0.2.0
+
+## NEW FUNCTIONALITY
+
+* `neighbors/spatial_neighborhood_graph`: Calculate the spatial neighborhood graph (PR #29).
+
+* `convert/from_spaceranger_to_h5mu`: Added converter component for convert Spaceranger output to H5MU files (PR #33).
+
+* `workflows/ingestion/spaceranger_mapping`: Added a workflow to ingest Visium data using Spaceranger and convert the count matrix to an H5MU file (PR #33).
+
+## MINOR CHANGES
+
+* Add `scope` to component and workflow configurations (PR #22).
+
+* `convert/from_xenium_to_spatialexperiment`: Add arrow with zstd codec support to handle I/O of zstd-compressed Xenium parquet files (PR #30).
+
+* `mapping/spaceranger_count`: Allow providing individual FASTQ files instead of directories (PR #32).
+
+* Bump anndata to 0.12.7 and mudata to 0.3.2 (PR #34).
+
+* Bump spatialdata to 0.6.1 and spatialdata-io to 0.5.1 (PR #24, #34).
+
+* Bump squidpy to 1.7.0 (PR #36).
+
+* Update openpipeline dependencies to v4.0.0 (PR #37).
+
+## BUG FIXES
+
+* `convert/from_cosmx_to_h5mu`: Fixed an issue where parent directories of the cosmx output bundle were duplicated when reading in data (PR #25).
+
+* `mapping/spaceranger_count`: Fixed issue with long temporary folder paths causing write failures (PR #31).
+
+# openpipeline_spatial 0.1.1
+
+## MINOR CHANGES
+
+* Add a README (PR #21).
+
+## NEW FUNCTIONALITY
+
+* `convert`: Updated multiple components to accept spatial output bundles in .zip format (for CosMx, Xenium and Aviti) as input (PR #19, PR #20).
+
+* `convert/from_cosmx_to_h5mu`: Updated component to handle CosMx output bundles generated with AtoMx SIP versions < v1.3.2 (PR #25).
+
+# openpipeline_spatial 0.1.0
+
+## NEW FUNCTIONALITY
+
+* `filter/subset_cosmx`: Added a component to subset COSMX data (PR #3, PR #9).
+
+* `convert/from_cosmx_to_h5mu`: Added converter component for COSMX data (PR #3, PR #9).
+
+* `mapping/spaceranger_count`: Added a spaceranger count component (PR #2).
+
+* `convert/from_spatialdata_to_h5mu`, `convert/from_xenium_to_spatialdata`, `convert/from_xenium_to_h5mu`: Added converter components for xenium data (PR #1, #10).
+
+* `convert/from_xenium_to_spatialexperiment`, `convert/from_cosmx_to_spatialexperiment`: Added converter components for Xenium or CosMx data to SpatialExperiment objects (PR #9).
+
+* `convert/from_cells2stats_to_h5mu`: Added a component to convert data resulting from Aviti Teton sequencers processed by Cells2Stats into an H5MU file (PR #15).
+
+* `workflows/qc/qc`: Added a pipeline for calculating qc metrics of spatial omics samples (PR #5).
+
+* `workflows/multiomics/spatial_process_samples`: Added a pipeline to pre-process multiple spatial omics samples (PR #7).
+
+* `convert/from_h5mu_to_spatialexperiment`: Added converter component for H5MU data to SpatialExperiment objects (PR #15).

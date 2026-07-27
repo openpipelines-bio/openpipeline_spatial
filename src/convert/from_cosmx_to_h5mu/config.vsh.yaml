@@ -1,0 +1,75 @@
+name: "from_cosmx_to_h5mu"
+namespace: "convert"
+scope: "public"
+description: |
+  Converts the output from NanoString experiment into a MuData objcet.
+    - `<dataset_id>_exprMat_file.csv`: File containing the counts.
+    - `<dataset_id>`_metadata_file: File containing the spatial coordinates and additional cell-level metadata.
+    - `<dataset_id>_fov_file.csv`: File containing the coordinates of all the fields of view.
+  In addition to reading the regular Nanostring output, it loads CellComposite and CellLabels directories, if present,
+  containing the images.
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [ maintainer ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: Input folder. Must contain the output from a NanoString CosMx run.
+    example: cosmx_data
+    direction: input
+    required: true
+  - name: "--modality"
+    type: string
+    default: rna
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: The output h5mu file.
+    example: "output.h5mu"
+    direction: output
+  - name: "--output_compression"
+    type: string
+    choices: ["gzip", "lzf"]
+    required: false
+    example: "gzip"
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+  - path: /src/utils/unzip_archived_folder.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/cosmx/Lung5_Rep2_tiny/
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages: 
+          - procps
+          - build-essential
+          - zlib1g-dev
+          - git
+      - type: python
+        __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/squidpy.yaml, .]
+        packages: [ pyarrow ]
+        # Windows explorer uses DEFLATE64 compression for large ZIP files,
+        # which is not supported by most standard library zipfile module
+        git: [ https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2 ]
+    test_setup:
+      - type: apt
+        packages:
+          - zip
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
