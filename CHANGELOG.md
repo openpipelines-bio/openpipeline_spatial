@@ -6,6 +6,10 @@
 
 ## NEW FUNCTIONALITY
 
+* `convert/from_spaceranger_hd_to_spatialdata`: Convert the Space Ranger 4.x cell-segmentation output for Visium HD into a SpatialData object (per-cell counts + cell boundary polygons) (PR #64).
+
+* `workflows/ingestion/spaceranger_hd_mapping`: Workflow to align raw Visium HD 3' FASTQ files with Space Ranger (including nucleus/cell segmentation) and convert the segmented output to SpatialData (PR #64).
+
 * `nichecompass/nichecompass`: Component to train a NicheCompass model and project latent space embeddings (PR #28).
 
 * `workflows/niche/nichecompass_leiden`: Workflow to perform niche analysis using NicheCompass, including spatial neighborhood calculation, NicheCompass analysis and Leiden clustering (PR #28)

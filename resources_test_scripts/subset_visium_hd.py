@@ -19,11 +19,17 @@ small square region of the tissue:
 tissue images and scale factors are copied unchanged -- the bin coordinates
 still map onto them via the (unchanged) scale factor.
 
+The ``segmented_outputs/`` cell segmentation (Space Ranger 4.x) is cropped to
+the same region: cell polygons whose centroid falls in the box are kept, the
+cell count matrix is subset to those cells, and the segmentation scale factors
+and tissue images are copied.
+
 Usage:
     subset_visium_hd.py --input OUTS_DIR --output FIXTURE_DIR --dataset-id ID
 """
 
 import argparse
+import json
 import os
 import shutil
 
@@ -35,6 +41,11 @@ import pandas as pd
 BIN_DIRS = ["square_002um", "square_008um", "square_016um"]
 # The two count matrices kept for each bin size.
 MATRIX_FILES = ["filtered_feature_bc_matrix.h5", "raw_feature_bc_matrix.h5"]
+# Cell-segmentation outputs (Space Ranger 4.x). Only the files that
+# spatialdata_io.visium_hd(load_segmentations_only=True) reads are kept.
+SEGMENTED_DIR = "segmented_outputs"
+CELL_MATRIX_FILE = "filtered_feature_cell_matrix.h5"
+CELL_GEOJSON_FILE = "cell_segmentations.geojson"
 # Columns of tissue_positions.parquet, used to sanity-check the input.
 TISSUE_POSITION_COLUMNS = [
     "barcode",
@@ -178,6 +189,53 @@ def stub_feature_slice(src_path, dst_path):
             dst.attrs[key] = value
 
 
+def crop_segmented_outputs(input_dir, output_dir, box):
+    """Crop ``segmented_outputs/`` (cell segmentation) to the pixel bounding box.
+
+    Keeps cell polygons whose centroid falls inside the crop box, subsets the
+    cell count matrix to the matching cells, and copies the segmentation scale
+    factors and tissue images -- exactly what
+    ``spatialdata_io.visium_hd(load_segmentations_only=True)`` reads. GeoJSON
+    polygon coordinates are ``[x, y] = [pxl_col, pxl_row]`` in full resolution,
+    and each cell's count-matrix barcode is ``cellid_<cell_id:09d>-1``.
+    """
+    row_min, row_max, col_min, col_max = box
+    src = f"{input_dir}/{SEGMENTED_DIR}"
+    dst = f"{output_dir}/{SEGMENTED_DIR}"
+    os.makedirs(f"{dst}/spatial")
+
+    # Keep cell polygons whose exterior-ring centroid is inside the crop box.
+    with open(f"{src}/{CELL_GEOJSON_FILE}") as file:
+        geojson = json.load(file)
+    kept_features = []
+    kept_cell_ids = []
+    for feature in geojson["features"]:
+        ring = np.asarray(feature["geometry"]["coordinates"][0], dtype=float)
+        col, row = ring[:, 0].mean(), ring[:, 1].mean()
+        if col_min <= col <= col_max and row_min <= row <= row_max:
+            kept_features.append(feature)
+            kept_cell_ids.append(feature["properties"]["cell_id"])
+    geojson["features"] = kept_features
+    with open(f"{dst}/{CELL_GEOJSON_FILE}", "w") as file:
+        json.dump(geojson, file)
+
+    # Subset the cell count matrix to the kept cells.
+    keep_barcodes = {f"cellid_{cell_id:09d}-1".encode() for cell_id in kept_cell_ids}
+    n_cells = subset_matrix(
+        f"{src}/{CELL_MATRIX_FILE}", f"{dst}/{CELL_MATRIX_FILE}", keep_barcodes
+    )
+
+    # Copy the segmentation scale factors and tissue images (read by the reader).
+    for spatial_file in (
+        "scalefactors_json.json",
+        "tissue_hires_image.png",
+        "tissue_lowres_image.png",
+    ):
+        shutil.copy(f"{src}/spatial/{spatial_file}", f"{dst}/spatial/")
+
+    print(f"  segmented_outputs: {len(kept_features)} cell polygons | {n_cells} cells")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -243,6 +301,11 @@ def main():
             f"filtered={n_kept['filtered_feature_bc_matrix.h5']} "
             f"raw={n_kept['raw_feature_bc_matrix.h5']}"
         )
+
+    print(">>> cropping segmented_outputs (cell segmentation)")
+    crop_segmented_outputs(
+        args.input, args.output, (row_min, row_max, col_min, col_max)
+    )
 
 
 if __name__ == "__main__":

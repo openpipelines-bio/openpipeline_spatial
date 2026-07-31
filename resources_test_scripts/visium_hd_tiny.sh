@@ -66,9 +66,10 @@ convert "$TMPDIR/image.tif" -resize 2000x2000 "$DIR/${ID}_image_tiny.jpg"
 #    carries the slide/area metadata so the ingestion workflow needs no --unknown-slide.
 cp "$TMPDIR/outs/spatial/cytassist_image.tiff" "$DIR/${ID}_cytassist_tiny.tiff"
 
-# 5. mouse probe set (mm10-2020-A v2.0), downloaded from 10x. The Visium HD 3'
-#    assay is probe-based, so the ingestion workflow needs this; it must match the
-#    mm10 reference fetched by reference_mm10_tiny.sh.
+# 5. mouse probe set (mm10-2020-A v2.0), downloaded from 10x. This Visium HD 3'
+#    dataset is probe-based (Space Ranger `count` requires `--probe-set` for it),
+#    so the ingestion workflow needs this; it must match the mm10 reference
+#    fetched by reference_mm10_tiny.sh.
 curl -fSL -o "$DIR/probe_set.csv" \
   "https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
 
