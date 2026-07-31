@@ -3311,9 +3311,9 @@ meta = [
             "awkward",
             "scipy~=1.17.1",
             "mudata~=0.3.8",
-            "spatialdata~=0.7.2",
+            "spatialdata~=0.8.0",
             "pyarrow~=18.0.0",
-            "ome-zarr~=0.13.0"
+            "ome-zarr~=0.18.0"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -3349,7 +3349,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "0cf07ba7d1bab2bf25d9a5332a078e72379b40d3",
+    "git_commit" : "a72aa40b13dca9ed4348ab40f88eea90b2b35cd8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

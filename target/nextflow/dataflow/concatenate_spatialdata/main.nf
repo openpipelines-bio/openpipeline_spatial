@@ -3371,9 +3371,9 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "spatialdata~=0.7.2",
+            "spatialdata~=0.8.0",
             "pyarrow~=18.0.0",
-            "ome-zarr~=0.13.0",
+            "ome-zarr~=0.18.0",
             "anndata~=0.12.16",
             "awkward",
             "scipy~=1.17.1"
@@ -3413,7 +3413,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/dataflow/concatenate_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "0cf07ba7d1bab2bf25d9a5332a078e72379b40d3",
+    "git_commit" : "a72aa40b13dca9ed4348ab40f88eea90b2b35cd8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

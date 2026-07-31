@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component neighbors join_graphs"
-LABEL org.opencontainers.image.created="2026-07-24T14:00:38Z"
+LABEL org.opencontainers.image.created="2026-07-31T12:04:38Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="0cf07ba7d1bab2bf25d9a5332a078e72379b40d3"
+LABEL org.opencontainers.image.revision="a72aa40b13dca9ed4348ab40f88eea90b2b35cd8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
