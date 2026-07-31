@@ -1,4 +1,4 @@
-# openpipeline_spatial (unreleased)
+# openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
 
@@ -22,6 +22,7 @@
 
 * `convert/from_h5mu_to_seurat_with_fov`: Bump anndataR to the Bioconductor release 1.2.0. Added an `--x_mapping` argument to control the Seurat layer the AnnData `.X` matrix is stored in (default `counts`) (PR #60).
 
+* Bump `spatialdata` to version 0.8.0 and `ome-zarr` to 0.18.0 (PR #65).
 
 ## BUG FIXES
 
