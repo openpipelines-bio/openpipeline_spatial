@@ -58,8 +58,9 @@ for var in $par_input; do
   fi
 done
 
-# process reference
-if file $par_gex_reference | grep -q 'gzip compressed data'; then
+# process reference: untar if it is a gzipped archive rather than a directory
+# (`gzip -t` avoids depending on the `file` command, which the image lacks)
+if [ -f "$par_gex_reference" ] && gzip -t "$par_gex_reference" 2>/dev/null; then
   echo "Untarring genome"
   reference_dir="$tmpdir/fastqs"
   mkdir -p "$reference_dir"

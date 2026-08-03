@@ -17,6 +17,11 @@ workflow test_wf {
         cytaimage: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_cytassist_tiny.tiff"),
         image: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_image_tiny.jpg"),
         create_bam: "false",
+        // Skip secondary analysis (per-bin clustering metrics come out null on
+        // this tiny fixture and break the HD web-summary builder) and cell
+        // annotation (requires a 10x Cloud token).
+        nosecondary: true,
+        disable_cell_annotation: true,
         output_type: "filtered",
       ]
     ])

@@ -69,15 +69,8 @@ engines:
       - type: apt
         packages:
           - procps
-      # NOTE: reading Space Ranger 4.x cell segmentation requires spatialdata
-      # >= 0.7.3 (0.7.2 crashes in table-key validation). That in turn requires
-      # a newer ome-zarr than the repo-wide `ome-zarr~=0.13.0` pin, so this
-      # component intentionally does NOT merge /src/base/requirements/spatialdata-io.yaml
-      # and pins its own spatialdata stack instead.
       - type: python
-        packages:
-          - spatialdata~=0.8.0
-          - spatialdata-io~=0.5.1
+        __merge__: [ /src/base/requirements/spatialdata-io.yaml, . ]
     __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
 runners:
   - type: executable
