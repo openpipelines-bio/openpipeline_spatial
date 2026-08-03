@@ -26,6 +26,8 @@
 
 ## BUG FIXES
 
+* `convert/from_xenium_to_h5mu`, `convert/from_xenium_to_spatialdata`, `convert/from_cosmx_to_h5mu`, `convert/from_cells2stats_to_h5mu`: Install `zipfile-inflate64` from PyPI instead of cloning it from codeberg.org, which fixes Docker build failures on infrastructure whose egress IP codeberg blocks (PR #67).
+
 * `dataflow/concatenate_spatialdata`: Handle a single input and make sure regions are properly tracked with the appropriate `"spatialdata_attrs"` (PR #58) 
 
 # openpipeline_spatial 0.5.0
