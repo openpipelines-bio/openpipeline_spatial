@@ -3309,10 +3309,8 @@ meta = [
             "mudata~=0.3.8",
             "scanpy~=1.11.4",
             "squidpy~=1.8.1",
-            "pyarrow"
-          ],
-          "git" : [
-            "https://codeberg.org/miurahr/zipfile-inflate64.git@v0.2"
+            "pyarrow",
+            "zipfile-inflate64"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -3355,7 +3353,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_cosmx_to_h5mu",
     "viash_version" : "0.9.7",
-    "git_commit" : "a72aa40b13dca9ed4348ab40f88eea90b2b35cd8",
+    "git_commit" : "7f94cbe3963cb6fe51b34ebb3452f87aec595bec",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
