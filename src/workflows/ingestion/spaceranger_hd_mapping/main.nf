@@ -4,7 +4,14 @@ workflow run_wf {
 
   main:
   output_ch = input_ch
+    | map { id, state ->
+      assert state.input != null || state.spaceranger_output != null :
+        "ERROR [$id]: provide either --input (FASTQs to align) or --spaceranger_output (a pre-computed Space Ranger output)."
+      [id, state]
+    }
+    // Align reads with Space Ranger, unless a pre-computed output is provided.
     | spaceranger_count.run(
+      runIf: { id, state -> state.spaceranger_output == null },
       fromState: { id, state -> [
         "input": state.input,
         "gex_reference": state.gex_reference,
@@ -25,10 +32,10 @@ workflow run_wf {
         "output_raw": "output"
       ]
     )
-    // convert the segmented cells to SpatialData
+    // Convert the segmented cells to SpatialData.
     | from_spaceranger_hd_to_spatialdata.run(
       fromState: { id, state -> [
-        "input": state.output_raw,
+        "input": state.spaceranger_output ?: state.output_raw,
         "output_type": state.output_type,
         "output_layer": state.output_layer,
         // Space Ranger writes a bare "feature_slice.h5"; the converter infers
@@ -41,6 +48,10 @@ workflow run_wf {
         "output_spatialdata": "output"
       ]
     )
+    // When Space Ranger was skipped, report the provided output as output_raw.
+    | map { id, state ->
+      [id, state + ["output_raw": state.spaceranger_output ?: state.output_raw]]
+    }
     | setState(["output_raw", "output_spatialdata"])
 
   emit:

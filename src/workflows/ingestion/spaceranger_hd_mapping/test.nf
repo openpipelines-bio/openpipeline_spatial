@@ -8,20 +8,15 @@ workflow test_wf {
 
   resources_test = file(params.resources_test)
 
+  // Feed a pre-computed Space Ranger HD output (real 10x segmented output) so the
+  // workflow's conversion step is exercised without rerunning Space Ranger, which
+  // needs a full reference + real data that are too large for CI. The live
+  // Space Ranger alignment path is covered separately (spaceranger_count tests).
   output_ch = Channel.fromList([
       [
         id: "foo",
-        input: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_tiny"),
-        gex_reference: resources_test.resolve("mm10"),
-        probe_set: resources_test.resolve("visium_hd/probe_set.csv"),
-        cytaimage: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_cytassist_tiny.tiff"),
-        image: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_image_tiny.jpg"),
-        create_bam: "false",
-        // Skip secondary analysis (per-bin clustering metrics come out null on
-        // this tiny fixture and break the HD web-summary builder) and cell
-        // annotation (requires a 10x Cloud token).
-        nosecondary: true,
-        disable_cell_annotation: true,
+        spaceranger_output: resources_test.resolve("visium_hd/Visium_HD_Mouse_Brain_tiny_spaceranger"),
+        dataset_id: "Visium_HD_Mouse_Brain",
         output_type: "filtered",
       ]
     ])
@@ -31,6 +26,7 @@ workflow test_wf {
       assert output.size() == 2 : "outputs should contain two elements; [id, out]"
       assert output[1] instanceof Map : "Output should be a Map."
       assert output[1].containsKey("output_spatialdata") : "Output should contain output_spatialdata."
+      assert file(output[1].output_spatialdata).isDirectory() : "output_spatialdata should be a SpatialData Zarr store."
       "Output: $output"
     }
     | toSortedList()
