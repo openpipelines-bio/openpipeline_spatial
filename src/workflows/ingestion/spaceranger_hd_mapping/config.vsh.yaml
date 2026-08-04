@@ -138,11 +138,10 @@ resources:
     entrypoint: run_wf
   - type: file
     path: /src/workflows/utils/
-# NOTE: no CI integration test. A live Visium HD Space Ranger run needs a full
-# reference and real read depth, which are too large for a tiny CI fixture (a
-# tiny reference/probe subset yields near-empty counts that break Space Ranger's
-# HD web-summary stage). The conversion step is covered by the
-# convert/from_spaceranger_hd_to_spatialdata unit test (on real 10x segmented
-# output), and the Space Ranger wrapper by the mapping/spaceranger_count tests.
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - path: /resources_test/visium_hd_ffpe
 runners:
   - type: nextflow
