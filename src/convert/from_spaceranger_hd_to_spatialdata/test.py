@@ -41,6 +41,12 @@ def test_segmented_cells(run_component, tmp_path):
         f"expected cell segmentation shapes, got {list(sdata.shapes)}"
     )
 
+    # Space Ranger cell-type annotations (segmented_outputs/cell_types/) are
+    # merged into .obs.
+    assert "fine_cell_type" in table.obs, (
+        f"expected cell-type annotations in .obs, got {list(table.obs.columns)}"
+    )
+
 
 def test_bins(run_component, tmp_path):
     output = tmp_path / "bins.zarr"

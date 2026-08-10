@@ -233,7 +233,35 @@ def crop_segmented_outputs(input_dir, output_dir, box):
     ):
         shutil.copy(f"{src}/spatial/{spatial_file}", f"{dst}/spatial/")
 
+    # Space Ranger 4.1 cell-type annotation (segmented_outputs/cell_types/) did
+    # not exist in the 4.0.1 dataset this fixture is derived from, so synthesize a
+    # Pan-Human-Azimuth-format cell_types.csv for the kept cells to exercise the
+    # converter's annotation-ingestion path (the labels are placeholders).
+    write_synthetic_cell_types(kept_cell_ids, f"{dst}/cell_types/azimuth")
+
     print(f"  segmented_outputs: {len(kept_features)} cell polygons | {n_cells} cells")
+
+
+def write_synthetic_cell_types(cell_ids, out_dir):
+    """Write a placeholder Space Ranger Pan-Human Azimuth ``cell_types.csv``."""
+    os.makedirs(out_dir)
+    labels = [
+        ("Epithelial", "Epithelial cell", "Alveolar type 2"),
+        ("Immune", "T cell", "CD8 T cell"),
+        ("Stromal", "Fibroblast", "Myofibroblast"),
+    ]
+    header = (
+        "barcode,broad_cell_type,coarse_cell_type,fine_cell_type,"
+        "full_hierarchical_labels,final_level_softmax_prob,umi_count"
+    )
+    with open(f"{out_dir}/cell_types.csv", "w") as file:
+        file.write(header + "\n")
+        for i, cell_id in enumerate(sorted(cell_ids)):
+            broad, coarse, fine = labels[i % len(labels)]
+            file.write(
+                f"cellid_{cell_id:09d}-1,{broad},{coarse},{fine},"
+                f"{broad}|{coarse}|{fine},{0.6 + 0.01 * (i % 40):.3f},{100 + i}\n"
+            )
 
 
 def main():

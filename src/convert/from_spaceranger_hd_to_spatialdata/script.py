@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+import pandas as pd
 import spatialdata_io
 
 ## VIASH START
@@ -24,6 +25,30 @@ logger = setup_logger()
 # Space Ranger names the segmented-cell table "cell_segmentations"
 # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
 CELL_TABLE_KEY = "cell_segmentations"
+
+
+def add_cell_type_annotations(input_path, table):
+    """Merge Space Ranger cell-type annotations into the cell table's `.obs`.
+
+    Space Ranger 4.1 writes per-cell annotations to
+    `segmented_outputs/cell_types/<model>/cell_types.csv` (a `barcode` column
+    plus e.g. `broad/coarse/fine_cell_type`). `spatialdata_io` does not read
+    these, so merge them onto the table by barcode. No-op if not present (e.g.
+    annotation was disabled).
+    """
+    matches = sorted(input_path.glob("segmented_outputs/cell_types/**/cell_types.csv"))
+    if not matches:
+        logger.info("No cell-type annotations found; skipping annotation merge.")
+        return
+    annotations = pd.read_csv(matches[0]).set_index("barcode")
+    aligned = annotations.reindex(table.obs_names)
+    for column in annotations.columns:
+        table.obs[column] = aligned[column].to_numpy()
+    logger.info(
+        "Merged cell-type annotations from '%s': %s",
+        matches[0],
+        list(annotations.columns),
+    )
 
 
 def main(par):
@@ -61,6 +86,10 @@ def main(par):
     # technology-agnostic (the shapes and images keep their dataset-id names).
     sdata["table"] = sdata[table_key]
     del sdata[table_key]
+
+    # Cell-type annotations are per-cell, so only for the segmented-cell table.
+    if par["mode"] != "bins":
+        add_cell_type_annotations(input_path, sdata["table"])
 
     logger.info("SpatialData object:\n%s", sdata)
 
