@@ -42,6 +42,38 @@ def test_segmented_cells(run_component, tmp_path):
     )
 
 
+def test_bins(run_component, tmp_path):
+    output = tmp_path / "bins.zarr"
+    run_component(
+        [
+            "--input",
+            input,
+            "--output",
+            str(output),
+            "--mode",
+            "bins",
+            "--bin_size",
+            "8",
+            "--dataset_id",
+            "Visium_HD_Mouse_Brain",
+        ]
+    )
+
+    assert output.is_dir(), "output zarr store was not created"
+
+    sdata = sd.read_zarr(output)
+
+    assert "table" in sdata.tables, (
+        f"expected a 'table' with binned counts, got {list(sdata.tables)}"
+    )
+    assert sdata.tables["table"].n_obs > 0, "binned table has no bins"
+
+    # Binned data is stored as square-bin shapes named after the bin size.
+    assert any("square_008um" in key for key in sdata.shapes), (
+        f"expected 8um bin shapes, got {list(sdata.shapes)}"
+    )
+
+
 def test_output_layer(run_component, tmp_path):
     output = tmp_path / "output_layer.zarr"
     run_component(

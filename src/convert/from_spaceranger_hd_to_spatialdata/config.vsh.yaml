@@ -2,13 +2,13 @@ name: "from_spaceranger_hd_to_spatialdata"
 namespace: "convert"
 scope: "public"
 description: |
-  Converts the cell-segmentation output from 10X Genomics Space Ranger for
-  Visium HD into a SpatialData object.
+  Converts the output from 10X Genomics Space Ranger for Visium HD into a
+  SpatialData object.
 
-  Space Ranger 4.x runs nucleus and cell segmentation for Visium HD / HD 3'
-  samples and writes the results to a `segmented_outputs/` directory. This
-  component reads the segmented cells (per-cell count matrix and cell boundary
-  polygons) and stores them in a SpatialData Zarr store. The cell table is
+  By default it reads the segmented cells (per-cell count matrix and cell
+  boundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set
+  `--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)
+  at the bin size given by `--bin_size`. In both cases the loaded table is
   renamed to "table" so that downstream components stay technology-agnostic.
 keywords: [spaceranger, visium_hd, segmentation, spatialdata]
 links:
@@ -21,9 +21,10 @@ arguments:
     alternatives: ["-i"]
     type: file
     description: |
-      Input folder. Must contain the output from a Space Ranger run for Visium
-      HD with cell segmentation, including the `segmented_outputs/` directory
-      and a `*_feature_slice.h5` file.
+      Input folder containing the output from a Space Ranger run for Visium HD
+      and a `*_feature_slice.h5` file. Must contain a `segmented_outputs/`
+      directory for `--mode segmented_cells`, or `binned_outputs/` for
+      `--mode bins`.
     example: spaceranger_output
     direction: input
     required: true
@@ -34,11 +35,26 @@ arguments:
     example: "visium_hd_data.zarr"
     direction: output
     required: true
+  - name: "--mode"
+    type: string
+    description: |
+      Which output to load into the table: `segmented_cells` (per-cell counts
+      and cell boundary polygons from `segmented_outputs/`) or `bins` (binned
+      counts from `binned_outputs/square_<bin_size>um/`).
+    choices: [ segmented_cells, bins ]
+    default: segmented_cells
+  - name: "--bin_size"
+    type: integer
+    description: |
+      Bin size in microns to load when `--mode bins`. Visium HD captures data at
+      2 µm and aggregates it into 8 µm and 16 µm square bins.
+    choices: [ 2, 8, 16 ]
+    default: 8
   - name: "--output_type"
     type: string
     description: |
-      Which segmented cell count matrix to load: `filtered` (cells under tissue
-      only) or `raw` (all cells).
+      Which count matrix to load: `filtered` (barcodes under tissue only) or
+      `raw` (all barcodes). Applies to both the segmented-cell and binned matrices.
     choices: [ filtered, raw ]
     default: filtered
   - name: "--output_layer"

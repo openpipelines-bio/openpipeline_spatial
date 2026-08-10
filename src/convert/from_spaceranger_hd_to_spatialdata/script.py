@@ -7,6 +7,8 @@ import spatialdata_io
 par = {
     "input": "resources_test/visium_hd/Visium_HD_Mouse_Brain_tiny_spaceranger",
     "output": "output.zarr",
+    "mode": "segmented_cells",
+    "bin_size": 8,
     "output_type": "filtered",
     "output_layer": None,
     "dataset_id": None,
@@ -28,23 +30,37 @@ def main(par):
     input_path = Path(par["input"])
     filtered = par["output_type"] == "filtered"
 
-    logger.info("Reading Space Ranger HD segmentation output from '%s'", input_path)
+    logger.info("Reading Space Ranger HD output from '%s'", input_path)
     logger.info("spatialdata-io version: %s", spatialdata_io.__version__)
+    logger.info("mode: %s", par["mode"])
     logger.info("dataset_id: %s", par["dataset_id"] or "(inferred from feature slice)")
     logger.info("output_type: %s", par["output_type"])
 
-    sdata = spatialdata_io.visium_hd(
-        path=input_path,
-        dataset_id=par["dataset_id"],
-        filtered_counts_file=filtered,
-        load_segmentations_only=True,
-        load_nucleus_segmentations=False,
-    )
+    if par["mode"] == "bins":
+        logger.info("bin_size: %s um", par["bin_size"])
+        sdata = spatialdata_io.visium_hd(
+            path=input_path,
+            dataset_id=par["dataset_id"],
+            bin_size=[par["bin_size"]],
+            filtered_counts_file=filtered,
+            load_segmentations_only=False,
+        )
+        # visium_hd() names the binned table after the bin size, e.g. "square_008um".
+        table_key = f"square_{par['bin_size']:03d}um"
+    else:  # segmented_cells
+        sdata = spatialdata_io.visium_hd(
+            path=input_path,
+            dataset_id=par["dataset_id"],
+            filtered_counts_file=filtered,
+            load_segmentations_only=True,
+            load_nucleus_segmentations=False,
+        )
+        table_key = CELL_TABLE_KEY
 
-    # Rename the cell table to "table" so downstream components stay
-    # technology-agnostic (the cell boundary shapes keep their dataset-id name).
-    sdata["table"] = sdata[CELL_TABLE_KEY]
-    del sdata[CELL_TABLE_KEY]
+    # Rename the loaded table to "table" so downstream components stay
+    # technology-agnostic (the shapes and images keep their dataset-id names).
+    sdata["table"] = sdata[table_key]
+    del sdata[table_key]
 
     logger.info("SpatialData object:\n%s", sdata)
 
