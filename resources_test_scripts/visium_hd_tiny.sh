@@ -66,11 +66,23 @@ convert "$TMPDIR/image.tif" -resize 2000x2000 "$DIR/${ID}_image_tiny.jpg"
 #    carries the slide/area metadata so the ingestion workflow needs no --unknown-slide.
 cp "$TMPDIR/outs/spatial/cytassist_image.tiff" "$DIR/${ID}_cytassist_tiny.tiff"
 
-# 5. mouse probe set (mm10-2020-A v2.0), downloaded from 10x. The Visium HD 3'
-#    assay is probe-based, so the ingestion workflow needs this; it must match the
-#    mm10 reference fetched by reference_mm10_tiny.sh.
-curl -fSL -o "$DIR/probe_set.csv" \
+# 5. mouse probe set (mm10-2020-A v2.0). This Visium HD dataset is probe-based
+#    (Space Ranger `count` requires `--probe-set`). The full panel targets ~20k
+#    genes across the whole transcriptome, but the tiny reference
+#    (reference_mm10_tiny.sh) only contains chr19 + chrM genes. A whole-panel
+#    probe set against that tiny reference yields near-empty counts and breaks
+#    Space Ranger's HD web-summary stage, so subset the probe set to the genes
+#    present in the tiny reference. reference_mm10_tiny.sh must be run first.
+curl -fSL -o "$TMPDIR/probe_set_full.csv" \
   "https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
+zcat "$REPO_ROOT/resources_test/mm10/genes/genes.gtf.gz" | awk '$3=="gene"' \
+  | grep -oE 'ENSMUSG[0-9]+' | sort -u > "$TMPDIR/ref_gene_ids.txt"
+awk -F, -v genesfile="$TMPDIR/ref_gene_ids.txt" '
+  BEGIN { while ((getline gene_id < genesfile) > 0) keep[gene_id] = 1 }
+  /^#/ { print; next }               # metadata header lines
+  $1 == "gene_id" { print; next }    # column header
+  ($1 in keep) { print }             # probe rows for genes in the tiny reference
+' "$TMPDIR/probe_set_full.csv" > "$DIR/probe_set.csv"
 
 # Sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \

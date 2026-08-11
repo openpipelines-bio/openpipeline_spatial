@@ -446,16 +446,16 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM ghcr.io/data-intuitive/spaceranger:3.1
+FROM cumulusprod/spaceranger:4.1.0
 ENTRYPOINT []
 RUN DEBIAN_FRONTEND=noninteractive apt update && \
 apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-08-03T08:00:07Z"
+LABEL org.opencontainers.image.created="2026-08-11T13:27:59Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="7f94cbe3963cb6fe51b34ebb3452f87aec595bec"
+LABEL org.opencontainers.image.revision="aec7b0edfd05a571bfb76bbbfa6bbe609c169341"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -575,7 +575,8 @@ VIASH_DOCKER_RUN_ARGS=(-i --rm)
 function ViashHelp {
   echo "spaceranger_count build_main"
   echo ""
-  echo "Count gene expression and protein expression reads from a single capture area."
+  echo "Count gene expression and protein expression reads from a single capture area"
+  echo "using Space Ranger 4.1.0."
   echo ""
   echo "Inputs:"
   echo "    --gex_reference"
@@ -600,9 +601,10 @@ function ViashHelp {
   echo "        R2 - Read 2 (contains the actual cDNA sequence)"
   echo ""
   echo "    --probe_set"
-  echo "        type: file, required parameter, file must exist"
+  echo "        type: file, file must exist"
   echo "        example: Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
-  echo "        CSV file specifying the probe set used"
+  echo "        CSV file specifying the probe set used. Required for probe-based assays"
+  echo "        (FFPE / standard Visium and Visium HD). Omit for Visium HD 3' data."
   echo ""
   echo "    --cytaimage"
   echo "        type: file, file must exist"
@@ -713,6 +715,67 @@ function ViashHelp {
   echo "        max: 100"
   echo "        Bin Visium HD data to specified size in microns (4-100, even values"
   echo "        only) in addition to the standard binning size (2 µm, 8 µm, 16 µm)"
+  echo ""
+  echo "    --include_introns"
+  echo "        type: boolean"
+  echo "        Include intronic reads in the count. When unset, Space Ranger applies"
+  echo "        its own default"
+  echo "        (true for Visium HD 3' and Visium v1, false otherwise)."
+  echo ""
+  echo "Segmentation Options:"
+  echo "    --nucleus_segmentation"
+  echo "        type: boolean"
+  echo "        Enable or disable nucleus and cell segmentation for Visium HD / HD 3'"
+  echo "        H&E samples."
+  echo "        When unset, Space Ranger runs segmentation by default if an H&E image is"
+  echo "        provided."
+  echo ""
+  echo "    --custom_segmentation_file"
+  echo "        type: file, file must exist"
+  echo "        example: nucleus_segmentation.geojson"
+  echo "        Custom nucleus segmentation mask to use instead of the built-in"
+  echo "        algorithm."
+  echo "        Requires --nucleus_expansion_distance_micron."
+  echo ""
+  echo "    --nucleus_expansion_distance_micron"
+  echo "        type: double"
+  echo "        Distance in microns to expand each nucleus to approximate the cell"
+  echo "        boundary."
+  echo ""
+  echo "    --max_nucleus_diameter_px"
+  echo "        type: integer"
+  echo "        min: 1"
+  echo "        Maximum nucleus diameter in pixels, for samples with exceptionally large"
+  echo "        cells."
+  echo ""
+  echo "    --umi_registration"
+  echo "        type: boolean"
+  echo "        Enable or disable UMI-based registration that aligns the microscope"
+  echo "        image to the UMI"
+  echo "        count data for Visium HD. When unset, Space Ranger applies its default."
+  echo ""
+  echo "    --umi_to_image_offset"
+  echo "        type: string"
+  echo "        Supply a custom offset (as accepted by Space Ranger) to override"
+  echo "        UMI-to-image"
+  echo "        registration when automatic convergence is incorrect."
+  echo ""
+  echo "Cell Annotation:"
+  echo "    --cell_annotation_model"
+  echo "        type: string"
+  echo "        choices: [ auto, human_pca_v1_beta, mouse_pca_v1_beta ]"
+  echo "        Cell type annotation model to use (Visium HD / HD 3' only, requires"
+  echo "        segmentation)."
+  echo ""
+  echo "    --tenx_cloud_token_path"
+  echo "        type: file, file must exist"
+  echo "        example: tenx_cloud_token.json"
+  echo "        Path to a 10x Cloud token JSON, required for cloud-based annotation"
+  echo "        models."
+  echo ""
+  echo "    --disable_cell_annotation"
+  echo "        type: boolean_true"
+  echo "        Disable cell type annotation."
   echo ""
   echo "Input Selection:"
   echo "    --project"
@@ -1014,6 +1077,110 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_CUSTOM_BIN_SIZE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
+        --include_introns)
+            [ -n "$VIASH_PAR_INCLUDE_INTRONS" ] && ViashError Bad arguments for option \'--include_introns\': \'$VIASH_PAR_INCLUDE_INTRONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INCLUDE_INTRONS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --include_introns. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --include_introns=*)
+            [ -n "$VIASH_PAR_INCLUDE_INTRONS" ] && ViashError Bad arguments for option \'--include_introns=*\': \'$VIASH_PAR_INCLUDE_INTRONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INCLUDE_INTRONS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --nucleus_segmentation)
+            [ -n "$VIASH_PAR_NUCLEUS_SEGMENTATION" ] && ViashError Bad arguments for option \'--nucleus_segmentation\': \'$VIASH_PAR_NUCLEUS_SEGMENTATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEUS_SEGMENTATION="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --nucleus_segmentation. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --nucleus_segmentation=*)
+            [ -n "$VIASH_PAR_NUCLEUS_SEGMENTATION" ] && ViashError Bad arguments for option \'--nucleus_segmentation=*\': \'$VIASH_PAR_NUCLEUS_SEGMENTATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEUS_SEGMENTATION=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --custom_segmentation_file)
+            [ -n "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ] && ViashError Bad arguments for option \'--custom_segmentation_file\': \'$VIASH_PAR_CUSTOM_SEGMENTATION_FILE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CUSTOM_SEGMENTATION_FILE="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --custom_segmentation_file. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --custom_segmentation_file=*)
+            [ -n "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ] && ViashError Bad arguments for option \'--custom_segmentation_file=*\': \'$VIASH_PAR_CUSTOM_SEGMENTATION_FILE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CUSTOM_SEGMENTATION_FILE=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --nucleus_expansion_distance_micron)
+            [ -n "$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON" ] && ViashError Bad arguments for option \'--nucleus_expansion_distance_micron\': \'$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --nucleus_expansion_distance_micron. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --nucleus_expansion_distance_micron=*)
+            [ -n "$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON" ] && ViashError Bad arguments for option \'--nucleus_expansion_distance_micron=*\': \'$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --max_nucleus_diameter_px)
+            [ -n "$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX" ] && ViashError Bad arguments for option \'--max_nucleus_diameter_px\': \'$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --max_nucleus_diameter_px. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --max_nucleus_diameter_px=*)
+            [ -n "$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX" ] && ViashError Bad arguments for option \'--max_nucleus_diameter_px=*\': \'$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --umi_registration)
+            [ -n "$VIASH_PAR_UMI_REGISTRATION" ] && ViashError Bad arguments for option \'--umi_registration\': \'$VIASH_PAR_UMI_REGISTRATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_REGISTRATION="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --umi_registration. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --umi_registration=*)
+            [ -n "$VIASH_PAR_UMI_REGISTRATION" ] && ViashError Bad arguments for option \'--umi_registration=*\': \'$VIASH_PAR_UMI_REGISTRATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_REGISTRATION=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --umi_to_image_offset)
+            [ -n "$VIASH_PAR_UMI_TO_IMAGE_OFFSET" ] && ViashError Bad arguments for option \'--umi_to_image_offset\': \'$VIASH_PAR_UMI_TO_IMAGE_OFFSET\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_TO_IMAGE_OFFSET="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --umi_to_image_offset. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --umi_to_image_offset=*)
+            [ -n "$VIASH_PAR_UMI_TO_IMAGE_OFFSET" ] && ViashError Bad arguments for option \'--umi_to_image_offset=*\': \'$VIASH_PAR_UMI_TO_IMAGE_OFFSET\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_TO_IMAGE_OFFSET=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --cell_annotation_model)
+            [ -n "$VIASH_PAR_CELL_ANNOTATION_MODEL" ] && ViashError Bad arguments for option \'--cell_annotation_model\': \'$VIASH_PAR_CELL_ANNOTATION_MODEL\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELL_ANNOTATION_MODEL="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --cell_annotation_model. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --cell_annotation_model=*)
+            [ -n "$VIASH_PAR_CELL_ANNOTATION_MODEL" ] && ViashError Bad arguments for option \'--cell_annotation_model=*\': \'$VIASH_PAR_CELL_ANNOTATION_MODEL\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELL_ANNOTATION_MODEL=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --tenx_cloud_token_path)
+            [ -n "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ] && ViashError Bad arguments for option \'--tenx_cloud_token_path\': \'$VIASH_PAR_TENX_CLOUD_TOKEN_PATH\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TENX_CLOUD_TOKEN_PATH="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --tenx_cloud_token_path. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --tenx_cloud_token_path=*)
+            [ -n "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ] && ViashError Bad arguments for option \'--tenx_cloud_token_path=*\': \'$VIASH_PAR_TENX_CLOUD_TOKEN_PATH\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TENX_CLOUD_TOKEN_PATH=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --disable_cell_annotation)
+            [ -n "$VIASH_PAR_DISABLE_CELL_ANNOTATION" ] && ViashError Bad arguments for option \'--disable_cell_annotation\': \'$VIASH_PAR_DISABLE_CELL_ANNOTATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DISABLE_CELL_ANNOTATION=true
+            shift 1
+            ;;
         --project)
             [ -n "$VIASH_PAR_PROJECT" ] && ViashError Bad arguments for option \'--project\': \'$VIASH_PAR_PROJECT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_PROJECT="$2"
@@ -1231,10 +1398,6 @@ if [ -z ${VIASH_PAR_INPUT+x} ]; then
   ViashError '--input' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_PROBE_SET+x} ]; then
-  ViashError '--probe_set' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
 if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
   ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
@@ -1281,6 +1444,9 @@ fi
 if [ -z ${VIASH_PAR_FILTER_PROBES+x} ]; then
   VIASH_PAR_FILTER_PROBES="true"
 fi
+if [ -z ${VIASH_PAR_DISABLE_CELL_ANNOTATION+x} ]; then
+  VIASH_PAR_DISABLE_CELL_ANNOTATION="false"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_GEX_REFERENCE" ] && [ ! -e "$VIASH_PAR_GEX_REFERENCE" ]; then
@@ -1321,6 +1487,14 @@ if [ ! -z "$VIASH_PAR_DARKIMAGE" ] && [ ! -e "$VIASH_PAR_DARKIMAGE" ]; then
 fi
 if [ ! -z "$VIASH_PAR_COLORIZEDIMAGE" ] && [ ! -e "$VIASH_PAR_COLORIZEDIMAGE" ]; then
   ViashError "Input file '$VIASH_PAR_COLORIZEDIMAGE' does not exist."
+  exit 1
+fi
+if [ ! -z "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ] && [ ! -e "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ]; then
+  ViashError "Input file '$VIASH_PAR_CUSTOM_SEGMENTATION_FILE' does not exist."
+  exit 1
+fi
+if [ ! -z "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ] && [ ! -e "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ]; then
+  ViashError "Input file '$VIASH_PAR_TENX_CLOUD_TOKEN_PATH' does not exist."
   exit 1
 fi
 
@@ -1431,6 +1605,46 @@ if [[ -n "$VIASH_PAR_CUSTOM_BIN_SIZE" ]]; then
     exit 1
   fi
 fi
+if [[ -n "$VIASH_PAR_INCLUDE_INTRONS" ]]; then
+  if ! [[ "$VIASH_PAR_INCLUDE_INTRONS" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
+    ViashError '--include_introns' has to be a boolean. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NUCLEUS_SEGMENTATION" ]]; then
+  if ! [[ "$VIASH_PAR_NUCLEUS_SEGMENTATION" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
+    ViashError '--nucleus_segmentation' has to be a boolean. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON" ]]; then
+  if ! [[ "$VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--nucleus_expansion_distance_micron' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX" ]]; then
+  if ! [[ "$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--max_nucleus_diameter_px' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+  if [[ $VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX -lt 1 ]]; then
+    ViashError '--max_nucleus_diameter_px' has be more than or equal to 1. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_UMI_REGISTRATION" ]]; then
+  if ! [[ "$VIASH_PAR_UMI_REGISTRATION" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
+    ViashError '--umi_registration' has to be a boolean. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_DISABLE_CELL_ANNOTATION" ]]; then
+  if ! [[ "$VIASH_PAR_DISABLE_CELL_ANNOTATION" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
+    ViashError '--disable_cell_annotation' has to be a boolean_true. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [ -n "$VIASH_PAR_LANES" ]; then
   IFS=';'
   set -f
@@ -1530,6 +1744,18 @@ if [ ! -z "$VIASH_PAR_UNKNOWN_SLIDE" ]; then
   unset IFS
 fi
 
+if [ ! -z "$VIASH_PAR_CELL_ANNOTATION_MODEL" ]; then
+  VIASH_PAR_CELL_ANNOTATION_MODEL_CHOICES=("auto;human_pca_v1_beta;mouse_pca_v1_beta")
+  IFS=';'
+  set -f
+  if ! [[ ";${VIASH_PAR_CELL_ANNOTATION_MODEL_CHOICES[*]};" =~ ";$VIASH_PAR_CELL_ANNOTATION_MODEL;" ]]; then
+    ViashError '--cell_annotation_model' specified value of \'$VIASH_PAR_CELL_ANNOTATION_MODEL\' is not in the list of allowed values. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+  set +f
+  unset IFS
+fi
+
 # create parent directories of output files, if so desired
 if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT")" ]; then
   mkdir -p "$(dirname "$VIASH_PAR_OUTPUT")"
@@ -1581,6 +1807,14 @@ fi
 if [ ! -z "$VIASH_PAR_COLORIZEDIMAGE" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_COLORIZEDIMAGE")" )
   VIASH_PAR_COLORIZEDIMAGE=$(ViashDockerAutodetectMount "$VIASH_PAR_COLORIZEDIMAGE")
+fi
+if [ ! -z "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE")" )
+  VIASH_PAR_CUSTOM_SEGMENTATION_FILE=$(ViashDockerAutodetectMount "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE")
+fi
+if [ ! -z "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH")" )
+  VIASH_PAR_TENX_CLOUD_TOKEN_PATH=$(ViashDockerAutodetectMount "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH")
 fi
 if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_RESOURCES_DIR")" )
@@ -1677,6 +1911,16 @@ $( if [ ! -z ${VIASH_PAR_R1_LENGTH+x} ]; then echo "${VIASH_PAR_R1_LENGTH}" | se
 $( if [ ! -z ${VIASH_PAR_R2_LENGTH+x} ]; then echo "${VIASH_PAR_R2_LENGTH}" | sed "s#'#'\"'\"'#g;s#.*#par_r2_length='&'#" ; else echo "# par_r2_length="; fi )
 $( if [ ! -z ${VIASH_PAR_FILTER_PROBES+x} ]; then echo "${VIASH_PAR_FILTER_PROBES}" | sed "s#'#'\"'\"'#g;s#.*#par_filter_probes='&'#" ; else echo "# par_filter_probes="; fi )
 $( if [ ! -z ${VIASH_PAR_CUSTOM_BIN_SIZE+x} ]; then echo "${VIASH_PAR_CUSTOM_BIN_SIZE}" | sed "s#'#'\"'\"'#g;s#.*#par_custom_bin_size='&'#" ; else echo "# par_custom_bin_size="; fi )
+$( if [ ! -z ${VIASH_PAR_INCLUDE_INTRONS+x} ]; then echo "${VIASH_PAR_INCLUDE_INTRONS}" | sed "s#'#'\"'\"'#g;s#.*#par_include_introns='&'#" ; else echo "# par_include_introns="; fi )
+$( if [ ! -z ${VIASH_PAR_NUCLEUS_SEGMENTATION+x} ]; then echo "${VIASH_PAR_NUCLEUS_SEGMENTATION}" | sed "s#'#'\"'\"'#g;s#.*#par_nucleus_segmentation='&'#" ; else echo "# par_nucleus_segmentation="; fi )
+$( if [ ! -z ${VIASH_PAR_CUSTOM_SEGMENTATION_FILE+x} ]; then echo "${VIASH_PAR_CUSTOM_SEGMENTATION_FILE}" | sed "s#'#'\"'\"'#g;s#.*#par_custom_segmentation_file='&'#" ; else echo "# par_custom_segmentation_file="; fi )
+$( if [ ! -z ${VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON+x} ]; then echo "${VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON}" | sed "s#'#'\"'\"'#g;s#.*#par_nucleus_expansion_distance_micron='&'#" ; else echo "# par_nucleus_expansion_distance_micron="; fi )
+$( if [ ! -z ${VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX+x} ]; then echo "${VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX}" | sed "s#'#'\"'\"'#g;s#.*#par_max_nucleus_diameter_px='&'#" ; else echo "# par_max_nucleus_diameter_px="; fi )
+$( if [ ! -z ${VIASH_PAR_UMI_REGISTRATION+x} ]; then echo "${VIASH_PAR_UMI_REGISTRATION}" | sed "s#'#'\"'\"'#g;s#.*#par_umi_registration='&'#" ; else echo "# par_umi_registration="; fi )
+$( if [ ! -z ${VIASH_PAR_UMI_TO_IMAGE_OFFSET+x} ]; then echo "${VIASH_PAR_UMI_TO_IMAGE_OFFSET}" | sed "s#'#'\"'\"'#g;s#.*#par_umi_to_image_offset='&'#" ; else echo "# par_umi_to_image_offset="; fi )
+$( if [ ! -z ${VIASH_PAR_CELL_ANNOTATION_MODEL+x} ]; then echo "${VIASH_PAR_CELL_ANNOTATION_MODEL}" | sed "s#'#'\"'\"'#g;s#.*#par_cell_annotation_model='&'#" ; else echo "# par_cell_annotation_model="; fi )
+$( if [ ! -z ${VIASH_PAR_TENX_CLOUD_TOKEN_PATH+x} ]; then echo "${VIASH_PAR_TENX_CLOUD_TOKEN_PATH}" | sed "s#'#'\"'\"'#g;s#.*#par_tenx_cloud_token_path='&'#" ; else echo "# par_tenx_cloud_token_path="; fi )
+$( if [ ! -z ${VIASH_PAR_DISABLE_CELL_ANNOTATION+x} ]; then echo "${VIASH_PAR_DISABLE_CELL_ANNOTATION}" | sed "s#'#'\"'\"'#g;s#.*#par_disable_cell_annotation='&'#" ; else echo "# par_disable_cell_annotation="; fi )
 $( if [ ! -z ${VIASH_PAR_PROJECT+x} ]; then echo "${VIASH_PAR_PROJECT}" | sed "s#'#'\"'\"'#g;s#.*#par_project='&'#" ; else echo "# par_project="; fi )
 $( if [ ! -z ${VIASH_PAR_SAMPLE+x} ]; then echo "${VIASH_PAR_SAMPLE}" | sed "s#'#'\"'\"'#g;s#.*#par_sample='&'#" ; else echo "# par_sample="; fi )
 $( if [ ! -z ${VIASH_PAR_LANES+x} ]; then echo "${VIASH_PAR_LANES}" | sed "s#'#'\"'\"'#g;s#.*#par_lanes='&'#" ; else echo "# par_lanes="; fi )
@@ -1704,6 +1948,7 @@ $( if [ ! -z ${VIASH_META_MEMORY_PIB+x} ]; then echo "${VIASH_META_MEMORY_PIB}" 
 unset_if_false=(
     par_override_id
     par_nosecondary
+    par_disable_cell_annotation
 )
 
 for par in \${unset_if_false[@]}; do
@@ -1711,12 +1956,17 @@ for par in \${unset_if_false[@]}; do
     [[ "\$test_val" == "false" ]] && unset \$par
 done
 
-# Make sure paths are absolute
+# Make sure paths are absolute, since we cd into a tempdir before running spaceranger
 par_gex_reference=\`realpath \$par_gex_reference\`
 par_output=\`realpath \$par_output\`
-par_probe_set=\`realpath \$par_probe_set\`
+[[ -n "\${par_probe_set:-}" ]] && par_probe_set=\$(realpath "\$par_probe_set")
 [[ -n "\${par_image:-}" ]] && par_image=\$(realpath "\$par_image")
 [[ -n "\${par_cytaimage:-}" ]] && par_cytaimage=\$(realpath "\$par_cytaimage")
+[[ -n "\${par_slidefile:-}" ]] && par_slidefile=\$(realpath "\$par_slidefile")
+[[ -n "\${par_darkimage:-}" ]] && par_darkimage=\$(realpath "\$par_darkimage")
+[[ -n "\${par_colorizedimage:-}" ]] && par_colorizedimage=\$(realpath "\$par_colorizedimage")
+[[ -n "\${par_custom_segmentation_file:-}" ]] && par_custom_segmentation_file=\$(realpath "\$par_custom_segmentation_file")
+[[ -n "\${par_tenx_cloud_token_path:-}" ]] && par_tenx_cloud_token_path=\$(realpath "\$par_tenx_cloud_token_path")
 
 # create temporary directory
 tmpdir=\$(mktemp -d "\$meta_temp_dir/\$meta_name-XXXXXXXX")
@@ -1740,8 +1990,9 @@ for var in \$par_input; do
   fi
 done
 
-# process reference
-if file \$par_gex_reference | grep -q 'gzip compressed data'; then
+# process reference: untar if it is a gzipped archive rather than a directory
+# (\`gzip -t\` avoids depending on the \`file\` command, which the image lacks)
+if [ -f "\$par_gex_reference" ] && gzip -t "\$par_gex_reference" 2>/dev/null; then
   echo "Untarring genome"
   reference_dir="\$tmpdir/fastqs"
   mkdir -p "\$reference_dir"
@@ -1754,8 +2005,12 @@ cd "\$tmpdir"
 
 temp_id="spaceranger_run"
 
+# Disable anonymized telemetry collection (enabled by default since Space Ranger 4.0)
+export TENX_DISABLE_TELEMETRY=1
+
 spaceranger count \\
   --id="\$temp_id" \\
+  --disable-ui \\
   --fastqs="\$fastq_dir" \\
   --transcriptome="\$par_gex_reference" \\
   \${par_probe_set:+--probe-set="\$par_probe_set"} \\
@@ -1777,6 +2032,16 @@ spaceranger count \\
   \${par_r2_length:+--r2-length="\$par_r2_length"} \\
   \${par_filter_probes:+--filter-probes="\$par_filter_probes"} \\
   \${par_custom_bin_size:+--custom-bin-size="\$par_custom_bin_size"} \\
+  \${par_include_introns:+--include-introns="\$par_include_introns"} \\
+  \${par_nucleus_segmentation:+--nucleus-segmentation="\$par_nucleus_segmentation"} \\
+  \${par_custom_segmentation_file:+--custom-segmentation-file="\$par_custom_segmentation_file"} \\
+  \${par_nucleus_expansion_distance_micron:+--nucleus-expansion-distance-micron="\$par_nucleus_expansion_distance_micron"} \\
+  \${par_max_nucleus_diameter_px:+--max-nucleus-diameter-px="\$par_max_nucleus_diameter_px"} \\
+  \${par_umi_registration:+--umi-registration="\$par_umi_registration"} \\
+  \${par_umi_to_image_offset:+--umi-to-image-offset="\$par_umi_to_image_offset"} \\
+  \${par_cell_annotation_model:+--cell-annotation-model="\$par_cell_annotation_model"} \\
+  \${par_tenx_cloud_token_path:+--tenx-cloud-token-path="\$par_tenx_cloud_token_path"} \\
+  \${par_disable_cell_annotation:+--disable-cell-annotation} \\
   \${par_project:+--project="\$par_project"} \\
   \${par_sample:+--sample="\$par_sample"} \\
   \${par_lanes:+--lanes="\$par_lanes"} \\
@@ -1832,6 +2097,12 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   fi
   if [ ! -z "$VIASH_PAR_COLORIZEDIMAGE" ]; then
     VIASH_PAR_COLORIZEDIMAGE=$(ViashDockerStripAutomount "$VIASH_PAR_COLORIZEDIMAGE")
+  fi
+  if [ ! -z "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE" ]; then
+    VIASH_PAR_CUSTOM_SEGMENTATION_FILE=$(ViashDockerStripAutomount "$VIASH_PAR_CUSTOM_SEGMENTATION_FILE")
+  fi
+  if [ ! -z "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH" ]; then
+    VIASH_PAR_TENX_CLOUD_TOKEN_PATH=$(ViashDockerStripAutomount "$VIASH_PAR_TENX_CLOUD_TOKEN_PATH")
   fi
   if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
     VIASH_META_RESOURCES_DIR=$(ViashDockerStripAutomount "$VIASH_META_RESOURCES_DIR")

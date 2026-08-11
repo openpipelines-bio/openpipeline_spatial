@@ -3105,13 +3105,13 @@ meta = [
         {
           "type" : "file",
           "name" : "--probe_set",
-          "description" : "CSV file specifying the probe set used",
+          "description" : "CSV file specifying the probe set used. Required for probe-based assays\n(FFPE / standard Visium and Visium HD). Omit for Visium HD 3' data.\n",
           "example" : [
             "Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
           ],
           "must_exist" : true,
           "create_parent" : true,
-          "required" : true,
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3364,6 +3364,119 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--include_introns",
+          "description" : "Include intronic reads in the count. When unset, Space Ranger applies its own default\n(true for Visium HD 3' and Visium v1, false otherwise).\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Segmentation Options",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--nucleus_segmentation",
+          "description" : "Enable or disable nucleus and cell segmentation for Visium HD / HD 3' H&E samples.\nWhen unset, Space Ranger runs segmentation by default if an H&E image is provided.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--custom_segmentation_file",
+          "description" : "Custom nucleus segmentation mask to use instead of the built-in algorithm.\nRequires --nucleus_expansion_distance_micron.\n",
+          "example" : [
+            "nucleus_segmentation.geojson"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--nucleus_expansion_distance_micron",
+          "description" : "Distance in microns to expand each nucleus to approximate the cell boundary.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--max_nucleus_diameter_px",
+          "description" : "Maximum nucleus diameter in pixels, for samples with exceptionally large cells.",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--umi_registration",
+          "description" : "Enable or disable UMI-based registration that aligns the microscope image to the UMI\ncount data for Visium HD. When unset, Space Ranger applies its default.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--umi_to_image_offset",
+          "description" : "Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image\nregistration when automatic convergence is incorrect.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Cell Annotation",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--cell_annotation_model",
+          "description" : "Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).\n",
+          "required" : false,
+          "choices" : [
+            "auto",
+            "human_pca_v1_beta",
+            "mouse_pca_v1_beta"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--tenx_cloud_token_path",
+          "description" : "Path to a 10x Cloud token JSON, required for cloud-based annotation models.",
+          "example" : [
+            "tenx_cloud_token.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_true",
+          "name" : "--disable_cell_annotation",
+          "description" : "Disable cell type annotation.",
+          "direction" : "input"
         }
       ]
     },
@@ -3417,7 +3530,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Count gene expression and protein expression reads from a single capture area.",
+  "description" : "Count gene expression and protein expression reads from a single capture area using Space Ranger 4.1.0.",
   "test_resources" : [
     {
       "type" : "python_script",
@@ -3464,6 +3577,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "highcpu",
+          "veryhighmem",
+          "highdisk"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3535,7 +3653,7 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "ghcr.io/data-intuitive/spaceranger:3.1",
+      "image" : "cumulusprod/spaceranger:4.1.0",
       "namespace_separator" : "/",
       "setup" : [
         {
@@ -3573,7 +3691,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/mapping/spaceranger_count",
     "viash_version" : "0.9.7",
-    "git_commit" : "7f94cbe3963cb6fe51b34ebb3452f87aec595bec",
+    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3648,6 +3766,16 @@ $( if [ ! -z ${VIASH_PAR_R1_LENGTH+x} ]; then echo "${VIASH_PAR_R1_LENGTH}" | se
 $( if [ ! -z ${VIASH_PAR_R2_LENGTH+x} ]; then echo "${VIASH_PAR_R2_LENGTH}" | sed "s#'#'\\"'\\"'#g;s#.*#par_r2_length='&'#" ; else echo "# par_r2_length="; fi )
 $( if [ ! -z ${VIASH_PAR_FILTER_PROBES+x} ]; then echo "${VIASH_PAR_FILTER_PROBES}" | sed "s#'#'\\"'\\"'#g;s#.*#par_filter_probes='&'#" ; else echo "# par_filter_probes="; fi )
 $( if [ ! -z ${VIASH_PAR_CUSTOM_BIN_SIZE+x} ]; then echo "${VIASH_PAR_CUSTOM_BIN_SIZE}" | sed "s#'#'\\"'\\"'#g;s#.*#par_custom_bin_size='&'#" ; else echo "# par_custom_bin_size="; fi )
+$( if [ ! -z ${VIASH_PAR_INCLUDE_INTRONS+x} ]; then echo "${VIASH_PAR_INCLUDE_INTRONS}" | sed "s#'#'\\"'\\"'#g;s#.*#par_include_introns='&'#" ; else echo "# par_include_introns="; fi )
+$( if [ ! -z ${VIASH_PAR_NUCLEUS_SEGMENTATION+x} ]; then echo "${VIASH_PAR_NUCLEUS_SEGMENTATION}" | sed "s#'#'\\"'\\"'#g;s#.*#par_nucleus_segmentation='&'#" ; else echo "# par_nucleus_segmentation="; fi )
+$( if [ ! -z ${VIASH_PAR_CUSTOM_SEGMENTATION_FILE+x} ]; then echo "${VIASH_PAR_CUSTOM_SEGMENTATION_FILE}" | sed "s#'#'\\"'\\"'#g;s#.*#par_custom_segmentation_file='&'#" ; else echo "# par_custom_segmentation_file="; fi )
+$( if [ ! -z ${VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON+x} ]; then echo "${VIASH_PAR_NUCLEUS_EXPANSION_DISTANCE_MICRON}" | sed "s#'#'\\"'\\"'#g;s#.*#par_nucleus_expansion_distance_micron='&'#" ; else echo "# par_nucleus_expansion_distance_micron="; fi )
+$( if [ ! -z ${VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX+x} ]; then echo "${VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX}" | sed "s#'#'\\"'\\"'#g;s#.*#par_max_nucleus_diameter_px='&'#" ; else echo "# par_max_nucleus_diameter_px="; fi )
+$( if [ ! -z ${VIASH_PAR_UMI_REGISTRATION+x} ]; then echo "${VIASH_PAR_UMI_REGISTRATION}" | sed "s#'#'\\"'\\"'#g;s#.*#par_umi_registration='&'#" ; else echo "# par_umi_registration="; fi )
+$( if [ ! -z ${VIASH_PAR_UMI_TO_IMAGE_OFFSET+x} ]; then echo "${VIASH_PAR_UMI_TO_IMAGE_OFFSET}" | sed "s#'#'\\"'\\"'#g;s#.*#par_umi_to_image_offset='&'#" ; else echo "# par_umi_to_image_offset="; fi )
+$( if [ ! -z ${VIASH_PAR_CELL_ANNOTATION_MODEL+x} ]; then echo "${VIASH_PAR_CELL_ANNOTATION_MODEL}" | sed "s#'#'\\"'\\"'#g;s#.*#par_cell_annotation_model='&'#" ; else echo "# par_cell_annotation_model="; fi )
+$( if [ ! -z ${VIASH_PAR_TENX_CLOUD_TOKEN_PATH+x} ]; then echo "${VIASH_PAR_TENX_CLOUD_TOKEN_PATH}" | sed "s#'#'\\"'\\"'#g;s#.*#par_tenx_cloud_token_path='&'#" ; else echo "# par_tenx_cloud_token_path="; fi )
+$( if [ ! -z ${VIASH_PAR_DISABLE_CELL_ANNOTATION+x} ]; then echo "${VIASH_PAR_DISABLE_CELL_ANNOTATION}" | sed "s#'#'\\"'\\"'#g;s#.*#par_disable_cell_annotation='&'#" ; else echo "# par_disable_cell_annotation="; fi )
 $( if [ ! -z ${VIASH_PAR_PROJECT+x} ]; then echo "${VIASH_PAR_PROJECT}" | sed "s#'#'\\"'\\"'#g;s#.*#par_project='&'#" ; else echo "# par_project="; fi )
 $( if [ ! -z ${VIASH_PAR_SAMPLE+x} ]; then echo "${VIASH_PAR_SAMPLE}" | sed "s#'#'\\"'\\"'#g;s#.*#par_sample='&'#" ; else echo "# par_sample="; fi )
 $( if [ ! -z ${VIASH_PAR_LANES+x} ]; then echo "${VIASH_PAR_LANES}" | sed "s#'#'\\"'\\"'#g;s#.*#par_lanes='&'#" ; else echo "# par_lanes="; fi )
@@ -3675,6 +3803,7 @@ $( if [ ! -z ${VIASH_META_MEMORY_PIB+x} ]; then echo "${VIASH_META_MEMORY_PIB}" 
 unset_if_false=(
     par_override_id
     par_nosecondary
+    par_disable_cell_annotation
 )
 
 for par in \\${unset_if_false[@]}; do
@@ -3682,12 +3811,17 @@ for par in \\${unset_if_false[@]}; do
     [[ "\\$test_val" == "false" ]] && unset \\$par
 done
 
-# Make sure paths are absolute
+# Make sure paths are absolute, since we cd into a tempdir before running spaceranger
 par_gex_reference=\\`realpath \\$par_gex_reference\\`
 par_output=\\`realpath \\$par_output\\`
-par_probe_set=\\`realpath \\$par_probe_set\\`
+[[ -n "\\${par_probe_set:-}" ]] && par_probe_set=\\$(realpath "\\$par_probe_set")
 [[ -n "\\${par_image:-}" ]] && par_image=\\$(realpath "\\$par_image")
 [[ -n "\\${par_cytaimage:-}" ]] && par_cytaimage=\\$(realpath "\\$par_cytaimage")
+[[ -n "\\${par_slidefile:-}" ]] && par_slidefile=\\$(realpath "\\$par_slidefile")
+[[ -n "\\${par_darkimage:-}" ]] && par_darkimage=\\$(realpath "\\$par_darkimage")
+[[ -n "\\${par_colorizedimage:-}" ]] && par_colorizedimage=\\$(realpath "\\$par_colorizedimage")
+[[ -n "\\${par_custom_segmentation_file:-}" ]] && par_custom_segmentation_file=\\$(realpath "\\$par_custom_segmentation_file")
+[[ -n "\\${par_tenx_cloud_token_path:-}" ]] && par_tenx_cloud_token_path=\\$(realpath "\\$par_tenx_cloud_token_path")
 
 # create temporary directory
 tmpdir=\\$(mktemp -d "\\$meta_temp_dir/\\$meta_name-XXXXXXXX")
@@ -3711,8 +3845,9 @@ for var in \\$par_input; do
   fi
 done
 
-# process reference
-if file \\$par_gex_reference | grep -q 'gzip compressed data'; then
+# process reference: untar if it is a gzipped archive rather than a directory
+# (\\`gzip -t\\` avoids depending on the \\`file\\` command, which the image lacks)
+if [ -f "\\$par_gex_reference" ] && gzip -t "\\$par_gex_reference" 2>/dev/null; then
   echo "Untarring genome"
   reference_dir="\\$tmpdir/fastqs"
   mkdir -p "\\$reference_dir"
@@ -3725,8 +3860,12 @@ cd "\\$tmpdir"
 
 temp_id="spaceranger_run"
 
+# Disable anonymized telemetry collection (enabled by default since Space Ranger 4.0)
+export TENX_DISABLE_TELEMETRY=1
+
 spaceranger count \\\\
   --id="\\$temp_id" \\\\
+  --disable-ui \\\\
   --fastqs="\\$fastq_dir" \\\\
   --transcriptome="\\$par_gex_reference" \\\\
   \\${par_probe_set:+--probe-set="\\$par_probe_set"} \\\\
@@ -3748,6 +3887,16 @@ spaceranger count \\\\
   \\${par_r2_length:+--r2-length="\\$par_r2_length"} \\\\
   \\${par_filter_probes:+--filter-probes="\\$par_filter_probes"} \\\\
   \\${par_custom_bin_size:+--custom-bin-size="\\$par_custom_bin_size"} \\\\
+  \\${par_include_introns:+--include-introns="\\$par_include_introns"} \\\\
+  \\${par_nucleus_segmentation:+--nucleus-segmentation="\\$par_nucleus_segmentation"} \\\\
+  \\${par_custom_segmentation_file:+--custom-segmentation-file="\\$par_custom_segmentation_file"} \\\\
+  \\${par_nucleus_expansion_distance_micron:+--nucleus-expansion-distance-micron="\\$par_nucleus_expansion_distance_micron"} \\\\
+  \\${par_max_nucleus_diameter_px:+--max-nucleus-diameter-px="\\$par_max_nucleus_diameter_px"} \\\\
+  \\${par_umi_registration:+--umi-registration="\\$par_umi_registration"} \\\\
+  \\${par_umi_to_image_offset:+--umi-to-image-offset="\\$par_umi_to_image_offset"} \\\\
+  \\${par_cell_annotation_model:+--cell-annotation-model="\\$par_cell_annotation_model"} \\\\
+  \\${par_tenx_cloud_token_path:+--tenx-cloud-token-path="\\$par_tenx_cloud_token_path"} \\\\
+  \\${par_disable_cell_annotation:+--disable-cell-annotation} \\\\
   \\${par_project:+--project="\\$par_project"} \\\\
   \\${par_sample:+--sample="\\$par_sample"} \\\\
   \\${par_lanes:+--lanes="\\$par_lanes"} \\\\
@@ -4141,6 +4290,11 @@ meta["defaults"] = [
     "image" : "openpipelines-bio/openpipeline_spatial/mapping/spaceranger_count",
     "tag" : "build_main"
   },
+  "label" : [
+    "highcpu",
+    "veryhighmem",
+    "highdisk"
+  ],
   "tag" : "$id"
 }'''),
 

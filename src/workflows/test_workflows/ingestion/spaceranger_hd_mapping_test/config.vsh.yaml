@@ -1,0 +1,27 @@
+name: "spaceranger_hd_mapping_test"
+namespace: "test_workflows/ingestion"
+scope: "test"
+description: "Tests the output of the spaceranger_hd_mapping integration test."
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Path to the SpatialData Zarr output.
+        example: foo.zarr
+resources:
+  - type: python_script
+    path: script.py
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: python
+        __merge__: [ /src/base/requirements/spatialdata-io.yaml, . ]
+    __merge__: /src/base/requirements/testworkflows_setup.yaml
+runners:
+  - type: executable
+  - type: nextflow

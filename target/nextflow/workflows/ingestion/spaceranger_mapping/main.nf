@@ -3133,13 +3133,13 @@ meta = [
         {
           "type" : "file",
           "name" : "--probe_set",
-          "description" : "CSV file specifying the probe set used",
+          "description" : "CSV file specifying the probe set used. Required for probe-based assays\n(FFPE / standard Visium and Visium HD). Omit for Visium HD 3' data.\n",
           "example" : [
             "Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
           ],
           "must_exist" : true,
           "create_parent" : true,
-          "required" : true,
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3471,6 +3471,119 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--include_introns",
+          "description" : "Include intronic reads in the count. When unset, Space Ranger applies its own default\n(true for Visium HD 3' and Visium v1, false otherwise).\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Segmentation Options",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--nucleus_segmentation",
+          "description" : "Enable or disable nucleus and cell segmentation for Visium HD / HD 3' H&E samples.\nWhen unset, Space Ranger runs segmentation by default if an H&E image is provided.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--custom_segmentation_file",
+          "description" : "Custom nucleus segmentation mask to use instead of the built-in algorithm.\nRequires --nucleus_expansion_distance_micron.\n",
+          "example" : [
+            "nucleus_segmentation.geojson"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--nucleus_expansion_distance_micron",
+          "description" : "Distance in microns to expand each nucleus to approximate the cell boundary.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--max_nucleus_diameter_px",
+          "description" : "Maximum nucleus diameter in pixels, for samples with exceptionally large cells.",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--umi_registration",
+          "description" : "Enable or disable UMI-based registration that aligns the microscope image to the UMI\ncount data for Visium HD. When unset, Space Ranger applies its default.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--umi_to_image_offset",
+          "description" : "Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image\nregistration when automatic convergence is incorrect.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Cell Annotation",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--cell_annotation_model",
+          "description" : "Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).\n",
+          "required" : false,
+          "choices" : [
+            "auto",
+            "human_pca_v1_beta",
+            "mouse_pca_v1_beta"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--tenx_cloud_token_path",
+          "description" : "Path to a 10x Cloud token JSON, required for cloud-based annotation models.",
+          "example" : [
+            "tenx_cloud_token.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_true",
+          "name" : "--disable_cell_annotation",
+          "description" : "Disable cell type annotation.",
+          "direction" : "input"
         }
       ]
     }
@@ -3492,7 +3605,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "A pipeline for running SpaceRanger mapping.",
+  "description" : "A pipeline for running Space Ranger (4.1.0) mapping.",
   "test_resources" : [
     {
       "type" : "nextflow_script",
@@ -3633,7 +3746,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "7f94cbe3963cb6fe51b34ebb3452f87aec595bec",
+    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3693,7 +3806,7 @@ workflow run_wf {
         "image": state.image,
         "slide": state.slide,
         "area": state.area,
-        "unkown_slide": state.unkown_slide,
+        "unknown_slide": state.unknown_slide,
         "slidefile": state.slidefile,
         "override_id": state.override_id,
         "darkimage": state.darkimage,
@@ -3707,6 +3820,16 @@ workflow run_wf {
         "r2_length": state.r2_length,
         "filter_probes": state.filter_probes,
         "custom_bin_size": state.custom_bin_size,
+        "include_introns": state.include_introns,
+        "nucleus_segmentation": state.nucleus_segmentation,
+        "custom_segmentation_file": state.custom_segmentation_file,
+        "nucleus_expansion_distance_micron": state.nucleus_expansion_distance_micron,
+        "max_nucleus_diameter_px": state.max_nucleus_diameter_px,
+        "umi_registration": state.umi_registration,
+        "umi_to_image_offset": state.umi_to_image_offset,
+        "cell_annotation_model": state.cell_annotation_model,
+        "tenx_cloud_token_path": state.tenx_cloud_token_path,
+        "disable_cell_annotation": state.disable_cell_annotation,
         "output": state.output_raw,
       ]},
       toState: [

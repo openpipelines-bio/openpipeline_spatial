@@ -3372,7 +3372,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_seurat_with_fov",
     "viash_version" : "0.9.7",
-    "git_commit" : "7f94cbe3963cb6fe51b34ebb3452f87aec595bec",
+    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

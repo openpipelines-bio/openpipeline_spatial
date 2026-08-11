@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_h5mu"
-LABEL org.opencontainers.image.created="2026-08-03T08:00:06Z"
+LABEL org.opencontainers.image.created="2026-08-11T13:27:59Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="7f94cbe3963cb6fe51b34ebb3452f87aec595bec"
+LABEL org.opencontainers.image.revision="aec7b0edfd05a571bfb76bbbfa6bbe609c169341"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
