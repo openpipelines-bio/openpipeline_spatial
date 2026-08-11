@@ -39,23 +39,34 @@ def retrieve_input_data(spaceranger_output_bundle, input_type="filtered"):
         if input_type == "filtered"
         else "**/raw_feature_bc_matrix.h5"
     )
-    spaceranger_file_patterns = {
+    required_file_patterns = {
         "count_matrix": matrix_pattern,
         "metrics_summary": "**/metrics_summary.csv",
-        "probe_set": "**/probe_set.csv",
         "spatial_coords": "**/spatial/tissue_positions.csv",
+    }
+    # The probe set is only present for probe-based assays; sequencing-based
+    # assays (e.g. Visium HD 3') are run without a probe set, so it is optional.
+    optional_file_patterns = {
+        "probe_set": "**/probe_set.csv",
     }
 
     spaceranger_output_bundle = Path(spaceranger_output_bundle)
 
     spaceranger_files = {}
 
-    for key, pattern in spaceranger_file_patterns.items():
+    for key, pattern in required_file_patterns.items():
         file = list(spaceranger_output_bundle.glob(pattern))
         assert len(file) == 1, (
             f"Expected exactly one file for pattern '{pattern}', found {len(file)}."
         )
         spaceranger_files[key] = file[0]
+
+    for key, pattern in optional_file_patterns.items():
+        file = list(spaceranger_output_bundle.glob(pattern))
+        assert len(file) <= 1, (
+            f"Expected at most one file for pattern '{pattern}', found {len(file)}."
+        )
+        spaceranger_files[key] = file[0] if file else None
 
     return spaceranger_files
 
@@ -82,7 +93,13 @@ def main():
         logger.info("Storing metrics summary in .uns slot...")
         adata.uns[par["uns_metrics"]] = metrics_summary
 
-    if par["uns_probe_set"]:
+    if par["uns_probe_set"] and spaceranger_files["probe_set"] is None:
+        logger.info(
+            "No probe set file found in the Space Ranger output "
+            "(sequencing-based assay); skipping probe set."
+        )
+
+    if par["uns_probe_set"] and spaceranger_files["probe_set"] is not None:
         logger.info("Reading probe set file...")
 
         def read_hash_metadata(path):

@@ -1,7 +1,7 @@
 name: spaceranger_count
 namespace: mapping
 scope: public
-description: Count gene expression and protein expression reads from a single capture area.
+description: Count gene expression and protein expression reads from a single capture area using Space Ranger 4.1.0.
 keywords: [spaceranger]
 links:
   documentation: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/space-ranger-count
@@ -40,8 +40,10 @@ argument_groups:
 
       - type: file
         name: --probe_set
-        required: true
-        description: CSV file specifying the probe set used
+        required: false
+        description: |
+          CSV file specifying the probe set used. Required for probe-based assays
+          (FFPE / standard Visium and Visium HD). Omit for Visium HD 3' data.
         example: "Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
 
       - type: file
@@ -171,6 +173,74 @@ argument_groups:
         min: 4
         max: 100
 
+      - type: boolean
+        name: --include_introns
+        required: false
+        description: |
+          Include intronic reads in the count. When unset, Space Ranger applies its own default
+          (true for Visium HD 3' and Visium v1, false otherwise).
+
+  - name: Segmentation Options
+    arguments:
+      - type: boolean
+        name: --nucleus_segmentation
+        required: false
+        description: |
+          Enable or disable nucleus and cell segmentation for Visium HD / HD 3' H&E samples.
+          When unset, Space Ranger runs segmentation by default if an H&E image is provided.
+
+      - type: file
+        name: --custom_segmentation_file
+        required: false
+        description: |
+          Custom nucleus segmentation mask to use instead of the built-in algorithm.
+          Requires --nucleus_expansion_distance_micron.
+        example: "nucleus_segmentation.geojson"
+
+      - type: double
+        name: --nucleus_expansion_distance_micron
+        required: false
+        description: Distance in microns to expand each nucleus to approximate the cell boundary.
+
+      - type: integer
+        name: --max_nucleus_diameter_px
+        required: false
+        description: Maximum nucleus diameter in pixels, for samples with exceptionally large cells.
+        min: 1
+
+      - type: boolean
+        name: --umi_registration
+        required: false
+        description: |
+          Enable or disable UMI-based registration that aligns the microscope image to the UMI
+          count data for Visium HD. When unset, Space Ranger applies its default.
+
+      - type: string
+        name: --umi_to_image_offset
+        required: false
+        description: |
+          Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image
+          registration when automatic convergence is incorrect.
+
+  - name: Cell Annotation
+    arguments:
+      - type: string
+        name: --cell_annotation_model
+        required: false
+        description: |
+          Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).
+        choices: [auto, human_pca_v1_beta, mouse_pca_v1_beta]
+
+      - type: file
+        name: --tenx_cloud_token_path
+        required: false
+        description: Path to a 10x Cloud token JSON, required for cloud-based annotation models.
+        example: "tenx_cloud_token.json"
+
+      - type: boolean_true
+        name: --disable_cell_annotation
+        description: Disable cell type annotation.
+
   - name: Input Selection
     arguments:
       - type: string
@@ -200,7 +270,7 @@ test_resources:
   - path: /resources_test/GRCh38
 engines:
   - type: docker
-    image: ghcr.io/data-intuitive/spaceranger:3.1
+    image: cumulusprod/spaceranger:4.1.0 # also update the descriptions when bumping this version
     setup:
       - type: docker
         run: |
@@ -210,3 +280,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [highcpu, veryhighmem, highdisk]

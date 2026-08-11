@@ -1,4 +1,5 @@
 import pytest
+import shutil
 import sys
 import mudata as mu
 
@@ -38,6 +39,39 @@ def test_simple_execution(run_component, tmp_path):
     assert adata.X.dtype.kind == "f"
     assert all(adata.var["feature_types"] == "Gene Expression")
     assert adata.obsm["spatial"].dtype == "float"
+
+
+def test_without_probe_set(run_component, tmp_path):
+    # Sequencing-based assays (e.g. Visium HD 3') are run without a probe set,
+    # so the Space Ranger output contains no probe_set.csv. The converter should
+    # still succeed and simply omit the probe set from .uns.
+    bundle = tmp_path / "no_probe_set_bundle"
+    shutil.copytree(input, bundle)
+    probe_set_files = list(bundle.rglob("probe_set.csv"))
+    assert probe_set_files, "fixture bundle unexpectedly has no probe_set.csv to remove"
+    for probe_set_file in probe_set_files:
+        probe_set_file.unlink()
+
+    output = tmp_path / "no_probe_set.h5mu"
+    run_component(
+        [
+            "--input",
+            str(bundle),
+            "--output",
+            str(output),
+            "--output_compression",
+            "gzip",
+        ]
+    )
+
+    assert output.is_file(), "output file was not created"
+
+    mdata = mu.read_h5mu(output)
+    adata = mdata.mod["rna"]
+    assert "probe_set" not in adata.uns, "probe set should be absent when not provided"
+    assert "probe_set_meta" not in adata.uns
+    assert "metrics_spaceranger" in adata.uns
+    assert list(adata.obsm.keys()) == ["spatial"]
 
 
 if __name__ == "__main__":

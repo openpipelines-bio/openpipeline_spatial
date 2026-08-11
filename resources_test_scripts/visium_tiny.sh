@@ -17,6 +17,9 @@ curl -o "$DIR/Visium_FFPE_Human_Ovarian_Cancer_fastqs.tar" https://cf.10xgenomic
 curl -o "$DIR/Visium_FFPE_Human_Ovarian_Cancer_image.jpg" https://cf.10xgenomics.com/samples/spatial-exp/1.3.0/Visium_FFPE_Human_Ovarian_Cancer/Visium_FFPE_Human_Ovarian_Cancer_image.jpg
 curl -o "$DIR/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv" https://cf.10xgenomics.com/samples/spatial-exp/1.3.0/Visium_FFPE_Human_Ovarian_Cancer/Visium_FFPE_Human_Ovarian_Cancer_probe_set.csv
 
+# Slide layout file, so spaceranger does not have to download it at runtime
+curl -o "$DIR/V10L13-020.gpr" https://s3.us-west-2.amazonaws.com/10x.spatial-slides/gpr/V10L13/V10L13-020.gpr
+
 # Extract in the specific directory
 tar xvf "$DIR/Visium_FFPE_Human_Ovarian_Cancer_fastqs.tar" -C "$DIR"
 
@@ -38,10 +41,10 @@ viash run src/mapping/spaceranger_count/config.vsh.yaml -- \
   --image "$DIR/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg" \
   --slide "V10L13-020" \
   --area "D1" \
+  --slidefile "$DIR/V10L13-020.gpr" \
   --create_bam "false" \
-  --output "Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger"
+  --output "$DIR/Visium_FFPE_Human_Ovarian_Cancer_tiny_spaceranger"
 
-mv 
 echo "> Running spaceranger complete"
 
 rm -rf "$DIR/Visium_FFPE_Human_Ovarian_Cancer_fastqs"
