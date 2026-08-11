@@ -19,6 +19,7 @@ workflow test_wf {
         create_bam: "false",
         slide: "V10L13-020",
         area: "D1",
+        slidefile: resources_test.resolve("visium/V10L13-020.gpr"),
         output_type: "filtered",
       ]
     ])

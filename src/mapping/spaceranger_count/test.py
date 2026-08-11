@@ -13,6 +13,7 @@ probe_set = (
 image = (
     meta["resources_dir"] + "/visium/Visium_FFPE_Human_Ovarian_Cancer_image_tiny.jpg"
 )
+slidefile = meta["resources_dir"] + "/visium/V10L13-020.gpr"
 reference = meta["resources_dir"] + "/GRCh38"
 
 
@@ -32,6 +33,8 @@ def test_simple_execution(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--create_bam",
             "false",
             "--output",
@@ -70,6 +73,8 @@ def test_with_fastqs(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--create_bam",
             "false",
             "--output",
@@ -106,16 +111,54 @@ def test_with_optional_params(run_component, random_path):
             "D1",
             "--slide",
             "V10L13-020",
+            "--slidefile",
+            slidefile,
             "--nosecondary",
-            "true",
             "--r1_length",
             "100",
             "--r2_length",
             "100",
-            "filter_probes",
+            "--filter_probes",
             "false",
             "--create_bam",
             "true",
+            "--output",
+            output,
+        ]
+    )
+
+    assert (output / "filtered_feature_bc_matrix.h5").is_file(), (
+        "No filtered .h5 count matrix was created."
+    )
+
+    assert (output / "raw_feature_bc_matrix.h5").is_file(), (
+        "No raw .h5 count matrix was created."
+    )
+
+    assert (output / "metrics_summary.csv").is_file(), "No metrics summary was created."
+
+    assert (output / "web_summary.html").is_file(), "No web summary was created."
+
+
+def test_with_unknown_slide(run_component, random_path):
+    # --slidefile is optional; --unknown-slide lets spaceranger run without the
+    # slide serial/area (and without downloading the slide layout), so this
+    # exercises the path that needs neither --slide/--area nor --slidefile.
+    output = random_path()
+    run_component(
+        [
+            "--input",
+            input,
+            "--gex_reference",
+            reference,
+            "--probe_set",
+            probe_set,
+            "--image",
+            image,
+            "--unknown_slide",
+            "visium-1",
+            "--create_bam",
+            "false",
             "--output",
             output,
         ]
