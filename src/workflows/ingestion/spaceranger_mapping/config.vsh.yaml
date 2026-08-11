@@ -159,6 +159,14 @@ argument_groups:
         description: Slide design file for offline use
         required: false
         example: "slide_design.gpr"
+      - name: --loupe_alignment
+        type: file
+        description: |
+          Alignment file produced by the Loupe Browser manual alignment step.
+          Overrides automatic fiducial and tissue detection. The image used to
+          generate this file must match --image or --cytaimage.
+        required: false
+        example: "alignment.json"
       - name: --override_id
         type: boolean_true
         description: Overrides the slide serial number and capture area provided in the Cytassist image metadata

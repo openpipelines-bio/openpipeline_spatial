@@ -15,6 +15,7 @@ workflow run_wf {
         "area": state.area,
         "unknown_slide": state.unknown_slide,
         "slidefile": state.slidefile,
+        "loupe_alignment": state.loupe_alignment,
         "override_id": state.override_id,
         "darkimage": state.darkimage,
         "colorizedimage": state.colorizedimage,
