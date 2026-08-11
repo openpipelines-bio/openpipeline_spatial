@@ -3,8 +3,8 @@ namespace: "workflows/ingestion"
 scope: "public"
 description: |
   Take raw Visium HD FASTQ files and produce a SpatialData object with the
-  segmented cells. Runs Space Ranger to align reads and perform nucleus/cell
-  segmentation, then converts the segmented output to SpatialData.
+  segmented cells. Runs Space Ranger 4.1.0 to align reads and perform
+  nucleus/cell segmentation, then converts the segmented output to SpatialData.
 
   Segmentation runs by default when an H&E microscope image (`--image`) is
   provided. Provide `--probe_set` for probe-based Visium HD assays.
@@ -138,6 +138,18 @@ argument_groups:
         type: boolean
         required: false
         description: Enable or disable nucleus/cell segmentation (on by default when an H&E image is given).
+      - name: --cell_annotation_model
+        type: string
+        required: false
+        description: |
+          Cell type annotation model to use. The Pan-Human Azimuth model
+          (`human_pca_v1_beta`) runs locally without a 10x Cloud token for human
+          samples.
+        choices: [auto, human_pca_v1_beta, mouse_pca_v1_beta]
+      - name: --tenx_cloud_token_path
+        type: file
+        required: false
+        description: Path to a 10x Cloud token JSON, required for cloud-based annotation models.
       - name: --disable_cell_annotation
         type: boolean_true
         description: Disable cell type annotation.

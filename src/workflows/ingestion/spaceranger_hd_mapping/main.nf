@@ -18,6 +18,8 @@ workflow run_wf {
         "nosecondary": state.nosecondary,
         "custom_bin_size": state.custom_bin_size,
         "nucleus_segmentation": state.nucleus_segmentation,
+        "cell_annotation_model": state.cell_annotation_model,
+        "tenx_cloud_token_path": state.tenx_cloud_token_path,
         "disable_cell_annotation": state.disable_cell_annotation,
         "output": state.output_raw,
       ]},

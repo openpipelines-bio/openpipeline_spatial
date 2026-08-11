@@ -1,7 +1,7 @@
 name: "spaceranger_mapping"
 namespace: "workflows/ingestion"
 scope: "public"
-description: "A pipeline for running SpaceRanger mapping."
+description: "A pipeline for running Space Ranger (4.1.0) mapping."
 info:
   name: SpaceRanger mapping
   test_dependencies:

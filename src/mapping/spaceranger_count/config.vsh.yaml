@@ -1,7 +1,7 @@
 name: spaceranger_count
 namespace: mapping
 scope: public
-description: Count gene expression and protein expression reads from a single capture area.
+description: Count gene expression and protein expression reads from a single capture area using Space Ranger 4.1.0.
 keywords: [spaceranger]
 links:
   documentation: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/running-pipelines/space-ranger-count
@@ -270,7 +270,7 @@ test_resources:
   - path: /resources_test/GRCh38
 engines:
   - type: docker
-    image: cumulusprod/spaceranger:4.1.0
+    image: cumulusprod/spaceranger:4.1.0 # also update the descriptions when bumping this version
     setup:
       - type: docker
         run: |
