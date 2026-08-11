@@ -10,6 +10,9 @@ description: |
   provided. Provide `--probe_set` for probe-based Visium HD assays.
 info:
   name: SpaceRanger HD mapping
+  test_dependencies:
+    - name: spaceranger_hd_mapping_test
+      namespace: test_workflows/ingestion
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
     roles: [ author ]

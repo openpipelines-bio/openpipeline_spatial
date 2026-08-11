@@ -1,6 +1,7 @@
 nextflow.enable.dsl=2
 
 include { spaceranger_hd_mapping } from params.rootDir + "/target/nextflow/workflows/ingestion/spaceranger_hd_mapping/main.nf"
+include { spaceranger_hd_mapping_test } from params.rootDir + "/target/_test/nextflow/test_workflows/ingestion/spaceranger_hd_mapping_test/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
@@ -41,6 +42,10 @@ workflow test_wf {
       assert file(output[1].output_spatialdata).isDirectory() : "output_spatialdata should be a SpatialData Zarr store."
       "Output: $output"
     }
+    // Validate the SpatialData output content (cells, polygons, cell-type annotations).
+    | spaceranger_hd_mapping_test.run(
+      fromState: ["input": "output_spatialdata"]
+    )
     | toSortedList()
     | map { output_list ->
       assert output_list.size() == 1 : "output channel should contain one event"
