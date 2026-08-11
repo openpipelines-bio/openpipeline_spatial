@@ -71,12 +71,26 @@ argument_groups:
       - name: "--output_spatialdata"
         type: file
         direction: output
-        description: The segmented Space Ranger output, converted to SpatialData (Zarr).
+        description: The Space Ranger output, converted to SpatialData (Zarr).
         required: true
         example: output.zarr
+      - name: "--mode"
+        type: string
+        description: |
+          Which Space Ranger HD output to convert to SpatialData: `segmented_cells`
+          (per-cell counts and cell boundary polygons) or `bins` (binned counts at
+          `--bin_size`). Segmentation is generally preferred, but binned output is
+          available for compatibility.
+        choices: [ segmented_cells, bins ]
+        default: segmented_cells
+      - name: "--bin_size"
+        type: integer
+        description: Bin size in microns to convert when `--mode bins`.
+        choices: [ 2, 8, 16 ]
+        default: 8
       - name: "--output_type"
         type: string
-        description: Which segmented cell count matrix to convert.
+        description: Which count matrix to convert (`filtered` or `raw`). Applies to both modes.
         choices: [ filtered, raw ]
         default: filtered
       - name: "--output_layer"

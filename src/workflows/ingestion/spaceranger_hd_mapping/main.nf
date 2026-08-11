@@ -29,6 +29,8 @@ workflow run_wf {
     | from_spaceranger_hd_to_spatialdata.run(
       fromState: { id, state -> [
         "input": state.output_raw,
+        "mode": state.mode,
+        "bin_size": state.bin_size,
         "output_type": state.output_type,
         "output_layer": state.output_layer,
         // Space Ranger writes a bare "feature_slice.h5"; the converter infers

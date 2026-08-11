@@ -22,10 +22,6 @@ from setup_logger import setup_logger  # noqa: E402
 
 logger = setup_logger()
 
-# Space Ranger names the segmented-cell table "cell_segmentations"
-# (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
-CELL_TABLE_KEY = "cell_segmentations"
-
 
 def add_cell_type_annotations(input_path, table):
     """Merge Space Ranger cell-type annotations into the cell table's `.obs`.
@@ -80,7 +76,9 @@ def main(par):
             load_segmentations_only=True,
             load_nucleus_segmentations=False,
         )
-        table_key = CELL_TABLE_KEY
+        # Space Ranger names the segmented-cell table "cell_segmentations"
+        # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
+        table_key = "cell_segmentations"
 
     # Rename the loaded table to "table" so downstream components stay
     # technology-agnostic (the shapes and images keep their dataset-id names).
