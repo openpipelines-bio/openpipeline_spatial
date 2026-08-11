@@ -14,6 +14,7 @@ workflow run_wf {
         "slide": state.slide,
         "area": state.area,
         "unknown_slide": state.unknown_slide,
+        "slidefile": state.slidefile,
         "loupe_alignment": state.loupe_alignment,
         "create_bam": state.create_bam,
         "nosecondary": state.nosecondary,

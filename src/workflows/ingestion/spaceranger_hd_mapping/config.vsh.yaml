@@ -121,6 +121,14 @@ argument_groups:
         description: Use if the slide serial number and area are unknown.
         required: false
         choices: [visium-1, visium-2, visium-2-large, visium-hd]
+      - name: --slidefile
+        type: file
+        description: Slide design file for offline use
+        required: false
+        example: "slide_design.gpr"
+
+  - name: Image Options
+    arguments:
       - name: --loupe_alignment
         type: file
         description: |
