@@ -2,7 +2,7 @@
 
 ## BREAKING CHANGES
 
-* `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Update Space Ranger from 3.1 to 4.1.0. `--probe_set` is now optional (omit for Visium HD 3' data), telemetry and the web UI are disabled for non-interactive runs, and new 4.x arguments are exposed for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64).
+* `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Update Space Ranger from 3.1 to 4.1.0. `--probe_set` is now optional (omit for Visium HD 3' data), telemetry and the web UI are disabled for non-interactive runs, and new 4.x arguments are exposed for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64, PR #70).
 
 ## NEW FUNCTIONALITY
 
