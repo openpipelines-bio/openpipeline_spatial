@@ -454,13 +454,13 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata-io~=0.5.1" "spatialdata~=0.8.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0" "zipfile-inflate64"
+  pip install --upgrade --no-cache-dir "spatialdata-io~=0.5.1" "anndata~=0.12.16" "awkward" "scipy~=1.17.1" "spatialdata~=0.8.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0" "zipfile-inflate64"
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_xenium_to_spatialdata"
-LABEL org.opencontainers.image.created="2026-08-12T08:54:41Z"
+LABEL org.opencontainers.image.created="2026-08-12T14:25:06Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="1438b0e06554efd934b16890bd50f56018614f5f"
+LABEL org.opencontainers.image.revision="9ce9bb89905c2019f190a74c6e0c3697464907f7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

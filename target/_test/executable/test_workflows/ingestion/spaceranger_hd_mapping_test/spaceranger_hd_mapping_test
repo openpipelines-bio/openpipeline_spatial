@@ -458,13 +458,13 @@ RUN pip install --upgrade pip && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata-io~=0.5.1" "spatialdata~=0.8.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0"
+  pip install --upgrade --no-cache-dir "spatialdata-io~=0.5.1" "anndata~=0.12.16" "awkward" "scipy~=1.17.1" "spatialdata~=0.8.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0"
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows/ingestion spaceranger_hd_mapping_test"
-LABEL org.opencontainers.image.created="2026-08-12T08:54:40Z"
+LABEL org.opencontainers.image.created="2026-08-12T14:25:05Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="1438b0e06554efd934b16890bd50f56018614f5f"
+LABEL org.opencontainers.image.revision="9ce9bb89905c2019f190a74c6e0c3697464907f7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
