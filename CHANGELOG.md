@@ -6,6 +6,8 @@
 
 ## NEW FUNCTIONALITY
 
+* `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
+
 * `convert/from_spaceranger_hd_to_spatialdata`: Convert the Space Ranger 4.x cell-segmentation output for Visium HD into a SpatialData object (per-cell counts + cell boundary polygons) (PR #64).
 
 * `workflows/ingestion/spaceranger_hd_mapping`: Workflow to align raw Visium HD 3' FASTQ files with Space Ranger (including nucleus/cell segmentation) and convert the segmented output to SpatialData (PR #64).
@@ -28,7 +30,7 @@
 
 * `convert/from_xenium_to_h5mu`, `convert/from_xenium_to_spatialdata`, `convert/from_cosmx_to_h5mu`, `convert/from_cells2stats_to_h5mu`: Install `zipfile-inflate64` from PyPI instead of cloning it from codeberg.org, which fixes Docker build failures on infrastructure whose egress IP codeberg blocks (PR #67).
 
-* `dataflow/concatenate_spatialdata`: Handle a single input and make sure regions are properly tracked with the appropriate `"spatialdata_attrs"` (PR #58) 
+* `dataflow/concatenate_spatialdata`: Handle a single input and make sure regions are properly tracked with the appropriate `"spatialdata_attrs"` (PR #58)
 
 # openpipeline_spatial 0.5.0
 
