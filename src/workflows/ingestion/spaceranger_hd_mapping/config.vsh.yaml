@@ -121,6 +121,52 @@ argument_groups:
         description: Use if the slide serial number and area are unknown.
         required: false
         choices: [visium-1, visium-2, visium-2-large, visium-hd]
+      - name: --slidefile
+        type: file
+        description: Slide design file for offline use
+        required: false
+        example: "slide_design.gpr"
+      - name: --override_id
+        type: boolean_true
+        description: Overrides the slide serial number and capture area provided in the Cytassist image metadata
+
+  - name: Image Options
+    arguments:
+      - name: --darkimage
+        type: file
+        description: Multi-channel, dark-background fluorescence image
+        required: false
+        example: "fluorescence.tif"
+      - name: --colorizedimage
+        type: file
+        description: Color image representing pre-colored dark-background fluorescence images
+        required: false
+        example: "colored_fluorescence.tif"
+      - name: --dapi_index
+        type: integer
+        description: Index of DAPI channel (1-indexed) of fluorescence image
+        required: false
+        example: 1
+        min: 1
+      - name: --image_scale
+        type: double
+        description: Microns per microscope image pixel
+        required: false
+        example: 0.65
+        min: 0.01
+        max: 10
+      - name: --reorient_images
+        type: boolean
+        default: true
+        description: Whether to rotate and mirror image to align fiducial pattern
+      - name: --loupe_alignment
+        type: file
+        description: |
+          Alignment file produced by the Loupe Browser manual alignment step.
+          Overrides automatic fiducial and tissue detection. The image used to
+          generate this file must match --image or --cytaimage.
+        required: false
+        example: "alignment.json"
 
   - name: SpaceRanger arguments
     arguments:
@@ -132,11 +178,31 @@ argument_groups:
       - name: --nosecondary
         type: boolean_true
         description: Disable secondary analysis (e.g. clustering).
+      - name: --r1_length
+        type: integer
+        required: false
+        description: Hard trim the input Read 1 to this length before analysis
+        min: 1
+      - name: --r2_length
+        type: integer
+        required: false
+        description: Hard trim the input Read 2 to this length before analysis
+        min: 1
+      - name: --filter_probes
+        type: boolean
+        default: true
+        description: Whether to filter the probe set using the "included" column
       - name: --custom_bin_size
         type: integer
         description: Bin Visium HD data to an additional custom size in microns (4-100, even).
         min: 4
         max: 100
+      - name: --include_introns
+        type: boolean
+        required: false
+        description: |
+          Include intronic reads in the count. When unset, Space Ranger applies its own default
+          (true for Visium HD 3' and Visium v1, false otherwise).
       - name: --nucleus_segmentation
         type: boolean
         required: false
@@ -156,6 +222,37 @@ argument_groups:
       - name: --disable_cell_annotation
         type: boolean_true
         description: Disable cell type annotation.
+
+  - name: Segmentation Options
+    arguments:
+      - name: --custom_segmentation_file
+        type: file
+        required: false
+        description: |
+          Custom nucleus segmentation mask to use instead of the built-in algorithm.
+          Requires --nucleus_expansion_distance_micron.
+        example: "nucleus_segmentation.geojson"
+      - name: --nucleus_expansion_distance_micron
+        type: double
+        required: false
+        description: Distance in microns to expand each nucleus to approximate the cell boundary.
+      - name: --max_nucleus_diameter_px
+        type: integer
+        required: false
+        description: Maximum nucleus diameter in pixels, for samples with exceptionally large cells.
+        min: 1
+      - name: --umi_registration
+        type: boolean
+        required: false
+        description: |
+          Enable or disable UMI-based registration that aligns the microscope image to the UMI
+          count data for Visium HD. When unset, Space Ranger applies its default.
+      - name: --umi_to_image_offset
+        type: string
+        required: false
+        description: |
+          Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image
+          registration when automatic convergence is incorrect.
 
 dependencies:
   - name: mapping/spaceranger_count
