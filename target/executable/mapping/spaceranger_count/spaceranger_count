@@ -453,9 +453,9 @@ apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-08-12T06:21:10Z"
+LABEL org.opencontainers.image.created="2026-08-12T08:54:41Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="a22c235b1671b660e1f3b805e0da5abb7b83d1d9"
+LABEL org.opencontainers.image.revision="1438b0e06554efd934b16890bd50f56018614f5f"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -771,8 +771,13 @@ function ViashHelp {
   echo "    --cell_annotation_model"
   echo "        type: string"
   echo "        choices: [ auto, human_pca_v1_beta, mouse_pca_v1_beta ]"
-  echo "        Cell type annotation model to use (Visium HD / HD 3' only, requires"
-  echo "        segmentation)."
+  echo "        Cloud-based cell type annotation model to use (Visium HD / HD 3' only,"
+  echo "        requires"
+  echo "        segmentation), which requires --tenx_cloud_token_path. When left out,"
+  echo "        Space Ranger"
+  echo "        still annotates human samples with the bundled Pan-Human Azimuth model,"
+  echo "        which runs"
+  echo "        locally and needs no token."
   echo ""
   echo "    --tenx_cloud_token_path"
   echo "        type: file, file must exist"

@@ -3568,7 +3568,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--cell_annotation_model",
-          "description" : "Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).\n",
+          "description" : "Cloud-based cell type annotation model to use (Visium HD / HD 3' only, requires\nsegmentation), which requires --tenx_cloud_token_path. When left out, Space Ranger\nstill annotates human samples with the bundled Pan-Human Azimuth model, which runs\nlocally and needs no token.\n",
           "required" : false,
           "choices" : [
             "auto",
@@ -3760,7 +3760,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "a22c235b1671b660e1f3b805e0da5abb7b83d1d9",
+    "git_commit" : "1438b0e06554efd934b16890bd50f56018614f5f",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

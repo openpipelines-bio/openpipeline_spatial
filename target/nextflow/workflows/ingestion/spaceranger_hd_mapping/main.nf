@@ -3487,7 +3487,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--cell_annotation_model",
-          "description" : "Cell type annotation model to use. The Pan-Human Azimuth model\n(`human_pca_v1_beta`) runs locally without a 10x Cloud token for human\nsamples.\n",
+          "description" : "Cloud-based cell type annotation model to use, which requires\n`--tenx_cloud_token_path`. When left out, Space Ranger still annotates\nhuman samples with the bundled Pan-Human Azimuth model, which runs\nlocally and needs no token.\n",
           "required" : false,
           "choices" : [
             "auto",
@@ -3728,7 +3728,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_hd_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "a22c235b1671b660e1f3b805e0da5abb7b83d1d9",
+    "git_commit" : "1438b0e06554efd934b16890bd50f56018614f5f",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

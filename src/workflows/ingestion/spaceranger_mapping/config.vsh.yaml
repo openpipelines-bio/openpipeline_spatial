@@ -250,7 +250,10 @@ argument_groups:
         type: string
         required: false
         description: |
-          Cell type annotation model to use (Visium HD / HD 3' only, requires segmentation).
+          Cloud-based cell type annotation model to use (Visium HD / HD 3' only, requires
+          segmentation), which requires --tenx_cloud_token_path. When left out, Space Ranger
+          still annotates human samples with the bundled Pan-Human Azimuth model, which runs
+          locally and needs no token.
         choices: [auto, human_pca_v1_beta, mouse_pca_v1_beta]
       - name: --tenx_cloud_token_path
         type: file
