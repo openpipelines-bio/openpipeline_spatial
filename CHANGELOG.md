@@ -26,6 +26,8 @@
 
 * Bump `spatialdata` to version 0.8.0 and `ome-zarr` to 0.18.0 (PR #65).
 
+* Pin `anndata` in `spatialdata` environments to the same version used by other environments (PR #71).
+
 ## BUG FIXES
 
 * `convert/from_xenium_to_h5mu`, `convert/from_xenium_to_spatialdata`, `convert/from_cosmx_to_h5mu`, `convert/from_cells2stats_to_h5mu`: Install `zipfile-inflate64` from PyPI instead of cloning it from codeberg.org, which fixes Docker build failures on infrastructure whose egress IP codeberg blocks (PR #67).
