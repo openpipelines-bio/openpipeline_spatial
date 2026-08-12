@@ -3341,6 +3341,20 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--loupe_alignment",
+          "description" : "Alignment file produced by the Loupe Browser manual alignment step.\nOverrides automatic fiducial and tissue detection. The image used to\ngenerate this file must match --image or --cytaimage.\n",
+          "example" : [
+            "alignment.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3746,7 +3760,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
+    "git_commit" : "a22c235b1671b660e1f3b805e0da5abb7b83d1d9",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3808,6 +3822,7 @@ workflow run_wf {
         "area": state.area,
         "unknown_slide": state.unknown_slide,
         "slidefile": state.slidefile,
+        "loupe_alignment": state.loupe_alignment,
         "override_id": state.override_id,
         "darkimage": state.darkimage,
         "colorizedimage": state.colorizedimage,

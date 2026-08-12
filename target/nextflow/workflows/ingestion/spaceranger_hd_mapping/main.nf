@@ -3293,6 +3293,112 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--slidefile",
+          "description" : "Slide design file for offline use",
+          "example" : [
+            "slide_design.gpr"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_true",
+          "name" : "--override_id",
+          "description" : "Overrides the slide serial number and capture area provided in the Cytassist image metadata",
+          "direction" : "input"
+        }
+      ]
+    },
+    {
+      "name" : "Image Options",
+      "arguments" : [
+        {
+          "type" : "file",
+          "name" : "--darkimage",
+          "description" : "Multi-channel, dark-background fluorescence image",
+          "example" : [
+            "fluorescence.tif"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--colorizedimage",
+          "description" : "Color image representing pre-colored dark-background fluorescence images",
+          "example" : [
+            "colored_fluorescence.tif"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--dapi_index",
+          "description" : "Index of DAPI channel (1-indexed) of fluorescence image",
+          "example" : [
+            1
+          ],
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--image_scale",
+          "description" : "Microns per microscope image pixel",
+          "example" : [
+            0.65
+          ],
+          "required" : false,
+          "min" : 0.01,
+          "max" : 10.0,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--reorient_images",
+          "description" : "Whether to rotate and mirror image to align fiducial pattern",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--loupe_alignment",
+          "description" : "Alignment file produced by the Loupe Browser manual alignment step.\nOverrides automatic fiducial and tissue detection. The image used to\ngenerate this file must match --image or --cytaimage.\n",
+          "example" : [
+            "alignment.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3319,11 +3425,52 @@ meta = [
         },
         {
           "type" : "integer",
+          "name" : "--r1_length",
+          "description" : "Hard trim the input Read 1 to this length before analysis",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--r2_length",
+          "description" : "Hard trim the input Read 2 to this length before analysis",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--filter_probes",
+          "description" : "Whether to filter the probe set using the \\"included\\" column",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
           "name" : "--custom_bin_size",
           "description" : "Bin Visium HD data to an additional custom size in microns (4-100, even).",
           "required" : false,
           "min" : 4,
           "max" : 100,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--include_introns",
+          "description" : "Include intronic reads in the count. When unset, Space Ranger applies its own default\n(true for Visium HD 3' and Visium v1, false otherwise).\n",
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3367,6 +3514,62 @@ meta = [
           "name" : "--disable_cell_annotation",
           "description" : "Disable cell type annotation.",
           "direction" : "input"
+        }
+      ]
+    },
+    {
+      "name" : "Segmentation Options",
+      "arguments" : [
+        {
+          "type" : "file",
+          "name" : "--custom_segmentation_file",
+          "description" : "Custom nucleus segmentation mask to use instead of the built-in algorithm.\nRequires --nucleus_expansion_distance_micron.\n",
+          "example" : [
+            "nucleus_segmentation.geojson"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--nucleus_expansion_distance_micron",
+          "description" : "Distance in microns to expand each nucleus to approximate the cell boundary.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--max_nucleus_diameter_px",
+          "description" : "Maximum nucleus diameter in pixels, for samples with exceptionally large cells.",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--umi_registration",
+          "description" : "Enable or disable UMI-based registration that aligns the microscope image to the UMI\ncount data for Visium HD. When unset, Space Ranger applies its default.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--umi_to_image_offset",
+          "description" : "Supply a custom offset (as accepted by Space Ranger) to override UMI-to-image\nregistration when automatic convergence is incorrect.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3525,7 +3728,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_hd_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
+    "git_commit" : "a22c235b1671b660e1f3b805e0da5abb7b83d1d9",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3586,13 +3789,30 @@ workflow run_wf {
         "slide": state.slide,
         "area": state.area,
         "unknown_slide": state.unknown_slide,
+        "slidefile": state.slidefile,
+        "override_id": state.override_id,
+        "darkimage": state.darkimage,
+        "colorizedimage": state.colorizedimage,
+        "dapi_index": state.dapi_index,
+        "image_scale": state.image_scale,
+        "reorient_images": state.reorient_images,
+        "loupe_alignment": state.loupe_alignment,
         "create_bam": state.create_bam,
         "nosecondary": state.nosecondary,
+        "r1_length": state.r1_length,
+        "r2_length": state.r2_length,
+        "filter_probes": state.filter_probes,
         "custom_bin_size": state.custom_bin_size,
+        "include_introns": state.include_introns,
         "nucleus_segmentation": state.nucleus_segmentation,
         "cell_annotation_model": state.cell_annotation_model,
         "tenx_cloud_token_path": state.tenx_cloud_token_path,
         "disable_cell_annotation": state.disable_cell_annotation,
+        "custom_segmentation_file": state.custom_segmentation_file,
+        "nucleus_expansion_distance_micron": state.nucleus_expansion_distance_micron,
+        "max_nucleus_diameter_px": state.max_nucleus_diameter_px,
+        "umi_registration": state.umi_registration,
+        "umi_to_image_offset": state.umi_to_image_offset,
         "output": state.output_raw,
       ]},
       toState: [

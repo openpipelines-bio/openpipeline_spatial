@@ -3298,6 +3298,20 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--loupe_alignment",
+          "description" : "Alignment file produced by the Loupe Browser manual alignment step.\nOverrides automatic fiducial and tissue detection. The image used to\ngenerate this file must match --image or --cytaimage.\n",
+          "example" : [
+            "alignment.json"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3691,7 +3705,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/mapping/spaceranger_count",
     "viash_version" : "0.9.7",
-    "git_commit" : "aec7b0edfd05a571bfb76bbbfa6bbe609c169341",
+    "git_commit" : "a22c235b1671b660e1f3b805e0da5abb7b83d1d9",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3760,6 +3774,7 @@ $( if [ ! -z ${VIASH_PAR_COLORIZEDIMAGE+x} ]; then echo "${VIASH_PAR_COLORIZEDIM
 $( if [ ! -z ${VIASH_PAR_DAPI_INDEX+x} ]; then echo "${VIASH_PAR_DAPI_INDEX}" | sed "s#'#'\\"'\\"'#g;s#.*#par_dapi_index='&'#" ; else echo "# par_dapi_index="; fi )
 $( if [ ! -z ${VIASH_PAR_IMAGE_SCALE+x} ]; then echo "${VIASH_PAR_IMAGE_SCALE}" | sed "s#'#'\\"'\\"'#g;s#.*#par_image_scale='&'#" ; else echo "# par_image_scale="; fi )
 $( if [ ! -z ${VIASH_PAR_REORIENT_IMAGES+x} ]; then echo "${VIASH_PAR_REORIENT_IMAGES}" | sed "s#'#'\\"'\\"'#g;s#.*#par_reorient_images='&'#" ; else echo "# par_reorient_images="; fi )
+$( if [ ! -z ${VIASH_PAR_LOUPE_ALIGNMENT+x} ]; then echo "${VIASH_PAR_LOUPE_ALIGNMENT}" | sed "s#'#'\\"'\\"'#g;s#.*#par_loupe_alignment='&'#" ; else echo "# par_loupe_alignment="; fi )
 $( if [ ! -z ${VIASH_PAR_CREATE_BAM+x} ]; then echo "${VIASH_PAR_CREATE_BAM}" | sed "s#'#'\\"'\\"'#g;s#.*#par_create_bam='&'#" ; else echo "# par_create_bam="; fi )
 $( if [ ! -z ${VIASH_PAR_NOSECONDARY+x} ]; then echo "${VIASH_PAR_NOSECONDARY}" | sed "s#'#'\\"'\\"'#g;s#.*#par_nosecondary='&'#" ; else echo "# par_nosecondary="; fi )
 $( if [ ! -z ${VIASH_PAR_R1_LENGTH+x} ]; then echo "${VIASH_PAR_R1_LENGTH}" | sed "s#'#'\\"'\\"'#g;s#.*#par_r1_length='&'#" ; else echo "# par_r1_length="; fi )
@@ -3818,6 +3833,7 @@ par_output=\\`realpath \\$par_output\\`
 [[ -n "\\${par_image:-}" ]] && par_image=\\$(realpath "\\$par_image")
 [[ -n "\\${par_cytaimage:-}" ]] && par_cytaimage=\\$(realpath "\\$par_cytaimage")
 [[ -n "\\${par_slidefile:-}" ]] && par_slidefile=\\$(realpath "\\$par_slidefile")
+[[ -n "\\${par_loupe_alignment:-}" ]] && par_loupe_alignment=\\$(realpath "\\$par_loupe_alignment")
 [[ -n "\\${par_darkimage:-}" ]] && par_darkimage=\\$(realpath "\\$par_darkimage")
 [[ -n "\\${par_colorizedimage:-}" ]] && par_colorizedimage=\\$(realpath "\\$par_colorizedimage")
 [[ -n "\\${par_custom_segmentation_file:-}" ]] && par_custom_segmentation_file=\\$(realpath "\\$par_custom_segmentation_file")
@@ -3875,6 +3891,7 @@ spaceranger count \\\\
   \\${par_area:+--area="\\$par_area"} \\\\
   \\${par_unknown_slide:+--unknown-slide="\\$par_unknown_slide"} \\\\
   \\${par_slidefile:+--slidefile="\\$par_slidefile"} \\\\
+  \\${par_loupe_alignment:+--loupe-alignment="\\$par_loupe_alignment"} \\\\
   \\${par_override_id:+--override-id} \\\\
   \\${par_darkimage:+--darkimage="\\$par_darkimage"} \\\\
   \\${par_colorizedimage:+--colorizedimage="\\$par_colorizedimage"} \\\\

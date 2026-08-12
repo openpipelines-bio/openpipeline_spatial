@@ -461,9 +461,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Jakub Majercik, Weiwei Schultz"
 LABEL org.opencontainers.image.description="Companion container for running component nichecompass gene_program_mask"
-LABEL org.opencontainers.image.created="2026-08-11T13:27:58Z"
+LABEL org.opencontainers.image.created="2026-08-12T06:21:09Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="aec7b0edfd05a571bfb76bbbfa6bbe609c169341"
+LABEL org.opencontainers.image.revision="a22c235b1671b660e1f3b805e0da5abb7b83d1d9"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

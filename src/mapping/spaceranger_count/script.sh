@@ -31,6 +31,7 @@ par_output=`realpath $par_output`
 [[ -n "${par_image:-}" ]] && par_image=$(realpath "$par_image")
 [[ -n "${par_cytaimage:-}" ]] && par_cytaimage=$(realpath "$par_cytaimage")
 [[ -n "${par_slidefile:-}" ]] && par_slidefile=$(realpath "$par_slidefile")
+[[ -n "${par_loupe_alignment:-}" ]] && par_loupe_alignment=$(realpath "$par_loupe_alignment")
 [[ -n "${par_darkimage:-}" ]] && par_darkimage=$(realpath "$par_darkimage")
 [[ -n "${par_colorizedimage:-}" ]] && par_colorizedimage=$(realpath "$par_colorizedimage")
 [[ -n "${par_custom_segmentation_file:-}" ]] && par_custom_segmentation_file=$(realpath "$par_custom_segmentation_file")
@@ -88,6 +89,7 @@ spaceranger count \
   ${par_area:+--area="$par_area"} \
   ${par_unknown_slide:+--unknown-slide="$par_unknown_slide"} \
   ${par_slidefile:+--slidefile="$par_slidefile"} \
+  ${par_loupe_alignment:+--loupe-alignment="$par_loupe_alignment"} \
   ${par_override_id:+--override-id} \
   ${par_darkimage:+--darkimage="$par_darkimage"} \
   ${par_colorizedimage:+--colorizedimage="$par_colorizedimage"} \

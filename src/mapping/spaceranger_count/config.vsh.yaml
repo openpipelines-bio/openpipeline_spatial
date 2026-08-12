@@ -138,6 +138,15 @@ argument_groups:
         default: true
         description: Whether to rotate and mirror image to align fiducial pattern
 
+      - type: file
+        name: --loupe_alignment
+        description: |
+          Alignment file produced by the Loupe Browser manual alignment step.
+          Overrides automatic fiducial and tissue detection. The image used to
+          generate this file must match --image or --cytaimage.
+        required: false
+        example: "alignment.json"
+
   - name: Processing Options
     arguments:
       - type: boolean
