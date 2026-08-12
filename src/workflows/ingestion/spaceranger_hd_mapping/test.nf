@@ -27,9 +27,6 @@ workflow test_wf {
         slide: "H1-84QJZFR",
         area: "D1",
         create_bam: false,
-        // Human sample -> the bundled Pan-Human Azimuth model runs locally (no
-        // 10x Cloud token), so cell-type annotation is exercised end-to-end.
-        cell_annotation_model: "human_pca_v1_beta",
         output_type: "filtered",
       ]
     ])
