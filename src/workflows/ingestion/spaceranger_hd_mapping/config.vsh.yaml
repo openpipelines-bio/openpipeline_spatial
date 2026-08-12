@@ -211,9 +211,10 @@ argument_groups:
         type: string
         required: false
         description: |
-          Cell type annotation model to use. The Pan-Human Azimuth model
-          (`human_pca_v1_beta`) runs locally without a 10x Cloud token for human
-          samples.
+          Cloud-based cell type annotation model to use, which requires
+          `--tenx_cloud_token_path`. When left out, Space Ranger still annotates
+          human samples with the bundled Pan-Human Azimuth model, which runs
+          locally and needs no token.
         choices: [auto, human_pca_v1_beta, mouse_pca_v1_beta]
       - name: --tenx_cloud_token_path
         type: file
