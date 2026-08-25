@@ -5,7 +5,7 @@ description: Trains a NicheCompass model and generates the latent space for the 
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
+    roles: [ author ]
 
 argument_groups:
   - name: "Inputs"

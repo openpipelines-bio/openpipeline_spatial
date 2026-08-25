@@ -5,7 +5,7 @@ description: |
   Converts the output bundle from spaceranger into an h5mu file.
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
+    roles: [ author ]
 argument_groups:
   - name: Inputs
     arguments:
