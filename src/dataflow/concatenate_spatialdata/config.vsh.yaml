@@ -5,8 +5,6 @@ description: |
   Concatenate multiple SpatialData objects into one SpatialData output.
 
 authors:
-  - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
   - __merge__: /src/authors/luke_zappia.yaml
     roles: [ author ]
 

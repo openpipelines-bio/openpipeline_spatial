@@ -12,9 +12,8 @@
 # files.
 # 
 # Component authors:
-#  * Dorien Roosen (maintainer)
-#  * Jakub Majercik (maintainer)
-#  * Weiwei Schultz (contributor)
+#  * Dorien Roosen (author)
+#  * Jakub Majercik (author)
 
 set -e
 
@@ -459,11 +458,11 @@ RUN pip install --upgrade pip && \
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy<2" "nichecompass"
 
-LABEL org.opencontainers.image.authors="Dorien Roosen, Jakub Majercik, Weiwei Schultz"
+LABEL org.opencontainers.image.authors="Dorien Roosen, Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component nichecompass gene_program_mask"
-LABEL org.opencontainers.image.created="2026-08-12T14:25:07Z"
+LABEL org.opencontainers.image.created="2026-08-25T13:16:28Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="9ce9bb89905c2019f190a74c6e0c3697464907f7"
+LABEL org.opencontainers.image.revision="a6375482da9158b68a1c1bc093af84b431a3d375"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

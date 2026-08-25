@@ -3053,19 +3053,10 @@ meta = [
         "author"
       ],
       "info" : {
-        "role" : "Core Team Member",
         "links" : {
-          "email" : "dorien@data-intuitive.com",
           "github" : "dorien-er",
           "linkedin" : "dorien-roosen"
-        },
-        "organizations" : [
-          {
-            "name" : "Data Intuitive",
-            "href" : "https://www.data-intuitive.com",
-            "role" : "Data Scientist"
-          }
-        ]
+        }
       }
     }
   ],
@@ -3340,7 +3331,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialexperiment",
     "viash_version" : "0.9.7",
-    "git_commit" : "9ce9bb89905c2019f190a74c6e0c3697464907f7",
+    "git_commit" : "a6375482da9158b68a1c1bc093af84b431a3d375",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

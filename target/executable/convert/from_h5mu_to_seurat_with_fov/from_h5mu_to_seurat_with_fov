@@ -12,7 +12,7 @@
 # files.
 # 
 # Component authors:
-#  * Dorien Roosen (author, maintainer)
+#  * Dorien Roosen (author)
 
 set -e
 
@@ -460,9 +460,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_seurat_with_fov"
-LABEL org.opencontainers.image.created="2026-08-12T14:25:06Z"
+LABEL org.opencontainers.image.created="2026-08-25T13:16:28Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="9ce9bb89905c2019f190a74c6e0c3697464907f7"
+LABEL org.opencontainers.image.revision="a6375482da9158b68a1c1bc093af84b431a3d375"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

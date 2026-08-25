@@ -10,9 +10,8 @@
 // files.
 // 
 // Component authors:
-//  * Dorien Roosen (maintainer)
-//  * Jakub Majercik (maintainer)
-//  * Weiwei Schultz (contributor)
+//  * Dorien Roosen (author)
+//  * Jakub Majercik (author)
 
 ////////////////////////////
 // VDSL3 helper functions //
@@ -3052,58 +3051,25 @@ meta = [
     {
       "name" : "Dorien Roosen",
       "roles" : [
-        "maintainer"
+        "author"
       ],
       "info" : {
-        "role" : "Core Team Member",
         "links" : {
-          "email" : "dorien@data-intuitive.com",
           "github" : "dorien-er",
           "linkedin" : "dorien-roosen"
-        },
-        "organizations" : [
-          {
-            "name" : "Data Intuitive",
-            "href" : "https://www.data-intuitive.com",
-            "role" : "Data Scientist"
-          }
-        ]
+        }
       }
     },
     {
       "name" : "Jakub Majercik",
       "roles" : [
-        "maintainer"
+        "author"
       ],
       "info" : {
-        "role" : "Contributor",
         "links" : {
-          "email" : "jakub@data-intuitive.com",
           "github" : "jakubmajercik",
           "linkedin" : "jakubmajercik"
-        },
-        "organizations" : [
-          {
-            "name" : "Data Intuitive",
-            "href" : "https://www.data-intuitive.com",
-            "role" : "Bioinformatics Engineer"
-          }
-        ]
-      }
-    },
-    {
-      "name" : "Weiwei Schultz",
-      "roles" : [
-        "contributor"
-      ],
-      "info" : {
-        "role" : "Contributor",
-        "organizations" : [
-          {
-            "name" : "Janssen R&D US",
-            "role" : "Associate Director Data Sciences"
-          }
-        ]
+        }
       }
     }
   ],
@@ -3662,7 +3628,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/gene_program_mask",
     "viash_version" : "0.9.7",
-    "git_commit" : "9ce9bb89905c2019f190a74c6e0c3697464907f7",
+    "git_commit" : "a6375482da9158b68a1c1bc093af84b431a3d375",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
