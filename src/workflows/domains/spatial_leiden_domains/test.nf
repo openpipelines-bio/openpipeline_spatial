@@ -16,7 +16,22 @@ workflow test_wf {
       output: "output.h5mu",
       device_type: "cpu",
       resolution: [0.5, 1.0],
-    ]
+    ],
+    [
+      id: "cosmx",
+      input: resources_test.resolve("cosmx/Lung5_tiny_processed.h5mu"),
+      output: "output.h5mu",
+      device_type: "cpu",
+      resolution: [0.5, 1.0],
+    ],
+    [
+      id: "visium",
+      input: resources_test.resolve("visium/visium_tiny_processed.h5mu"),
+      output: "output.h5mu",
+      device_type: "cpu",
+      resolution: [0.5, 1.0],
+      coord_type: "grid",
+    ],
   ])
   | map { state -> [state.id, state] }
   | spatial_leiden_domains
@@ -24,7 +39,7 @@ workflow test_wf {
     assert output.size() == 2 : "outputs should contain two elements; [id, state]"
 
     def id = output[0]
-    assert id == "xenium"
+    assert id in ["xenium", "cosmx", "visium"]
 
     def state = output[1]
     assert state instanceof Map : "State should be a map. Found: ${state}"
@@ -36,6 +51,6 @@ workflow test_wf {
   }
   | toSortedList()
   | map { output_list ->
-    assert output_list.size() == 1 : "output channel should contain one event"
+    assert output_list.size() == 3 : "output channel should contain three events"
   }
 }

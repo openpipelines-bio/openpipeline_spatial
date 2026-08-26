@@ -169,6 +169,8 @@ test_resources:
     path: test.nf
     entrypoint: test_wf
   - path: /resources_test/xenium/xenium_tiny.qc.all_neighbors.pca.h5mu
+  - path: /resources_test/cosmx/Lung5_tiny_processed.h5mu
+  - path: /resources_test/visium/visium_tiny_processed.h5mu
 
 runners:
   - type: nextflow
