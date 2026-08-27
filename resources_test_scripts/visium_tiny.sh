@@ -73,6 +73,15 @@ nextflow run . \
 
 echo "> Sample processing complete"
 
+# Spatial neighborhood graph (grid coord_type), for use as a test fixture by
+# components/workflows that expect a pre-computed spatial neighbor graph
+viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" -- \
+    --input "$DIR/visium_tiny_processed.h5mu" \
+    --output "$DIR/visium_tiny_neighbours.h5mu" \
+    --coord_type grid
+
+echo "> Spatial neighbor graph calculation complete"
+
 aws s3 sync \
     --profile di \
     --exclude "*.yaml" \

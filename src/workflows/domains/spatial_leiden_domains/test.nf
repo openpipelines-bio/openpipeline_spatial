@@ -16,6 +16,7 @@ workflow test_wf {
       output: "output.h5mu",
       device_type: "cpu",
       resolution: [0.5, 1.0],
+      technology: "xenium",
     ],
     [
       id: "cosmx",
@@ -23,6 +24,7 @@ workflow test_wf {
       output: "output.h5mu",
       device_type: "cpu",
       resolution: [0.5, 1.0],
+      technology: "cosmx",
     ],
     [
       id: "visium",
@@ -30,7 +32,7 @@ workflow test_wf {
       output: "output.h5mu",
       device_type: "cpu",
       resolution: [0.5, 1.0],
-      coord_type: "grid",
+      technology: "visium",
     ],
   ])
   | map { state -> [state.id, state] }

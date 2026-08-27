@@ -4,7 +4,9 @@ scope: "public"
 description: |
   A pipeline to identify spatial domains by fusing an expression k-NN graph
   with a spatial neighborhood graph and performing Leiden clustering on the
-  fused graph. Produces per-resolution domain labels in `.obsm`.
+  fused graph, producing per-resolution domain labels in `.obsm`. Also runs
+  technology-specific spatial statistics and spatially variable gene (SVG)
+  detection via spatial autocorrelation (Moran's I / Geary's C).
 
   Required input:
     .obsm[--input_obsm_pca]             -  A PCA embedding of the gene expression data.
@@ -40,6 +42,18 @@ argument_groups:
         type: string
         default: "spatial"
         description: Key in `adata.obsm` where spatial coordinates are stored.
+      - name: "--technology"
+        type: string
+        required: true
+        choices: ["xenium", "cosmx", "visium", "visium_hd"]
+        description: |
+          Spatial transcriptomics technology used to generate the data.
+          Determines which technology-specific spatial statistics component is
+          run (Xenium or Visium/Visium HD; no dedicated component exists yet
+          for CosMx, so that step is skipped) and, when `--coord_type` is not
+          explicitly set, the default coordinate type for the spatial
+          neighborhood graph (`grid` for `visium`/`visium_hd`, `generic`
+          otherwise).
 
   - name: "Expression Neighbor Graph"
     description: |
@@ -65,10 +79,12 @@ argument_groups:
     arguments:
       - name: "--coord_type"
         type: string
-        default: "generic"
+        required: false
         choices: ["generic", "grid"]
         description: |
-          Type of coordinate system. Valid options are:
+          Type of coordinate system. When not set, defaults to `grid` for
+          `--technology visium`/`visium_hd` and `generic` otherwise. Valid
+          options are:
           `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming a regular grid topology, where neighbors are defined by grid adjacency rather than distance.
           `generic` - Generic coordinates. Recommended for imaging-based data. This option is appropriate for irregularly spaced points, such as cell centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx). Setting this option avoids grid-assumption artifacts and ensures each node has spatial neighbors as defined by distance.
       - name: "--n_spatial_neighbors"
@@ -129,6 +145,24 @@ argument_groups:
           Key in `adata.obsm` under which to store the per-resolution spatial domain labels,
           one column per value specified in `--resolution`.
 
+  - name: "Spatially Variable Genes"
+    description: |
+      Options for spatially variable gene (SVG) detection via spatial
+      autocorrelation (Moran's I / Geary's C) on the spatial neighborhood graph.
+    arguments:
+      - name: "--svg_mode"
+        type: string
+        choices: ["moran", "geary"]
+        default: "moran"
+        description: |
+          Spatial autocorrelation statistic used to detect spatially variable
+          genes. `moran` for Moran's I, `geary` for Geary's C.
+      - name: "--svg_n_perms"
+        type: integer
+        default: 100
+        min: 1
+        description: Number of permutations for the spatial autocorrelation p-value calculation.
+
   - name: "Compute"
     arguments:
       - name: "--device_type"
@@ -136,8 +170,9 @@ argument_groups:
         choices: ["cpu", "gpu"]
         default: "gpu"
         description: |
-          Whether to run the expression neighbor graph and Leiden clustering steps on CPU or GPU.
-          GPU execution requires a CUDA-capable GPU to be available.
+          Whether to run the expression neighbor graph, Leiden clustering, and
+          spatial autocorrelation steps on CPU or GPU. GPU execution requires
+          a CUDA-capable GPU to be available.
 
   - name: "Outputs"
     arguments:
@@ -154,10 +189,14 @@ dependencies:
     repository: openpipeline_rapids
     alias: expression_neighbors
   - name: neighbors/spatial_neighborhood_graph
+  - name: feature_annotation/xenium_spatial_statistics
+  - name: feature_annotation/visium_spatial_statistics
   - name: neighbors/join_graphs
   - name: wrappers/tools/leiden
     repository: openpipeline_rapids
     alias: leiden
+  - name: wrappers/squidpy/spatial_autocorr
+    repository: openpipeline_rapids
 
 resources:
   - type: nextflow_script
