@@ -1,4 +1,4 @@
-name: "spatial_leiden_domains"
+name: "spatial_domain_analysis"
 namespace: "workflows/domains"
 scope: "public"
 description: |

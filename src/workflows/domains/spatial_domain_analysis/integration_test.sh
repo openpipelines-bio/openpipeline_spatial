@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 nextflow \
   run . \
-  -main-script src/workflows/domains/spatial_leiden_domains/test.nf \
+  -main-script src/workflows/domains/spatial_domain_analysis/test.nf \
   -entry test_wf \
   -profile docker,no_publish \
   -c src/workflows/utils/labels_ci.config \

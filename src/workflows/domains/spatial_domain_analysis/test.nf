@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 targetDir = params.rootDir + "/target/nextflow"
 
-include { spatial_leiden_domains } from targetDir + "/workflows/domains/spatial_leiden_domains/main.nf"
+include { spatial_domain_analysis } from targetDir + "/workflows/domains/spatial_domain_analysis/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
@@ -36,7 +36,7 @@ workflow test_wf {
     ],
   ])
   | map { state -> [state.id, state] }
-  | spatial_leiden_domains
+  | spatial_domain_analysis
   | view { output ->
     assert output.size() == 2 : "outputs should contain two elements; [id, state]"
 
