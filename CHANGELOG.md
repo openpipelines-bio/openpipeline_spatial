@@ -6,7 +6,9 @@
 
 ## NEW FUNCTIONALITY
 
-* `workflows/domains/spatial_leiden_domains`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+* `feature_annotation/visium_spatial_statistics`: Component to calculate tissue neighbourhood, local expression density, and position-based spatial statistics for Visium data (PR #72).
+
+* `workflows/domains/spatial_domain_analysis`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph, including technology-specific spatial statistics and spatially variable gene detection (PR #72).
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
 
