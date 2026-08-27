@@ -1,0 +1,107 @@
+name: visium_spatial_statistics
+namespace: feature_annotation
+label: Visium Spatial Statistics
+description: |
+  Calculate various spatial statistics from Visium data including tissue
+  neighbourhood metrics, local expression density, position-based features,
+  and global spatial patterns. This component expects a MuData object with a
+  pre-computed spatial neighborhood graph in `.obsp`.
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        required: true
+        example: input.h5mu
+        description: |
+          A MuData file containing Visium spatial transcriptomics data and a
+          pre-computed spatial neighborhood graph in `.obsp`.
+
+      - name: --modality
+        type: string
+        default: "rna"
+        required: false
+        description: |
+          The name of the modality to use from the MuData object.
+
+      - name: --obsm_spatial_coordinates
+        type: string
+        default: "spatial"
+        description: |
+          The key in `.obsm` where spatial coordinates are stored.
+          Expected shape is (n_spots, 2) for 2D coordinates.
+
+      - name: --obsp_spatial_graph
+        type: string
+        default: "spatial_connectivities"
+        description: Key in `.obsp` where spatial graph connectivities are stored.
+
+      - name: --obs_total_counts
+        type: string
+        default: "total_counts"
+        description: |
+          Key in `.obs` where total counts per spot are stored. If the key is
+          not found, local expression density is skipped with a warning.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        default: output.h5mu
+        description: |
+          The output MuData file with calculated spatial statistics.
+          Per-spot metrics are stored in `.obs` and global statistics in `.uns`.
+
+      - name: --output_prefix
+        type: string
+        default: "spatial_"
+        description: |
+          Prefix to add to all generated column names in `.obs` and keys in `.uns`.
+
+  - name: Parameters
+    arguments:
+      - name: "--tissue_edge_max_neighbors"
+        type: integer
+        default: 6
+        choices: [6, 8]
+        description: |
+          Maximum number of neighbours for an interior spot. Spots with fewer
+          neighbours than this threshold are classified as tissue-edge spots.
+          Use 6 for standard Visium (hexagonal grid) and 8 for Visium HD
+          (square-bin grid, Moore neighbourhood).
+
+resources:
+  - type: python_script
+    path: script.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/visium/visium_tiny_neighbours.h5mu
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__:
+          - /src/base/requirements/anndata_mudata.yaml
+          - /src/base/requirements/scanpy.yaml
+          - /src/base/requirements/squidpy.yaml
+    test_setup:
+      - type: python
+        packages:
+          - pytest
+          - viashpy
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [singlecpu, midmem, lowdisk]
