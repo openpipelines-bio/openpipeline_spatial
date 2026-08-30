@@ -6,6 +6,8 @@
 
 ## NEW FUNCTIONALITY
 
+* `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
+
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
 
 * `convert/from_spaceranger_hd_to_spatialdata`: Convert the Space Ranger 4.x cell-segmentation output for Visium HD into a SpatialData object (per-cell counts + cell boundary polygons) (PR #64).
