@@ -241,6 +241,7 @@ def test_relabelling(run_component, random_path, tmp_path):
 
     assert_morphology_unchanged(input, output)
 
+
 def test_valid_id(run_component, random_path):
     output = random_path()
     malformed_id = ", ,"
@@ -263,14 +264,12 @@ def test_valid_id(run_component, random_path):
         re.IGNORECASE,
     )
 
+
 def test_valid_panel(run_component, random_path, tmp_path):
     output = random_path()
 
     malformed_panel = tmp_path / "malformed_panel.json"
-    malformed_data = {
-        'gene' : 'not_a_gene',
-        'transcript': 'not_a_transcript'
-    }
+    malformed_data = {"gene": "not_a_gene", "transcript": "not_a_transcript"}
     with open(malformed_panel, "w") as file:
         json.dump(malformed_data, file)
 
