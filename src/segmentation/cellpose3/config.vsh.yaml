@@ -1,0 +1,157 @@
+name: cellpose3
+namespace: segmentation
+description: |
+  Segment cells or nuclei from a spatial image using Cellpose 3.
+
+  Reads an image element from a SpatialData Zarr store and runs one of
+  Cellpose's generalist segmentation models (or a custom pretrained model) on
+  it, producing an instance segmentation mask. The resulting mask is written
+  back into the SpatialData object as a new labels element, aligned to the
+  input image's coordinate transformations.
+
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: "Inputs"
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input SpatialData Zarr store containing the image to segment.
+        example: input.zarr
+      - name: "--input_image"
+        type: string
+        default: "morphology_focus"
+        description: |
+          Key in `sdata.images` of the image element to segment.
+      - name: "--cytoplasm_channel"
+        type: integer
+        default: 0
+        min: 0
+        description: |
+          Index (within the image's channel axis) of the channel to use for
+          cytoplasm/cell-body segmentation. A value of 0 treats the image as
+          single-channel (grayscale).
+      - name: "--nuclear_channel"
+        type: integer
+        default: 0
+        min: 0
+        description: |
+          Index (within the image's channel axis) of the channel to use as the
+          nuclear channel. A value of 0 means no separate nuclear channel is
+          used.
+
+  - name: "Parameters"
+    arguments:
+      - name: "--model_type"
+        type: string
+        default: "cyto3"
+        description: |
+          Built-in Cellpose model to use, e.g. `cyto3` (generalist cell model),
+          `nuclei` (nucleus model) or `cyto2`. Ignored if `--pretrained_model`
+          is set.
+      - name: "--pretrained_model"
+        type: file
+        required: false
+        description: |
+          Path to a custom pretrained Cellpose model. If provided, this is
+          used instead of `--model_type`.
+      - name: "--diameter"
+        type: double
+        required: false
+        min: 0.0
+        description: |
+          Expected diameter of objects in pixels. If not provided, the
+          diameter is estimated automatically by the model.
+      - name: "--flow_threshold"
+        type: double
+        default: 0.4
+        description: |
+          Maximum allowed error of the flows for each mask. Increase this
+          threshold if Cellpose is not returning enough masks; decrease it if
+          Cellpose is returning too many ill-shaped masks.
+      - name: "--cellprob_threshold"
+        type: double
+        default: 0.0
+        min: -6.0
+        max: 6.0
+        description: |
+          Pixels with cell probability above this threshold are used to run
+          dynamics and determine masks. Decrease this threshold if Cellpose is
+          not returning as many masks as expected.
+      - name: "--min_size"
+        type: integer
+        default: 15
+        min: 1
+        description: Minimum number of pixels per mask; masks smaller than this are discarded.
+      - name: "--niter"
+        type: integer
+        required: false
+        min: 0
+        description: |
+          Number of iterations of the dynamics simulation used to derive
+          masks. If not provided, this is determined automatically based on
+          the object diameter.
+      - name: "--resample"
+        type: boolean
+        default: true
+        description: |
+          Whether to run dynamics on the full-resolution image rather than on
+          the (typically smaller) resized image used internally by the model.
+      - name: "--augment"
+        type: boolean
+        default: false
+        description: Whether to tile the image with overlapping tiles and average the predictions.
+      - name: "--batch_size"
+        type: integer
+        default: 8
+        min: 1
+        description: Number of image tiles/patches to run simultaneously on the GPU or CPU.
+      - name: "--use_gpu"
+        type: boolean
+        default: false
+        description: Whether to run the model on a GPU, if one is available.
+
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        type: file
+        direction: output
+        required: true
+        description: Output SpatialData Zarr store.
+        example: output.zarr
+      - name: "--output_labels"
+        type: string
+        default: "cellpose_labels"
+        description: |
+          Key under which to store the resulting segmentation mask in
+          `sdata.labels`.
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.zarr
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [ /src/base/requirements/cellpose.yaml, . ]
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, midmem, middisk]
