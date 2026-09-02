@@ -1,7 +1,7 @@
 name: cellpose3
 namespace: segmentation
 description: |
-  Segment cells or nuclei from a spatial image using Cellpose 3.
+  Segment cells or nuclei from a spatial image using Cellpose3.
 
   Reads an image element from a SpatialData Zarr store and runs one of
   Cellpose's generalist segmentation models (or a custom pretrained model) on
@@ -10,7 +10,7 @@ description: |
   input image's coordinate transformations.
 
 authors:
-  - __merge__: /src/authors/jakub_majercik.yaml
+  - __merge__: /src/authors/mirte_detemmerman.yaml
     roles: [ author ]
 
 argument_groups:
@@ -47,11 +47,11 @@ argument_groups:
     arguments:
       - name: "--model_type"
         type: string
-        default: "cyto3"
+        default: "nuclei"
         description: |
-          Built-in Cellpose model to use, e.g. `cyto3` (generalist cell model),
-          `nuclei` (nucleus model) or `cyto2`. Ignored if `--pretrained_model`
-          is set.
+          Built-in Cellpose model to use, e.g. `nuclei` (nucleus model),
+          `cyto3` (generalist cell model, requires a cytoplasm/membrane
+          channel) or `cyto2`. Ignored if `--pretrained_model` is set.
       - name: "--pretrained_model"
         type: file
         required: false
@@ -113,6 +113,25 @@ argument_groups:
         type: boolean
         default: false
         description: Whether to run the model on a GPU, if one is available.
+      - name: "--normalize_percentile_low"
+        type: double
+        default: 1.0
+        min: 0.0
+        max: 100.0
+        description: |
+          Lower percentile used to rescale pixel intensities before running
+          the model.
+      - name: "--normalize_percentile_high"
+        type: double
+        default: 99.9
+        min: 0.0
+        max: 100.0
+        description: |
+          Upper percentile used to rescale pixel intensities before running
+          the model. Fluorescence images such as spatial transcriptomics DAPI
+          scans are mostly background, so Cellpose's own default of 99 can
+          land on a still-zero pixel and degenerate the normalization; 99.9
+          is a safer default for this kind of sparse image.
 
   - name: Outputs
     arguments:
