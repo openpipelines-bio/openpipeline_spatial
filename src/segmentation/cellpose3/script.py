@@ -105,10 +105,14 @@ logger.info(f"Segmented {n_objects} objects.")
 ## Store result
 out_key = par["output_labels"]
 if out_key in sdata.labels:
-    logger.warning(f"Output labels key '{out_key}' already exists and will be overwritten.")
+    logger.warning(
+        f"Output labels key '{out_key}' already exists and will be overwritten."
+    )
 
 logger.info(f"Storing result in .labels['{out_key}']...")
-sdata.labels[out_key] = Labels2DModel.parse(masks.astype(np.uint32), transformations=transformations)
+sdata.labels[out_key] = Labels2DModel.parse(
+    masks.astype(np.uint32), transformations=transformations
+)
 
 ## Write output
 logger.info("Saving output data...")
