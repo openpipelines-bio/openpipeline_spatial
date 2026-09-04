@@ -10,6 +10,11 @@ description: |
   back into the SpatialData object as a new labels element, aligned to the
   input image's coordinate transformations.
 
+references:
+  doi:
+    - "10.1038/s41592-020-01018-x" # Cellpose: a generalist algorithm for cellular segmentation
+    - "10.1038/s41592-025-02595-5" # Cellpose3: one-click image restoration for improved segmentation
+
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
     roles: [ author ]
@@ -32,7 +37,7 @@ argument_groups:
         default: 0
         min: 0
         description: |
-Channel to use for cytoplasm/cell-body segmentation, using Cellpose's
+          Channel to use for cytoplasm/cell-body segmentation, using Cellpose's
           1-based channel numbering: 1 is the first channel along the image's
           channel axis, 2 the second, and so on. A value of 0 does not select a
           channel, it averages all channels into a single grayscale image.
