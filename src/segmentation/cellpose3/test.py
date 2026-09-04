@@ -151,8 +151,7 @@ def test_pretrained_model_file(run_component, tmp_path, pretrained_model_path):
     ).decode("utf-8")
 
     assert "Loading custom pretrained model" in stdout, (
-        "Expected the component to report that it is using the custom "
-        "pretrained model."
+        "Expected the component to report that it is using the custom pretrained model."
     )
 
     assert output.is_dir(), "Output Zarr store was not created."
