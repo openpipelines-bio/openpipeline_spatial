@@ -5,6 +5,8 @@ from spatialdata.models import Labels2DModel
 from spatialdata.transformations import get_transformation
 from cellpose import models
 from torch.cuda import is_available as cuda_is_available
+from xarray import DataTree
+
 
 try:
     from torch.backends.mps import is_available as mps_is_available
@@ -68,8 +70,6 @@ transformations = get_transformation(image_element, get_all=True)
 
 # Multiscale images (DataTree) expose full-resolution pixel data under the
 # "scale0" node; single-scale images expose it directly via .data.
-from xarray import DataTree
-
 if isinstance(image_element, DataTree):
     image_element = image_element["scale0"]["image"]
 image_arr = np.asarray(image_element.data)

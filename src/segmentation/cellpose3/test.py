@@ -4,6 +4,7 @@ import sys
 import pytest
 import numpy as np
 import spatialdata as sd
+from cellpose.models import CellposeModel
 
 ## VIASH START
 meta = {
@@ -21,6 +22,15 @@ def _get_image_array(image_element):
     if hasattr(image_element, "data"):
         return np.asarray(image_element.data)
     return np.asarray(image_element["scale0"]["image"].data)
+
+
+@pytest.fixture(scope="module")
+def pretrained_model_path():
+    # Reuse a cached built-in model's checkpoint file as a stand-in for a
+    # "custom" pretrained model, rather than shipping a separate model file
+    # as a test resource: it goes through the exact same file-based loading
+    # path (`--pretrained_model`) that a real user-trained model would.
+    return CellposeModel(gpu=False, model_type="nuclei").pretrained_model
 
 
 def test_default_execution(run_component, tmp_path):
@@ -123,6 +133,87 @@ def test_fail_invalid_normalize_percentiles(run_component, tmp_path):
         r"'--normalize_percentile_low' \(99.9\) must be lower than "
         r"'--normalize_percentile_high' \(1.0\)",
         err.value.stdout.decode("utf-8"),
+    )
+
+
+def test_pretrained_model_file(run_component, tmp_path, pretrained_model_path):
+    output = tmp_path / "segmented_pretrained.zarr"
+
+    stdout = run_component(
+        [
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--pretrained_model",
+            pretrained_model_path,
+        ]
+    ).decode("utf-8")
+
+    assert "Loading custom pretrained model" in stdout, (
+        "Expected the component to report that it is using the custom "
+        "pretrained model."
+    )
+
+    assert output.is_dir(), "Output Zarr store was not created."
+    sdata = sd.read_zarr(output)
+    assert "cellpose_labels" in sdata.labels
+
+    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+    n_objects = len(np.unique(labels_arr)) - 1
+    assert n_objects > 0, (
+        "Expected at least one segmented object using the custom pretrained model."
+    )
+
+
+def test_pretrained_model_takes_precedence_over_model_type(
+    run_component, tmp_path, pretrained_model_path
+):
+    output = tmp_path / "segmented_precedence.zarr"
+
+    stdout = run_component(
+        [
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--pretrained_model",
+            pretrained_model_path,
+            # A model_type other than the component default, so that if this
+            # branch were (incorrectly) taken instead, it would be visible in
+            # the logs.
+            "--model_type",
+            "cyto3",
+        ]
+    ).decode("utf-8")
+
+    assert "Loading custom pretrained model" in stdout
+    assert "Loading built-in model" not in stdout, (
+        "'--pretrained_model' should take precedence over '--model_type', per "
+        "the documented behavior of these two arguments."
+    )
+
+
+def test_fail_invalid_pretrained_model_file(run_component, tmp_path):
+    bad_model_file = tmp_path / "not_a_model.pt"
+    bad_model_file.write_bytes(b"this is not a valid cellpose model file")
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError):
+        run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--pretrained_model",
+                str(bad_model_file),
+            ]
+        )
+
+    assert not output.exists(), (
+        "No (partial) output should be written when the pretrained model "
+        "file fails to load."
     )
 
 
