@@ -177,15 +177,6 @@ engines:
         packages:
           - procps
       - type: docker
-        # Install a CUDA-enabled torch build before cellpose, so that
-        # cellpose's own (CPU-agnostic) torch dependency is already
-        # satisfied and pip does not fall back to a CPU-only wheel from
-        # PyPI. PyTorch's official Docker images only ship Python 3.11
-        # (as of the 2.6.0 tags), which is incompatible with spatialdata's
-        # Python >=3.12 requirement, so a CUDA base image can't be used
-        # here; the pip-installed torch wheel bundles its own CUDA runtime
-        # libraries, so a plain slim image is sufficient as long as the
-        # host has NVIDIA drivers and the container toolkit at run time.
         run: |
           pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu124
       - type: python
