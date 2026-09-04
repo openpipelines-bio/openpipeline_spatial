@@ -103,5 +103,28 @@ def test_fail_missing_image_key(run_component, tmp_path):
     )
 
 
+def test_fail_invalid_normalize_percentiles(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--normalize_percentile_low",
+                "99.9",
+                "--normalize_percentile_high",
+                "1.0",
+            ]
+        )
+    assert re.search(
+        r"'--normalize_percentile_low' \(99.9\) must be lower than "
+        r"'--normalize_percentile_high' \(1.0\)",
+        err.value.stdout.decode("utf-8"),
+    )
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
