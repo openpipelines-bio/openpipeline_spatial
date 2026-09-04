@@ -52,10 +52,11 @@ transformations = get_transformation(image_element, get_all=True)
 
 # Multiscale images (DataTree) expose full-resolution pixel data under the
 # "scale0" node; single-scale images expose it directly via .data.
-if hasattr(image_element, "data"):
-    image_arr = np.asarray(image_element.data)
-else:
-    image_arr = np.asarray(image_element["scale0"]["image"].data)
+from xarray import DataTree
+
+if isinstance(image_element, DataTree):
+    image_element = image_element["scale0"]["image"]
+image_arr = np.asarray(image_element.data)
 
 if image_arr.ndim == 3:
     channels = [par["cytoplasm_channel"], par["nuclear_channel"]]
