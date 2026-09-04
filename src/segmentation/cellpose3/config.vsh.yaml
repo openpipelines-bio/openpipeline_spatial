@@ -1,4 +1,5 @@
 name: cellpose3
+scope: "public"
 namespace: segmentation
 description: |
   Segment cells or nuclei from a spatial image using Cellpose3.
