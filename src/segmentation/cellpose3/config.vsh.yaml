@@ -172,7 +172,10 @@ engines:
         packages:
           - procps
       - type: python
-        __merge__: [ /src/base/requirements/cellpose.yaml, . ]
+        __merge__:_[ /src/base/requirements/spatialdata.yaml, .]
+      - type: python
+        packages: 
+          - cellpose~=3.1.0
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:

@@ -1,3 +1,0 @@
-__merge__: [/src/base/requirements/spatialdata.yaml, .]
-packages:
-  - cellpose~=3.1.0
