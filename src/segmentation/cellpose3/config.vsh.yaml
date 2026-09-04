@@ -31,17 +31,22 @@ argument_groups:
         default: 0
         min: 0
         description: |
-          Index (within the image's channel axis) of the channel to use for
-          cytoplasm/cell-body segmentation. A value of 0 treats the image as
-          single-channel (grayscale).
+Channel to use for cytoplasm/cell-body segmentation, using Cellpose's
+          1-based channel numbering: 1 is the first channel along the image's
+          channel axis, 2 the second, and so on. A value of 0 does not select a
+          channel, it averages all channels into a single grayscale image.
+          Note this is deliberately offset by one from numpy-style indexing, so
+          the first channel of a Xenium `morphology_focus` image (DAPI) is 1,
+          not 0.
       - name: "--nuclear_channel"
         type: integer
         default: 0
         min: 0
         description: |
-          Index (within the image's channel axis) of the channel to use as the
-          nuclear channel. A value of 0 means no separate nuclear channel is
-          used.
+          Optional nuclear channel, using the same 1-based numbering as
+          `--cytoplasm_channel`. A value of 0 means no separate nuclear channel
+          is used. Only meaningful for models trained on two channels (e.g.
+          `cyto3`); the `nuclei` model ignores it.
 
   - name: "Parameters"
     arguments:
@@ -63,8 +68,9 @@ argument_groups:
         required: false
         min: 0.0
         description: |
-          Expected diameter of objects in pixels. If not provided, the
-          diameter is estimated automatically by the model.
+          Expected diameter of objects in pixels. If not provided, Cellpose
+          uses the diameter of the objects in the model's training labels,
+          not a value measured from the input image.
       - name: "--flow_threshold"
         type: double
         default: 0.4
