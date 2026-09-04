@@ -57,6 +57,11 @@ Channel to use for cytoplasm/cell-body segmentation, using Cellpose's
           Built-in Cellpose model to use, e.g. `nuclei` (nucleus model),
           `cyto3` (generalist cell model, requires a cytoplasm/membrane
           channel) or `cyto2`. Ignored if `--pretrained_model` is set.
+        choices: [ "cyto3", "nuclei", "cyto2_cp3", "tissuenet_cp3", "livecell_cp3", "yeast_PhC_cp3",
+                  "yeast_BF_cp3", "bact_phase_cp3", "bact_fluor_cp3", "deepbacs_cp3", "cyto2", "cyto", "CPx",
+                  "transformer_cp3", "neurips_cellpose_default", "neurips_cellpose_transformer",
+                  "neurips_grayscale_cyto2",
+                  "CP", "CPx", "TN1", "TN2", "TN3", "LC1", "LC2", "LC3", "LC4"]
       - name: "--pretrained_model"
         type: file
         required: false
@@ -171,15 +176,28 @@ engines:
       - type: apt
         packages:
           - procps
+      - type: docker
+        # Install a CUDA-enabled torch build before cellpose, so that
+        # cellpose's own (CPU-agnostic) torch dependency is already
+        # satisfied and pip does not fall back to a CPU-only wheel from
+        # PyPI. PyTorch's official Docker images only ship Python 3.11
+        # (as of the 2.6.0 tags), which is incompatible with spatialdata's
+        # Python >=3.12 requirement, so a CUDA base image can't be used
+        # here; the pip-installed torch wheel bundles its own CUDA runtime
+        # libraries, so a plain slim image is sufficient as long as the
+        # host has NVIDIA drivers and the container toolkit at run time.
+        run: |
+          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu124
       - type: python
-        __merge__:_[ /src/base/requirements/spatialdata.yaml, .]
+        __merge__: [ /src/base/requirements/spatialdata.yaml, . ]
       - type: python
-        packages: 
+        packages:
           - cellpose~=3.1.0
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:
   - type: executable
+    # docker_run_args: ["--gpus all"]
   - type: nextflow
     directives:
-      label: [midcpu, midmem, middisk]
+      label: [midcpu, midmem, middisk, gpu]
