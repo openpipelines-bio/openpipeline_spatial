@@ -56,6 +56,13 @@ image_key = par["input_image"]
 if image_key not in sdata.images:
     raise ValueError(f"Image key '{image_key}' not found in .images.")
 
+if par["normalize_percentile_low"] >= par["normalize_percentile_high"]:
+    raise ValueError(
+        "'--normalize_percentile_low' "
+        f"({par['normalize_percentile_low']}) must be lower than "
+        f"'--normalize_percentile_high' ({par['normalize_percentile_high']})."
+    )
+
 image_element = sdata.images[image_key]
 transformations = get_transformation(image_element, get_all=True)
 
