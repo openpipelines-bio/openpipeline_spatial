@@ -4,6 +4,15 @@ import spatialdata as sd
 from spatialdata.models import Labels2DModel
 from spatialdata.transformations import get_transformation
 from cellpose import models
+from torch.cuda import is_available as cuda_is_available
+
+try:
+    from torch.backends.mps import is_available as mps_is_available
+except ModuleNotFoundError:
+    # Older pytorch versions
+    # MacOS GPUs
+    def mps_is_available():
+        return False
 
 ## VIASH START
 par = {
@@ -65,15 +74,24 @@ else:
     channels = [0, 0]
     channel_axis = None
 
+# Requesting GPU usage (--use_gpu) on compute resources that don't actually
+# have one available would otherwise be silently downgraded deep inside
+# Cellpose; resolving and logging it here makes the actual device used
+# explicit in this component's own logs.
+use_gpu = par["use_gpu"] and (cuda_is_available() or mps_is_available())
+if par["use_gpu"] and not use_gpu:
+    logger.warning("GPU requested via --use_gpu, but no GPU is available; falling back to CPU.")
+logger.info(f"GPU enabled? {use_gpu}")
+
 ## Load model
 if par["pretrained_model"]:
     logger.info(f"Loading custom pretrained model '{par['pretrained_model']}'...")
     model = models.CellposeModel(
-        gpu=par["use_gpu"], pretrained_model=par["pretrained_model"]
+        gpu=use_gpu, pretrained_model=par["pretrained_model"]
     )
 else:
     logger.info(f"Loading built-in model '{par['model_type']}'...")
-    model = models.CellposeModel(gpu=par["use_gpu"], model_type=par["model_type"])
+    model = models.CellposeModel(gpu=use_gpu, model_type=par["model_type"])
 
 ## Run segmentation
 logger.info("Running Cellpose segmentation...")
