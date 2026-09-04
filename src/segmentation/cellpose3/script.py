@@ -16,6 +16,7 @@ except ModuleNotFoundError:
     def mps_is_available():
         return False
 
+
 ## VIASH START
 par = {
     # Inputs
@@ -87,15 +88,15 @@ else:
 # explicit in this component's own logs.
 use_gpu = par["use_gpu"] and (cuda_is_available() or mps_is_available())
 if par["use_gpu"] and not use_gpu:
-    logger.warning("GPU requested via --use_gpu, but no GPU is available; falling back to CPU.")
+    logger.warning(
+        "GPU requested via --use_gpu, but no GPU is available; falling back to CPU."
+    )
 logger.info(f"GPU enabled? {use_gpu}")
 
 ## Load model
 if par["pretrained_model"]:
     logger.info(f"Loading custom pretrained model '{par['pretrained_model']}'...")
-    model = models.CellposeModel(
-        gpu=use_gpu, pretrained_model=par["pretrained_model"]
-    )
+    model = models.CellposeModel(gpu=use_gpu, pretrained_model=par["pretrained_model"])
 else:
     logger.info(f"Loading built-in model '{par['model_type']}'...")
     model = models.CellposeModel(gpu=use_gpu, model_type=par["model_type"])
