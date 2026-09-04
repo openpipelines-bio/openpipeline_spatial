@@ -4,6 +4,7 @@ import warnings
 import mudata as mu
 import numpy as np
 import squidpy as sq
+from joblib import Parallel, delayed
 from scipy.spatial import ConvexHull, Voronoi, distance_matrix
 from sklearn.neighbors import KernelDensity
 
@@ -18,6 +19,7 @@ par = {
     "n_subsample_ripley": -1,
     "output_prefix": "spatial_",
 }
+meta = {"cpus": 1}
 ## VIASH END
 
 
@@ -87,14 +89,24 @@ def calculate_position_features(adata, spatial_coords, prefix):
         print("    Added: distance_to_centroid, norm_x, norm_y", flush=True)
 
 
-def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix):
+def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix, n_jobs=1):
     """Calculate local density metrics."""
     print("  Calculating density metrics...", flush=True)
 
     # Kernel density estimation
     kde = KernelDensity(bandwidth=bandwidth, kernel="gaussian")
     kde.fit(spatial_coords)
-    log_density = kde.score_samples(spatial_coords)
+
+    # Process chunks of cells in parallel
+    if n_jobs and n_jobs > 1:
+        coord_chunks = np.array_split(spatial_coords, n_jobs)
+        log_density_chunks = Parallel(n_jobs=n_jobs, backend="loky")(
+            delayed(kde.score_samples)(chunk) for chunk in coord_chunks
+        )
+        log_density = np.concatenate(log_density_chunks)
+    else:
+        log_density = kde.score_samples(spatial_coords)
+
     adata.obs[f"{prefix}kernel_density"] = np.exp(log_density)
 
     # Calculate degree centrality (as a proxy for local density / number of neighbors)
@@ -242,7 +254,9 @@ def calculate_global_statistics(adata, spatial_coords, par):
     return stats
 
 
-def main(par):
+def main(par, meta):
+    n_jobs = meta.get("cpus") or 1
+
     print(f"\n>>> Reading MuData from '{par['input']}'...", flush=True)
     mdata = mu.read_h5mu(par["input"])
     print(mdata, flush=True)
@@ -290,6 +304,7 @@ def main(par):
         spatial_coords,
         par["density_bandwidth"],
         prefix,
+        n_jobs=n_jobs,
     )
 
     # Calculate Voronoi tessellation
@@ -312,4 +327,4 @@ def main(par):
 
 
 if __name__ == "__main__":
-    sys.exit(main(par))
+    sys.exit(main(par, meta))

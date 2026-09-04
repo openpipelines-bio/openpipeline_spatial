@@ -62,14 +62,14 @@ argument_groups:
         type: boolean
         default: false
         description: |
-          Whether to calculate Ripley's L statistic. 
+          Whether to calculate Ripley's L statistic.
           Warning: This is an O(N^2) operation and can be very slow for large datasets (>5000 cells).
 
       - name: "--n_subsample_ripley"
         type: integer
         default: -1
         description: |
-          Number of cells to subsample for Ripley's L calculation. 
+          Number of cells to subsample for Ripley's L calculation.
           If -1, use all cells. Recommended to keep this below 5000 for performance.
 
 resources:
@@ -89,7 +89,7 @@ engines:
         packages:
           - procps
       - type: python
-        __merge__: 
+        __merge__:
           - /src/base/requirements/anndata_mudata.yaml
           - /src/base/requirements/scanpy.yaml
           - /src/base/requirements/squidpy.yaml
@@ -106,4 +106,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [singlecpu, midmem, lowdisk]
+      label: [midcpu, midmem, lowdisk]
