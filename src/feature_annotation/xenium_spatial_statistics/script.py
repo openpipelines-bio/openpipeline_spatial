@@ -94,7 +94,10 @@ def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix, n_jobs=1
     print("  Calculating density metrics...", flush=True)
 
     # Kernel density estimation
-    kde = KernelDensity(bandwidth=bandwidth, kernel="gaussian")
+    # Setting the relative tolerance (rtol=1.e-8) gives a significant speed
+    # increase with minimal differences from the exact result (correct to ~6
+    # decimal places).
+    kde = KernelDensity(bandwidth=bandwidth, kernel="gaussian", rtol=1e-8)
     kde.fit(spatial_coords)
 
     # Process chunks of cells in parallel
