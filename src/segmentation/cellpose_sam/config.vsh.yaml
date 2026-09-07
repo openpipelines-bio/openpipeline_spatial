@@ -15,6 +15,10 @@ description: |
   at most the first three unless a specific subset is selected with
   `--channels`.
 
+references:
+  doi:
+    - "10.1101/2025.04.28.651001" # Cellpose-SAM: superhuman generalization for cellular segmentation
+
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
     roles: [ author ]
