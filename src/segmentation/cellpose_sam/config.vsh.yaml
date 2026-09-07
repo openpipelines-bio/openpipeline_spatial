@@ -1,4 +1,4 @@
-name: cellposeSAM
+name: cellpose_sam
 namespace: segmentation
 description: |
   Segment cells or nuclei from a spatial image using Cellpose-SAM.
@@ -158,7 +158,7 @@ argument_groups:
         example: output.zarr
       - name: "--output_labels"
         type: string
-        default: "cellposeSAM_labels"
+        default: "cellpose_sam_labels"
         description: |
           Key under which to store the resulting segmentation mask in
           `sdata.labels`.
@@ -180,12 +180,19 @@ engines:
       - type: apt
         packages:
           - procps
+      - type: docker
+        run: |
+          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu124
       - type: python
-        __merge__: [ /src/base/requirements/cellpose_sam.yaml, . ]
+        __merge__: [ /src/base/requirements/spatialdata.yaml, . ]
+      - type: python
+        packages:
+          - cellpose~=4.2.0
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:
   - type: executable
+    # docker_run_args: ["--gpus all"]
   - type: nextflow
     directives:
-      label: [midcpu, highmem, highdisk]
+      label: [midcpu, highmem, highdisk, gpu]
