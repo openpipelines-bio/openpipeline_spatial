@@ -54,7 +54,7 @@ argument_groups:
       - name: "--pretrained_model_name"
         type: string
         default: "cpsam_v2"
-        choices: ["cpsam_v2", "cpsam"]
+        choices: ["cpsam_v2", "cpsam", cpdino", "cpdino-vitb"]
         description: |
           Built-in Cellpose-SAM model to use. `cpsam_v2` is the current
           default generalist model; `cpsam` is the original Cellpose-SAM
