@@ -54,11 +54,13 @@ argument_groups:
       - name: "--pretrained_model_name"
         type: string
         default: "cpsam_v2"
-        choices: ["cpsam_v2", "cpsam", cpdino", "cpdino-vitb"]
+        choices: ["cpsam_v2", "cpsam", "cpdino", "cpdino-vitb"]
         description: |
-          Built-in Cellpose-SAM model to use. `cpsam_v2` is the current
-          default generalist model; `cpsam` is the original Cellpose-SAM
-          release. Ignored if `--pretrained_model_file` is set.
+          Built-in Cellpose model to use. `cpsam_v2` is the current default
+          generalist model and `cpsam` is the original Cellpose-SAM release,
+          both using a SAM backbone; `cpdino` and `cpdino-vitb` use a
+          DINO-based backbone instead. Ignored if `--pretrained_model_file`
+          is set.
       - name: "--pretrained_model_file"
         type: file
         required: false
