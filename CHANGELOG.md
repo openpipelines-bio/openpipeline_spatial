@@ -6,6 +6,8 @@
 
 ## NEW FUNCTIONALITY
 
+* `feature_annotation/visium_spatial_statistics`: Component to calculate tissue neighbourhood, local expression density, and position-based spatial statistics for Visium data (PR #79).
+
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
 
 * `convert/from_spaceranger_hd_to_spatialdata`: Convert the Space Ranger 4.x cell-segmentation output for Visium HD into a SpatialData object (per-cell counts + cell boundary polygons) (PR #64).
