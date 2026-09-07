@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 targetDir = params.rootDir + "/target/nextflow"
 
-include { spatial_domain_analysis } from targetDir + "/workflows/domains/spatial_domain_analysis/main.nf"
+include { spatial_expression_leiden } from targetDir + "/workflows/spatial_domain_analysis/spatial_expression_leiden/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
@@ -14,29 +14,24 @@ workflow test_wf {
       id: "xenium",
       input: resources_test.resolve("xenium/xenium_tiny.qc.all_neighbors.pca.h5mu"),
       output: "output.h5mu",
-      device_type: "cpu",
       resolution: [0.5, 1.0],
-      technology: "xenium",
     ],
     [
       id: "cosmx",
       input: resources_test.resolve("cosmx/Lung5_tiny_processed.h5mu"),
       output: "output.h5mu",
-      device_type: "cpu",
       resolution: [0.5, 1.0],
-      technology: "cosmx",
     ],
     [
       id: "visium",
       input: resources_test.resolve("visium/visium_tiny_processed.h5mu"),
       output: "output.h5mu",
-      device_type: "cpu",
       resolution: [0.5, 1.0],
-      technology: "visium",
+      coord_type: "grid",
     ],
   ])
   | map { state -> [state.id, state] }
-  | spatial_domain_analysis
+  | spatial_expression_leiden
   | view { output ->
     assert output.size() == 2 : "outputs should contain two elements; [id, state]"
 
