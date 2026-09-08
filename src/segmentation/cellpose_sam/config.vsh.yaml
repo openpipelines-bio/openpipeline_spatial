@@ -194,6 +194,15 @@ engines:
       - type: python
         packages:
           - cellpose~=4.2.0
+      - type: docker
+        # Cache the built-in models into the image at build time. Each test
+        # invocation runs in a fresh, ephemeral container with no persisted
+        # cache, and the SAM-backbone models are ~1.15GB (vs. ~30MB for the
+        # previous Cellpose3 model) - downloading them fresh from Hugging Face
+        # on every run makes tests slow and flaky. Baking them in moves that
+        # cost to the build step instead.
+        run: |
+          python3 -c "from cellpose.models import CellposeModel; CellposeModel(gpu=False, pretrained_model='cpsam_v2'); CellposeModel(gpu=False, pretrained_model='cpsam')"
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:
