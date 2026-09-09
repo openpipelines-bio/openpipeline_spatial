@@ -94,6 +94,7 @@ engines:
           - /src/base/requirements/scanpy.yaml
           - /src/base/requirements/squidpy.yaml
         packages:
+          - joblib
           - scikit-learn
     test_setup:
       - type: python
