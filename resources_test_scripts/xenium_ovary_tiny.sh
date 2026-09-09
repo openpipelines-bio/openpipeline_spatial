@@ -6,16 +6,10 @@ set -eo pipefail
 # XOA v4.0 example dataset (their site: "artificially subset to three 640 pixel
 # square patches across two FOVs") and crops it down to one dense patch.
 #
-# Why a different source and method than xenium_tiny.sh / xenium_tiny_cropped.sh:
+# Why a different source and method than xenium_tiny.sh:
 #  * xenium_tiny.sh's source (nf-core "Xenium_Prime_Mouse_Ileum_tiny_outs") only has
 #    23 cells -- too thin to meaningfully test a segmentation tool.
-#  * xenium_tiny_cropped.sh crops that same 23-cell dataset's raw outs/ files
-#    *before* conversion (see subset_xenium.py), which meant dropping cell/nucleus
-#    boundaries, labels and the cells table entirely -- spatialdata_io.xenium()
-#    sources those from a proprietary, undocumented `cells.zarr.zip` that would
-#    need cropping in lockstep with the image to stay consistent, and that wasn't
-#    worth the correctness risk for a 23-cell fixture.
-#  * This script instead converts the *full* Ovary dataset first (all elements,
+#  * This script converts the *full* Ovary dataset first (all elements,
 #    `cells.zarr.zip` parsed exactly once by spatialdata_io itself), then crops the
 #    resulting SpatialData object with spatialdata's own bounding_box_query() --
 #    see crop_xenium_to_patch.py for why that sidesteps the cells.zarr.zip problem
