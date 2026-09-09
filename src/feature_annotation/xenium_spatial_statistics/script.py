@@ -102,7 +102,8 @@ def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix, n_jobs=1
 
     # Process chunks of cells in parallel
     if n_jobs and n_jobs > 1:
-        coord_chunks = np.array_split(spatial_coords, n_jobs)
+        n_chunks = min(n_jobs, len(spatial_coords))
+        coord_chunks = np.array_split(spatial_coords, n_chunks)
         log_density_chunks = Parallel(n_jobs=n_jobs, backend="loky")(
             delayed(kde.score_samples)(chunk) for chunk in coord_chunks
         )
