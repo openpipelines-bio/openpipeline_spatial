@@ -1,17 +1,18 @@
 """Crop a converted Xenium SpatialData object down to one dense patch of cells.
 
-Unlike ``subset_xenium.py`` (which crops the raw 10x ``outs/`` files *before*
-conversion), this operates on an *already-converted* SpatialData Zarr store, using
-SpatialData's own ``bounding_box_query()``. That sidesteps the biggest problem with
-cropping raw Xenium output: ``spatialdata_io.xenium()`` reads a proprietary,
-undocumented, version-branched file (``cells.zarr.zip``) to build the pixel-space
-segmentation label rasters and cross-check the cell table, and cropping that file
-correctly would mean reverse-engineering its internal indexing invariants. Converting
-first means ``cells.zarr.zip`` is parsed exactly once, by ``spatialdata_io`` itself,
-into SpatialData's own standard ``Labels2D``/``AnnData`` representation -- and
-*that* is generically and correctly croppable via the public API, no custom format
-handling needed. The result keeps everything: images, raster labels, boundary
-shapes, transcripts, and the annotation table, all consistently subset together.
+This operates on an *already-converted* SpatialData Zarr store (i.e. the output of
+the ``from_xenium_to_spatialdata`` component run with every element enabled), using
+SpatialData's own ``bounding_box_query()``, rather than cropping the raw 10x
+``outs/`` files before conversion. That sidesteps the biggest problem with cropping
+raw Xenium output: ``spatialdata_io.xenium()`` reads a proprietary, undocumented,
+version-branched file (``cells.zarr.zip``) to build the pixel-space segmentation
+label rasters and cross-check the cell table, and cropping that file correctly
+would mean reverse-engineering its internal indexing invariants. Converting first
+means ``cells.zarr.zip`` is parsed exactly once, by ``spatialdata_io`` itself, into
+SpatialData's own standard ``Labels2D``/``AnnData`` representation -- and *that* is
+generically and correctly croppable via the public API, no custom format handling
+needed. The result keeps everything: images, raster labels, boundary shapes,
+transcripts, and the annotation table, all consistently subset together.
 
 Steps:
 
