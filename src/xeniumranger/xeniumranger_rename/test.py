@@ -1,16 +1,22 @@
 import json
 import os
+import sys
 from pathlib import Path
 import filecmp
+import subprocess
+import pytest
+import re
+import random
+import string
 
 import pandas as pd
 import scanpy as sc
 
 ## VIASH START
-meta = {"name": "xeniumranger_rename", "resources_dir": "resources_test"}
+meta = {"name": "xeniumranger_rename", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
-input = meta["resources_dir"] + "/xenium/xenium_tiny/"
+input = meta["resources_dir"] + "/xenium_tiny/"
 id = "xeniun_tiny_rename"
 input_region_name = "region"
 input_cassette_name = "cassette"
@@ -222,3 +228,61 @@ def test_no_name_given(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, skip_files=[])
+
+def test_valid_id(run_component, random_path):
+    output = random_path()
+    malformed_id = ", ,"
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--xenium_bundle",
+                input,
+                "--id",
+                malformed_id,
+                "--output",
+                output,
+            ]
+        )
+    assert re.search(
+        r"invalid id",
+        err.value.stdout.decode("utf-8"),
+        re.IGNORECASE,
+    )
+
+def test_valid_region(run_component, random_path):
+    output = random_path()
+    malformed_region = "".join(random.choices(string.ascii_letters, k=65))
+    with pytest.raises(subprocess.CalledProcessError):
+        run_component(
+            [
+                "--xenium_bundle",
+                input,
+                "--id",
+                id + "_bad_region",
+                "--region_name",
+                malformed_region,
+                "--output",
+                output,
+            ]
+        )
+
+def test_valid_cassette(run_component, random_path):
+    output = random_path()
+    malformed_cassette = "".join(random.choices(string.ascii_letters, k=33))
+    with pytest.raises(subprocess.CalledProcessError):
+        run_component(
+            [
+                "--xenium_bundle",
+                input,
+                "--id",
+                id + "_bad_cassette",
+                "--cassette_name",
+                malformed_cassette,
+                "--output",
+                output,
+            ]
+        )
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__]))
