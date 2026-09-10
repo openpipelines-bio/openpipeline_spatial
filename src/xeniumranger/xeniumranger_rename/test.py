@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 import filecmp
+import shutil
 import subprocess
 import pytest
 import re
@@ -212,7 +213,7 @@ def test_basic_execution_cassette_only(run_component, random_path):
     assert_cassette_renaming(input, output)
     assert_identical(input,output, changed_files)
 
-def test_no_name_given(run_component, random_path):
+def test_no_name_given_omitted(run_component, random_path):
     output = random_path()
     run_component(
         [
@@ -316,22 +317,24 @@ def test_valid_cassette(run_component, random_path):
                 output,
             ]
         )
-def test_missing_file(run_component, random_path):
+def test_missing_file(run_component, random_path, tmp_path):
     output = random_path()
-    input_missing_file = os.remove(Path(input)/"experiment.xenium")
+    incomplete_bundle = tmp_path / "incomplete_bundle"
+    shutil.copytree(input, incomplete_bundle)
+    os.remove(incomplete_bundle / "experiment.xenium")
     with pytest.raises(subprocess.CalledProcessError):
         run_component(
             [
                 "--xenium_bundle",
-                input_missing_file,
+                str(incomplete_bundle),
                 "--id",
                 id,
-                "--output", 
+                "--output",
                 output,
             ]
         )
 
-def test_no_name_given(run_component, random_path):
+def test_no_name_given_empty(run_component, random_path):
     output = random_path()
     run_component(
         [
@@ -351,6 +354,136 @@ def test_no_name_given(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, skip_files=[])
+
+def test_relative_paths(run_component, tmp_path, monkeypatch):
+    work_dir = tmp_path / "workdir"
+    work_dir.mkdir()
+    shutil.copytree(input, work_dir / "bundle")
+    monkeypatch.chdir(work_dir)
+
+    run_component(
+        [
+            "--xenium_bundle",
+            "bundle",
+            "--id",
+            id,
+            "--output",
+            "out",
+        ]
+    )
+
+    assert_outputs_exists(work_dir / "bundle", work_dir / "out")
+
+
+def test_repeated_id_isolation(run_component, random_path):
+    output_first = random_path()
+    output_second = random_path()
+
+   
+    run_component(
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--output",
+            output_first,
+        ]
+    )
+    run_component(
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--output",
+            output_second,
+        ]
+    )
+
+    assert_outputs_exists(input, output_first)
+    assert_outputs_exists(input, output_second)
+
+
+def test_rename_in_sequence(run_component, random_path):
+    output_first = random_path()
+    output_second = random_path()
+    region_name_1 = "region_first"
+    region_name_2 = "region_second"
+
+    run_component(
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id + "_seq_1",
+            "--region_name",
+            region_name_1,
+            "--output",
+            output_first,
+        ]
+    )
+
+    # feed the already-renamed bundle back in as input for a second rename pass
+    run_component(
+        [
+            "--xenium_bundle",
+            output_first,
+            "--id",
+            id + "_seq_2",
+            "--region_name",
+            region_name_2,
+            "--output",
+            output_second,
+        ]
+    )
+
+    assert_outputs_exists(input, output_first)
+    assert_valid_files(output_first)
+    assert_outputs_exists(output_first, output_second)
+    assert_valid_files(output_second)
+
+    first_exp, second_exp = _read_experiment_xenium_pair(output_first, output_second)
+    assert first_exp["region_name"] == region_name_1, (
+        "First rename pass should carry its own region_name"
+    )
+    assert second_exp["region_name"] == region_name_2, (
+        "Second rename pass, applied to an already-renamed bundle, should carry the new region_name"
+    )
+
+
+def test_rename_same_name(run_component, random_path):
+    output = random_path()
+
+    run_component(
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id + "_same_name",
+            "--region_name",
+            input_region_name,
+            "--cassette_name",
+            input_cassette_name,
+            "--output",
+            output,
+        ]
+    )
+
+    assert_outputs_exists(input, output)
+    assert_valid_files(output)
+
+    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    assert input_exp["region_name"] == input_region_name, (
+        "experiment.xenium in the input bundle should carry the original region_name"
+    )
+    assert output_exp["region_name"] == input_region_name, (
+        "Renaming to the region_name it already has should still succeed and keep that value"
+    )
+    assert output_exp["cassette_name"] == input_cassette_name, (
+        "Renaming to the cassette_name it already has should still succeed and keep that value"
+    )
+
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
