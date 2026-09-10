@@ -139,7 +139,6 @@ def assert_geometry_unchanged(input, output):
             merged_cells[f"{col}_before"], merged_cells[f"{col}_after"]
         ), f"{col} should be unchanged by relabeling"
 
-   
     for boundary_file in ["cell_boundaries.parquet", "nucleus_boundaries.parquet"]:
         original_boundaries, relabeled_boundaries = _read_parquet_pair(
             input, output, boundary_file
@@ -335,7 +334,6 @@ def test_repeated_id_isolation(run_component, random_path):
     output_first = random_path()
     output_second = random_path()
 
-   
     run_component(
         [
             "--xenium_bundle",
