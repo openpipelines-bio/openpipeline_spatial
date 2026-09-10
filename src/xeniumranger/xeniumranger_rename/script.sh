@@ -29,7 +29,7 @@ xeniumranger rename \
   --xenium-bundle="$par_xenium_bundle" \
   ${par_region_name:+--region-name="$par_region_name"} \
   ${par_cassette_name:+--cassette-name="$par_cassette_name"} \
-  --disable-ui \
+  --disable-ui=true \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 

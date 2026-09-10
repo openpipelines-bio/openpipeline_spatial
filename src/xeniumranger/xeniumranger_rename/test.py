@@ -24,7 +24,14 @@ input_cassette_name = "cassette"
 output_region_name = "region_renamed"
 output_cassette_name = "cassette_renamed"
 changed_files = ["experiment.xenium", "metrics_summary.csv", "analysis_summary.html"]
+not_regenerated_files = ["analysis.tar.gz", "aux_outputs.tar.gz", "cell_feature_matrix.tar.gz"]
 
+def correct_output_files(output, exclude):
+    return sorted(
+        f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
+        and f not in exclude
+    )
+    
 
 def assert_outputs_exists(input, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
@@ -34,9 +41,7 @@ def assert_outputs_exists(input, output):
     input_files = sorted(
         f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f))
     )
-    output_files = sorted(
-        f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
-    )
+    output_files = correct_output_files(output, not_regenerated_files)
 
     assert input_files == output_files, (
         "Input and output directories should contain the same (type of) files"
@@ -62,12 +67,13 @@ def assert_valid_files(output):
 
 
 def assert_identical(input, output, skip_files):
+    
     input_files = sorted(
         f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f))
     )
-    output_files = sorted(
-        f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
-    )
+
+    output_files = correct_output_files(output, not_regenerated_files)
+
     assert input_files == output_files, (
         "Input and output directories should contain the same files"
     )
