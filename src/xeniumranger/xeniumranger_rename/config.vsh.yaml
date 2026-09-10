@@ -53,7 +53,7 @@ test_resources:
   - path: /resources_test/xenium/xenium_tiny
 engines:
   - type: docker
-    image: quay.io/nf-core/xeniumranger:4.0 # also update the descriptions when bumping this version
+    image: quay.io/nf-core/xeniumranger:4.0
     setup:
       - type: docker
         run: |
@@ -71,14 +71,10 @@ engines:
           rm -rf /var/lib/apt/lists/*
       - type: python
         packages:
-          # numpy pinned below 2.0 because scanpy==1.9.8 uses np.float_, removed in NumPy 2.0
           - numpy<2
           - scanpy~=1.9.8
       - type: python
         packages:
-          # anndata pinned because mudata==0.2.4 (pulled in by openpipeline_testutils) declares
-          # only 'anndata>=0.10.8' with no upper bound, but anndata>=0.10.9 dropped the
-          # AlignedViewMixin symbol mudata imports at module load time
           - anndata==0.10.8
           - viashpy==0.9.0
         __merge__: /src/base/requirements/openpipeline_testutils.yaml

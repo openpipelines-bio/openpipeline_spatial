@@ -22,7 +22,7 @@ input_region_name = "region"
 input_cassette_name = "cassette"
 output_region_name = "region_renamed"
 output_cassette_name = "cassette_renamed"
-
+changed_files = ["experiment.xenium", "metrics_summary.csv", "analysis_summary.html"]
 
 def assert_outputs_exists(input, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
@@ -58,7 +58,7 @@ def assert_valid_files(output):
 
     return transcripts, cells, panel_data
 
-def assert_identical(input, output, skip_files = ["experiment.xenium", "metrics_summary.csv", "analysis_summary.html"]):
+def assert_identical(input, output, skip_files):
     input_files = sorted(
         f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f))
     )
@@ -167,7 +167,7 @@ def test_basic_execution_both(run_component, random_path):
     assert_valid_files(output)
     assert_region_renaming(input, output)
     assert_cassette_renaming(input, output)
-    assert_identical(input,output)
+    assert_identical(input,output, changed_files)
 
 
 def test_basic_execution_region_only(run_component, random_path):
@@ -188,7 +188,7 @@ def test_basic_execution_region_only(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_region_renaming(input, output)
-    assert_identical(input,output)
+    assert_identical(input,output, changed_files)
 
 
 
@@ -210,7 +210,7 @@ def test_basic_execution_cassette_only(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_cassette_renaming(input, output)
-    assert_identical(input,output)
+    assert_identical(input,output, changed_files)
 
 def test_no_name_given(run_component, random_path):
     output = random_path()
@@ -316,6 +316,41 @@ def test_valid_cassette(run_component, random_path):
                 output,
             ]
         )
+def test_missing_file(run_component, random_path):
+    output = random_path()
+    input_missing_file = os.remove(Path(input)/"experiment.xenium")
+    with pytest.raises(subprocess.CalledProcessError):
+        run_component(
+            [
+                "--xenium_bundle",
+                input_missing_file,
+                "--id",
+                id,
+                "--output", 
+                output,
+            ]
+        )
+
+def test_no_name_given(run_component, random_path):
+    output = random_path()
+    run_component(
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id + "_no_name_given_2",
+            "--region_name", 
+            "", 
+            "--cassette_name",
+            "",
+            "--output",
+            output,
+        ]
+    )
+
+    assert_outputs_exists(input, output)
+    assert_valid_files(output)
+    assert_identical(input, output, skip_files=[])
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
