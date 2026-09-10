@@ -28,7 +28,7 @@ xeniumranger relabel \
   --id="$par_id" \
   --xenium-bundle="$par_xenium_bundle" \
   --panel="$par_panel" \
-  --disable-ui \
+  --disable-ui=true \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 

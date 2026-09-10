@@ -139,9 +139,7 @@ def assert_geometry_unchanged(input, output):
             merged_cells[f"{col}_before"], merged_cells[f"{col}_after"]
         ), f"{col} should be unchanged by relabeling"
 
-    # cell_boundaries/nucleus_boundaries have no unique per-row key (many vertices share a
-    # cell_id), so compare positionally instead of via merge -- segmentation isn't touched by
-    # relabel, so row order is expected to carry through unchanged.
+   
     for boundary_file in ["cell_boundaries.parquet", "nucleus_boundaries.parquet"]:
         original_boundaries, relabeled_boundaries = _read_parquet_pair(
             input, output, boundary_file
@@ -337,8 +335,7 @@ def test_repeated_id_isolation(run_component, random_path):
     output_first = random_path()
     output_second = random_path()
 
-    # same --id run twice in one session: mktemp -d + cd in script.sh should give each
-    # invocation its own pipestance dir, so the second run must not collide with the first
+   
     run_component(
         [
             "--xenium_bundle",
