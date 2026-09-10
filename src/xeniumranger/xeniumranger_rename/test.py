@@ -25,6 +25,7 @@ output_region_name = "region_renamed"
 output_cassette_name = "cassette_renamed"
 changed_files = ["experiment.xenium", "metrics_summary.csv", "analysis_summary.html"]
 
+
 def assert_outputs_exists(input, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
         "Output exists and is non-empty"
@@ -59,6 +60,7 @@ def assert_valid_files(output):
 
     return transcripts, cells, panel_data
 
+
 def assert_identical(input, output, skip_files):
     input_files = sorted(
         f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f))
@@ -76,7 +78,7 @@ def assert_identical(input, output, skip_files):
                 os.path.join(input, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
 
-    
+
 def _read_experiment_xenium_pair(input, output):
     with open(Path(input) / "experiment.xenium") as f:
         input_exp = json.load(f)
@@ -168,7 +170,7 @@ def test_basic_execution_both(run_component, random_path):
     assert_valid_files(output)
     assert_region_renaming(input, output)
     assert_cassette_renaming(input, output)
-    assert_identical(input,output, changed_files)
+    assert_identical(input, output, changed_files)
 
 
 def test_basic_execution_region_only(run_component, random_path):
@@ -189,8 +191,7 @@ def test_basic_execution_region_only(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_region_renaming(input, output)
-    assert_identical(input,output, changed_files)
-
+    assert_identical(input, output, changed_files)
 
 
 def test_basic_execution_cassette_only(run_component, random_path):
@@ -211,7 +212,8 @@ def test_basic_execution_cassette_only(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_cassette_renaming(input, output)
-    assert_identical(input,output, changed_files)
+    assert_identical(input, output, changed_files)
+
 
 def test_no_name_given_omitted(run_component, random_path):
     output = random_path()
@@ -229,6 +231,7 @@ def test_no_name_given_omitted(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, skip_files=[])
+
 
 def test_valid_id(run_component, random_path):
     output = random_path()
@@ -250,6 +253,7 @@ def test_valid_id(run_component, random_path):
         re.IGNORECASE,
     )
 
+
 def test_length_region_name(run_component, random_path):
     output = random_path()
     long_region = "".join(random.choices(string.ascii_letters, k=65))
@@ -266,6 +270,7 @@ def test_length_region_name(run_component, random_path):
                 output,
             ]
         )
+
 
 def test_length_cassette_name(run_component, random_path):
     output = random_path()
@@ -284,6 +289,7 @@ def test_length_cassette_name(run_component, random_path):
             ]
         )
 
+
 def test_valid_region(run_component, random_path):
     output = random_path()
     malformed_region = ", ,"
@@ -301,6 +307,7 @@ def test_valid_region(run_component, random_path):
             ]
         )
 
+
 def test_valid_cassette(run_component, random_path):
     output = random_path()
     malformed_cassette = ", ,"
@@ -317,6 +324,8 @@ def test_valid_cassette(run_component, random_path):
                 output,
             ]
         )
+
+
 def test_missing_file(run_component, random_path, tmp_path):
     output = random_path()
     incomplete_bundle = tmp_path / "incomplete_bundle"
@@ -334,6 +343,7 @@ def test_missing_file(run_component, random_path, tmp_path):
             ]
         )
 
+
 def test_no_name_given_empty(run_component, random_path):
     output = random_path()
     run_component(
@@ -342,8 +352,8 @@ def test_no_name_given_empty(run_component, random_path):
             input,
             "--id",
             id + "_no_name_given_2",
-            "--region_name", 
-            "", 
+            "--region_name",
+            "",
             "--cassette_name",
             "",
             "--output",
@@ -354,6 +364,7 @@ def test_no_name_given_empty(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, skip_files=[])
+
 
 def test_relative_paths(run_component, tmp_path, monkeypatch):
     work_dir = tmp_path / "workdir"
@@ -379,7 +390,6 @@ def test_repeated_id_isolation(run_component, random_path):
     output_first = random_path()
     output_second = random_path()
 
-   
     run_component(
         [
             "--xenium_bundle",
@@ -424,7 +434,6 @@ def test_rename_in_sequence(run_component, random_path):
         ]
     )
 
-    # feed the already-renamed bundle back in as input for a second rename pass
     run_component(
         [
             "--xenium_bundle",
