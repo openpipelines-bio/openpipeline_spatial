@@ -1,0 +1,86 @@
+name: xeniumranger_relabel
+namespace: xeniumranger
+scope: public
+description: Re-assign the gene identity of already-decoded transcript spots using a corrected or updated gene panel using Xenium Ranger 4.0. 
+keywords: [xeniumranger]
+links:
+  documentation: https://www.10xgenomics.com/support/software/xenium-ranger/latest/analysis/running-pipelines/XR-relabel
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author ]
+argument_groups:
+- name: Inputs
+  arguments:
+  - name: "--xenium_bundle"
+    type: file
+    required: true
+    description: |
+      File path to directory containing all required Xenium Onboard Analysis output files.
+    example: "/path/to/xenium_output_bundle"
+  - name: "--id"
+    type: string
+    required: true
+    description: |
+      Unique string to specify the name of the relabel output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
+    example: "sample_relabel"
+  - name: "--panel"
+    type: file
+    required: true
+    description: |
+      New gene panel JSON file to use for relabeling transcripts with the correct gene.
+    example: "/path/to/gene_panel.json"
+- name: Outputs
+  arguments:
+  - name: "--output"
+    type: file
+    required: true
+    direction: output
+    description: |
+      The folder to store the relabeled Xenium Ranger output bundle.
+    example: "/path/to/output"
+resources:
+  - type: bash_script
+    path: script.sh
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny
+engines:
+  - type: docker
+    image: quay.io/nf-core/xeniumranger:4.0 # also update the descriptions when bumping this version
+    setup:
+      - type: docker
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt update && \
+          apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
+    test_setup:
+      - type: docker
+        run: |
+          export DEBIAN_FRONTEND=noninteractive && \
+          apt update && \
+          apt install -y python3.9 python3.9-venv python3.9-distutils python-is-python3 git curl ca-certificates && \
+          curl -sS https://bootstrap.pypa.io/pip/3.9/get-pip.py | python3.9 && \
+          update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 10 && \
+          update-alternatives --set python3 /usr/bin/python3.9 && \
+          rm -rf /var/lib/apt/lists/*
+      - type: python
+        packages:
+          # numpy pinned below 2.0 because scanpy==1.9.8 uses np.float_, removed in NumPy 2.0
+          - numpy<2
+          - scanpy~=1.9.8
+      - type: python
+        packages:
+          # anndata pinned because mudata==0.2.4 (pulled in by openpipeline_testutils) declares
+          # only 'anndata>=0.10.8' with no upper bound, but anndata>=0.10.9 dropped the
+          # AlignedViewMixin symbol mudata imports at module load time
+          - anndata==0.10.8
+          - viashpy==0.9.0
+        __merge__: /src/base/requirements/openpipeline_testutils.yaml
+      - type: python
+        packages:
+          - tifffile==2023.7.10
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [highcpu, veryhighmem, highdisk]
