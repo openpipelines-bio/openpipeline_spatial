@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+import sys
 
 import filecmp
 import numpy as np
@@ -13,11 +14,11 @@ import scanpy as sc
 import tifffile
 
 ## VIASH START
-meta = {"name": "xeniumranger_relabel", "resources_dir": "resources_test"}
+meta = {"name": "xeniumranger_relabel", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
-input = meta["resources_dir"] + "/xenium/xenium_tiny/"
-panel = meta["resources_dir"] + "/xenium/xenium_tiny/gene_panel.json"
+input = meta["resources_dir"] + "/xenium_tiny/"
+panel = meta["resources_dir"] + "/xenium_tiny/gene_panel.json"
 id = "xeniun_tiny_relabel"
 
 
@@ -365,3 +366,7 @@ def test_repeated_id_isolation(run_component, random_path):
 
     assert_outputs_exists(input, output_first)
     assert_outputs_exists(input, output_second)
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__]))
