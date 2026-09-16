@@ -179,14 +179,14 @@ def assert_geometry_unchanged(input, output):
 
 def assert_morphology_unchanged(input, output):
     morphology_files = [
-        "morphology.ome.tif",
-        "morphology_focus/morphology_focus_0000.ome.tif",
+        ("morphology.ome.tif", "morphology.ome.tif"),
+        ("morphology_focus/morphology_focus_0000.ome.tif", "morphology_focus/ch0000_dapi.ome.tif"),
     ]
-    for rel_path in morphology_files:
-        original_path = Path(input) / rel_path
-        relabeled_path = Path(output) / rel_path
+    for original_rel, relabeled_rel in morphology_files:
+        original_path = Path(input) / original_rel
+        relabeled_path = Path(output) / relabeled_rel
         assert relabeled_path.is_file(), (
-            f"{rel_path} should be present in relabeled output"
+            f"{relabeled_rel} should be present in relabeled output"
         )
 
         with tifffile.TiffFile(original_path) as original_tif:
@@ -195,7 +195,7 @@ def assert_morphology_unchanged(input, output):
             relabeled_shapes = [s.shape for s in relabeled_tif.series]
 
         assert original_shapes == relabeled_shapes, (
-            f"{rel_path} should have the same shape (pages x height x width) after relabeling"
+            f"{relabeled_rel} should have the same shape (pages x height x width) after relabeling"
         )
 
 
@@ -222,7 +222,7 @@ def test_relabelling(run_component, random_path, tmp_path):
     output = random_path()
     old_gene = "Defa5"
     new_gene = "Defa5_renamed"
-    altered_panel = modified_panel(panel, tmp_path)
+    altered_panel = modified_panel(panel, tmp_path, old_gene, new_gene)
 
     run_component(
         [
@@ -276,7 +276,7 @@ def test_valid_id(run_component, random_path):
             ]
         )
     assert re.search(
-        r"invalid id",
+        r"invalid value.*--id",
         err.value.stdout.decode("utf-8"),
         re.IGNORECASE,
     )
@@ -310,7 +310,7 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
 
     incomplete_bundle = tmp_path / "incomplete_bundle"
     shutil.copytree(input, incomplete_bundle)
-    (incomplete_bundle / "cell_feature_matrix.h5").unlink()
+    (incomplete_bundle / "experiment.xenium").unlink()
 
     with pytest.raises(subprocess.CalledProcessError):
         run_component(
