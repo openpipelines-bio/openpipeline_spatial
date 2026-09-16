@@ -81,6 +81,9 @@ engines:
       - type: python
         packages:
           - tifffile==2023.7.10
+      - type: python
+        packages:
+          - pyarrow==21.0.0
 runners:
   - type: executable
   - type: nextflow
