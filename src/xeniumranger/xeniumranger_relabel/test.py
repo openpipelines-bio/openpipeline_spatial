@@ -41,11 +41,15 @@ def _assert_same_keys(original, relabeled, key, label):
 
 def assert_outputs_exists(input, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
-        "Output exists and is non-empty"
+        "Output directory exists and is non-empty"
     )
 
+    expected_output_dirs = ["analysis", "cell_feature_matrix", "morphology_focus"]
+
+    input_not_in_output = ["aux_outputs.tar.gz", "analysis.tar.gz", "cell_feature_matrix.tar.gz" ]
+        
     input_files = sorted(
-        f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f))
+        f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
     )
     output_files = sorted(
         f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
@@ -54,6 +58,21 @@ def assert_outputs_exists(input, output):
     assert input_files == output_files, (
         "Input and output directories should contain the same (type of) files"
     )
+
+    output_dirs = sorted(
+        d for d in os.listdir(output) if os.path.isdir(os.path.join(output, d))
+    )
+
+    assert output_dirs == expected_output_dirs, (
+        "Expected output directory names should should match output directory names"
+    )
+
+    for d in output_dirs:
+        current_dir = Path(output)/d
+        assert current_dir.is_dir() and len(list(current_dir.iterdir())) > 0, (
+            f"{current_dir} should exist and is non-empty"
+        )
+    
     assert all((Path(output) / f).stat().st_size > 0 for f in output_files), (
         "All output files should be non-empty"
     )
