@@ -46,10 +46,16 @@ def assert_outputs_exists(input, output):
 
     expected_output_dirs = ["analysis", "cell_feature_matrix", "morphology_focus"]
 
-    input_not_in_output = ["aux_outputs.tar.gz", "analysis.tar.gz", "cell_feature_matrix.tar.gz" ]
-        
+    input_not_in_output = [
+        "aux_outputs.tar.gz",
+        "analysis.tar.gz",
+        "cell_feature_matrix.tar.gz",
+    ]
+
     input_files = sorted(
-        f for f in os.listdir(input) if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        f
+        for f in os.listdir(input)
+        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
     )
     output_files = sorted(
         f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
@@ -68,11 +74,11 @@ def assert_outputs_exists(input, output):
     )
 
     for d in output_dirs:
-        current_dir = Path(output)/d
+        current_dir = Path(output) / d
         assert current_dir.is_dir() and len(list(current_dir.iterdir())) > 0, (
             f"{current_dir} should exist and is non-empty"
         )
-    
+
     assert all((Path(output) / f).stat().st_size > 0 for f in output_files), (
         "All output files should be non-empty"
     )
@@ -180,7 +186,10 @@ def assert_geometry_unchanged(input, output):
 def assert_morphology_unchanged(input, output):
     morphology_files = [
         ("morphology.ome.tif", "morphology.ome.tif"),
-        ("morphology_focus/morphology_focus_0000.ome.tif", "morphology_focus/ch0000_dapi.ome.tif"),
+        (
+            "morphology_focus/morphology_focus_0000.ome.tif",
+            "morphology_focus/ch0000_dapi.ome.tif",
+        ),
     ]
     for original_rel, relabeled_rel in morphology_files:
         original_path = Path(input) / original_rel
