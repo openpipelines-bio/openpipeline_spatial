@@ -16,9 +16,7 @@ set -eo pipefail
 #    entirely. The result keeps everything: image, raster labels, boundary shapes,
 #    transcripts, and the cell annotation table, all consistently cropped together.
 #    ~300 cells in one patch vs. 23 in the whole old fixture.
-#
-# IMPORTANT: this script does NOT sync anything to the shared test-data bucket.
-# Validate the output locally against downstream components first.
+
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,6 +30,8 @@ function clean_up {
   [[ -d "$TMPDIR" ]] && rm -r "$TMPDIR"
 }
 trap clean_up EXIT
+
+mkdir -p "$DIR"
 
 # 1. fetch the source dataset (10x's own XOA v4.0 example data; no top-level
 #    directory in the zip, unlike the nf-core tarball xenium_tiny.sh uses)
@@ -66,10 +66,10 @@ docker run --rm \
         --input "$TMPDIR/full.zarr" \
         --output "$DIR/$ID.zarr"
 
-echo ""
-echo "Done. Output written locally to:"
-echo "  $DIR/$ID.zarr"
-echo ""
-echo "This script does NOT sync to S3. Once you've validated the output against"
-echo "downstream components, sync it manually (drop --dryrun to actually upload):"
-echo "  aws s3 sync --profile di \"$DIR\" s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium --dryrun"
+# Sync to S3 (dry-run; drop --dryrun to upload)
+aws s3 sync \
+    --profile di \
+    "$DIR" \
+    s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium \
+    --delete \
+    --dryrun

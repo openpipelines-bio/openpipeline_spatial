@@ -21,8 +21,8 @@ Steps:
    v4.0 example data) that were themselves "artificially subset to N square patches"
    within one larger image, so a plain bounding box over *all* cells would span the
    (mostly empty) gaps between patches instead of just one dense region.
-2. Pick one patch (largest, by default) and compute its micron bounding box with a
-   margin.
+2. Pick one patch (the largest, per ``PATCH_RANK``) and compute its micron bounding
+   box with a margin (``MARGIN_UM``).
 3. Convert that box to pixel coordinates and run ``bounding_box_query()``.
 
 Coordinate systems gotcha: elements from ``spatialdata_io.xenium()`` don't all use
@@ -37,7 +37,7 @@ straight from a shape element's own transform and converts before querying, so t
 mismatch never has to be hand-tracked by the caller.
 
 Usage:
-    crop_xenium_to_patch.py --input FULL_SDATA.zarr --output PATCH.zarr [--patch-rank 0]
+    crop_xenium_to_patch.py --input FULL_SDATA.zarr --output PATCH.zarr
 """
 
 import argparse
@@ -48,7 +48,17 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 from spatialdata import bounding_box_query
-from spatialdata.transformations import get_transformation
+from spatialdata.transformations import Scale, get_transformation
+
+# Padding (in microns) around the selected patch's cell bounding box.
+MARGIN_UM = 10.0
+# Single-linkage radius (microns) for patch clustering: cells within this distance
+# of each other belong to the same patch.
+EPS_UM = 30.0
+# Minimum cells to form a patch; smaller clusters and isolated cells are excluded.
+MIN_CELLS_PER_PATCH = 5
+# Which patch to keep, ranked by cell count descending (0 = largest).
+PATCH_RANK = 0
 
 
 def cluster_by_distance(coords, eps):
@@ -61,7 +71,7 @@ def cluster_by_distance(coords, eps):
     isn't worth it when scipy alone covers this case (patches are dense and well
     separated, so DBSCAN's noise/core-point distinction isn't needed; isolated
     points just end up as their own singleton cluster and get filtered out by
-    `--min-samples` at the ranking step instead).
+    MIN_CELLS_PER_PATCH at the ranking step instead).
     """
     n = len(coords)
     pairs = cKDTree(coords).query_pairs(r=eps, output_type="ndarray")
@@ -81,6 +91,11 @@ def get_pixel_size(sdata):
     """
     shapes_name = next(iter(sdata.shapes))
     transform = get_transformation(sdata.shapes[shapes_name], get_all=True)["global"]
+    if not isinstance(transform, Scale):
+        raise TypeError(
+            f"expected a Scale transform to 'global' on shapes/{shapes_name}, got "
+            f"{type(transform).__name__}; cannot recover pixel_size"
+        )
     return 1.0 / transform.scale[0]
 
 
@@ -90,67 +105,46 @@ def main():
         "--input", required=True, help="converted Xenium SpatialData .zarr"
     )
     parser.add_argument("--output", required=True, help="output cropped .zarr")
-    parser.add_argument(
-        "--margin-um",
-        type=float,
-        default=10.0,
-        help="padding (in microns) around the selected patch's cell bounding box",
-    )
-    parser.add_argument(
-        "--eps-um",
-        type=float,
-        default=30.0,
-        help="DBSCAN neighborhood radius (microns) for patch clustering; cells "
-        "within this distance of each other are considered the same patch",
-    )
-    parser.add_argument(
-        "--min-samples",
-        type=int,
-        default=5,
-        help="DBSCAN min_samples: minimum cells to form a patch (smaller clusters "
-        "and isolated cells are treated as noise and excluded from selection)",
-    )
-    parser.add_argument(
-        "--patch-rank",
-        type=int,
-        default=0,
-        help="which patch to keep, ranked by cell count descending (0 = largest)",
-    )
     args = parser.parse_args()
 
     print(f">>> reading {args.input}")
     sdata = sd.read_zarr(args.input)
+    if "table" not in sdata.tables:
+        raise ValueError(
+            "no 'table' element: this script expects the converter's defaults "
+            "(all elements enabled, including --cells_table)"
+        )
     table = sdata.tables["table"]
     pixel_size = get_pixel_size(sdata)
     print(f"  {table.n_obs} cells total, pixel_size={pixel_size}")
 
     print(">>> clustering cell centroids into patches")
     coords_um = table.obsm["spatial"]
-    labels = cluster_by_distance(coords_um, eps=args.eps_um)
+    labels = cluster_by_distance(coords_um, eps=EPS_UM)
     all_ids, all_counts = np.unique(labels, return_counts=True)
-    keep = all_counts >= args.min_samples
+    keep = all_counts >= MIN_CELLS_PER_PATCH
     patch_ids, counts = all_ids[keep], all_counts[keep]
-    order = np.argsort(-counts)
+    order = np.argsort(-counts, kind="stable")
     patch_ids, counts = patch_ids[order], counts[order]
     for patch_id, count in zip(patch_ids, counts):
         print(f"  patch {patch_id}: {count} cells")
     n_noise = int(all_counts[~keep].sum())
     if n_noise:
-        print(f"  {n_noise} cells in clusters smaller than --min-samples (excluded)")
+        print(f"  {n_noise} cells in clusters smaller than MIN_CELLS_PER_PATCH (excluded)")
 
-    if args.patch_rank >= len(patch_ids):
+    if PATCH_RANK >= len(patch_ids):
         raise ValueError(
-            f"--patch-rank {args.patch_rank} out of range: only {len(patch_ids)} "
+            f"PATCH_RANK {PATCH_RANK} out of range: only {len(patch_ids)} "
             "patches found"
         )
-    chosen_patch = patch_ids[args.patch_rank]
+    chosen_patch = patch_ids[PATCH_RANK]
     patch_coords = coords_um[labels == chosen_patch]
     print(f">>> selected patch {chosen_patch} ({len(patch_coords)} cells)")
 
-    x_min = patch_coords[:, 0].min() - args.margin_um
-    x_max = patch_coords[:, 0].max() + args.margin_um
-    y_min = patch_coords[:, 1].min() - args.margin_um
-    y_max = patch_coords[:, 1].max() + args.margin_um
+    x_min = patch_coords[:, 0].min() - MARGIN_UM
+    x_max = patch_coords[:, 0].max() + MARGIN_UM
+    y_min = patch_coords[:, 1].min() - MARGIN_UM
+    y_max = patch_coords[:, 1].max() + MARGIN_UM
     print(
         f"  bbox (um): x=[{x_min:.1f},{x_max:.1f}] y=[{y_min:.1f},{y_max:.1f}] "
         f"-> ({(x_max - x_min) / pixel_size:.0f}x{(y_max - y_min) / pixel_size:.0f} px)"
