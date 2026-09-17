@@ -24,7 +24,7 @@ argument_groups:
     description: |
       Unique string to specify the name of the relabel output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
     example: "sample_relabel"
-- name: Staining_arguments
+- name: Staining arguments
   arguments:
   - name: "--boundary_stain"
     type: string
@@ -40,7 +40,7 @@ argument_groups:
       Specify the name of the interior stain to use or disable.
     choices: ["ATP1A1/CD45/E-Cadherin", "18S", "alphaSMA/Vimentin", "disable"]
     default: "18S"
-- name: Image_arguments
+- name: Image arguments
   arguments:
   - name: "--segment_large_cells"
     type: boolean_true
@@ -62,13 +62,11 @@ argument_groups:
       DAPI Z-stack. If left unset, xeniumranger uses its own default: 15 pe for deconvolved DAPI,
       100 pe for non-deconvolved DAPI.
   - name: "--resegment_nuclei"
-    type: boolean
-    required: false
+    type: boolean_true
     description: |
       Boolean to specify whether to rerun the latest Xenium Onboard Analysis nucleus segmentation algorithm
-      or to use existing nucleus segmentation masks in the cells.zarr file. This parameter is deprecated and 
+      or to use existing nucleus segmentation masks in the cells.zarr file. This parameter is deprecated and
       will be removed in a future release.
-    default: false
 - name: Outputs
   arguments:
   - name: "--output"
