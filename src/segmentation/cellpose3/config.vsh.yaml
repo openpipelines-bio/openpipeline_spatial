@@ -127,9 +127,10 @@ argument_groups:
         default: 8
         min: 1
         description: Number of image tiles/patches to run simultaneously on the GPU or CPU.
-      - name: "--use_gpu"
-        type: boolean
-        default: false
+      - name: "--device_type"
+        type: string
+        choices: [ "cpu", "gpu" ]
+        default: "cpu"
         description: Whether to run the model on a GPU, if one is available.
       - name: "--normalize_percentile_low"
         type: double
