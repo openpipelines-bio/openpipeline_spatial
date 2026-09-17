@@ -3136,7 +3136,7 @@ meta = [
         {
           "type" : "boolean",
           "name" : "--calculate_ripley_l",
-          "description" : "Whether to calculate Ripley's L statistic. \nWarning: This is an O(N^2) operation and can be very slow for large datasets (>5000 cells).\n",
+          "description" : "Whether to calculate Ripley's L statistic.\nWarning: This is an O(N^2) operation and can be very slow for large datasets (>5000 cells).\n",
           "default" : [
             false
           ],
@@ -3148,7 +3148,7 @@ meta = [
         {
           "type" : "integer",
           "name" : "--n_subsample_ripley",
-          "description" : "Number of cells to subsample for Ripley's L calculation. \nIf -1, use all cells. Recommended to keep this below 5000 for performance.\n",
+          "description" : "Number of cells to subsample for Ripley's L calculation.\nIf -1, use all cells. Recommended to keep this below 5000 for performance.\n",
           "default" : [
             -1
           ],
@@ -3213,7 +3213,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "singlecpu",
+          "midcpu",
           "midmem",
           "lowdisk"
         ],
@@ -3309,6 +3309,7 @@ meta = [
             "scanpy~=1.11.4",
             "scanpy~=1.11.4",
             "squidpy~=1.8.1",
+            "joblib",
             "scikit-learn"
           ],
           "script" : [
@@ -3340,7 +3341,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/feature_annotation/xenium_spatial_statistics",
     "viash_version" : "0.9.7",
-    "git_commit" : "a6375482da9158b68a1c1bc093af84b431a3d375",
+    "git_commit" : "752730dfdfbd84640ad48449dd1601fdd354cf01",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3393,6 +3394,7 @@ import warnings
 import mudata as mu
 import numpy as np
 import squidpy as sq
+from joblib import Parallel, delayed
 from scipy.spatial import ConvexHull, Voronoi, distance_matrix
 from sklearn.neighbors import KernelDensity
 
@@ -3501,14 +3503,28 @@ def calculate_position_features(adata, spatial_coords, prefix):
         print("    Added: distance_to_centroid, norm_x, norm_y", flush=True)
 
 
-def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix):
+def calculate_density_metrics(adata, spatial_coords, bandwidth, prefix, n_jobs=1):
     """Calculate local density metrics."""
     print("  Calculating density metrics...", flush=True)
 
     # Kernel density estimation
-    kde = KernelDensity(bandwidth=bandwidth, kernel="gaussian")
+    # Setting the relative tolerance (rtol=1.e-8) gives a significant speed
+    # increase with minimal differences from the exact result (correct to ~6
+    # decimal places).
+    kde = KernelDensity(bandwidth=bandwidth, kernel="gaussian", rtol=1e-8)
     kde.fit(spatial_coords)
-    log_density = kde.score_samples(spatial_coords)
+
+    # Process chunks of cells in parallel
+    if n_jobs and n_jobs > 1:
+        n_chunks = min(n_jobs, len(spatial_coords))
+        coord_chunks = np.array_split(spatial_coords, n_chunks)
+        log_density_chunks = Parallel(n_jobs=n_jobs, backend="loky")(
+            delayed(kde.score_samples)(chunk) for chunk in coord_chunks
+        )
+        log_density = np.concatenate(log_density_chunks)
+    else:
+        log_density = kde.score_samples(spatial_coords)
+
     adata.obs[f"{prefix}kernel_density"] = np.exp(log_density)
 
     # Calculate degree centrality (as a proxy for local density / number of neighbors)
@@ -3656,7 +3672,9 @@ def calculate_global_statistics(adata, spatial_coords, par):
     return stats
 
 
-def main(par):
+def main(par, meta):
+    n_jobs = meta.get("cpus") or 1
+
     print(f"\\\\n>>> Reading MuData from '{par['input']}'...", flush=True)
     mdata = mu.read_h5mu(par["input"])
     print(mdata, flush=True)
@@ -3704,6 +3722,7 @@ def main(par):
         spatial_coords,
         par["density_bandwidth"],
         prefix,
+        n_jobs=n_jobs,
     )
 
     # Calculate Voronoi tessellation
@@ -3726,7 +3745,7 @@ def main(par):
 
 
 if __name__ == "__main__":
-    sys.exit(main(par))
+    sys.exit(main(par, meta))
 VIASHMAIN
 python -B "$tempscript"
 '''
@@ -4112,7 +4131,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "singlecpu",
+    "midcpu",
     "midmem",
     "lowdisk"
   ],

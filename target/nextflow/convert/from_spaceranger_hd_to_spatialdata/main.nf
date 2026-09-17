@@ -3358,7 +3358,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spaceranger_hd_to_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "a6375482da9158b68a1c1bc093af84b431a3d375",
+    "git_commit" : "752730dfdfbd84640ad48449dd1601fdd354cf01",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

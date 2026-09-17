@@ -1,3 +1,9 @@
+# openpipeline_spatial x.x.x
+
+## MINOR CHANGES
+
+* `feature_annotation/xenium_spatial_statistics`: Optimise the density calculation step giving a significant improvement to the runtime of the component. (PR #78)
+
 # openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
