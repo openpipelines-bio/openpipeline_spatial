@@ -40,7 +40,8 @@ argument_groups:
           Channel to use for cytoplasm/cell-body segmentation, using Cellpose's
           1-based channel numbering: 1 is the first channel along the image's
           channel axis, 2 the second, and so on. A value of 0 does not select a
-          channel, it averages all channels into a single grayscale image.
+          channel, it averages all channels into a single grayscale image; this
+          is the default, matching Cellpose's own default behaviour.
           Note this is deliberately offset by one from numpy-style indexing, so
           the first channel of a Xenium `morphology_focus` image (DAPI) is 1,
           not 0.
@@ -51,8 +52,8 @@ argument_groups:
         description: |
           Optional nuclear channel, using the same 1-based numbering as
           `--cytoplasm_channel`. A value of 0 means no separate nuclear channel
-          is used. Only meaningful for models trained on two channels (e.g.
-          `cyto3`); the `nuclei` model ignores it.
+          is used; this is the default. Only meaningful for models trained on
+          two channels (e.g. `cyto3`); the `nuclei` model ignores it.
 
   - name: "Parameters"
     arguments:
@@ -64,7 +65,7 @@ argument_groups:
           `cyto3` (generalist cell model, requires a cytoplasm/membrane
           channel) or `cyto2`. Ignored if `--pretrained_model` is set.
         choices: [ "cyto3", "nuclei", "cyto2_cp3", "tissuenet_cp3", "livecell_cp3", "yeast_PhC_cp3",
-                  "yeast_BF_cp3", "bact_phase_cp3", "bact_fluor_cp3", "deepbacs_cp3", "cyto2", "cyto", "CPx",
+                  "yeast_BF_cp3", "bact_phase_cp3", "bact_fluor_cp3", "deepbacs_cp3", "cyto2", "cyto",
                   "transformer_cp3", "neurips_cellpose_default", "neurips_cellpose_transformer",
                   "neurips_grayscale_cyto2",
                   "CP", "CPx", "TN1", "TN2", "TN3", "LC1", "LC2", "LC3", "LC4"]
