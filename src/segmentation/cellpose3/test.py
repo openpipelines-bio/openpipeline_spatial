@@ -70,6 +70,58 @@ def test_default_execution(run_component, tmp_path):
     )
 
 
+def test_non_zero_cytoplasm_channel(run_component, tmp_path):
+    output = tmp_path / "segmented_cytoplasm_channel.zarr"
+
+    run_component(
+        [
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--cytoplasm_channel",
+            "1",
+        ]
+    )
+
+    assert output.is_dir(), "Output Zarr store was not created."
+    sdata = sd.read_zarr(output)
+    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+    n_objects = len(np.unique(labels_arr)) - 1
+    assert n_objects > 0, (
+        "Expected at least one segmented object with a non-zero "
+        "'--cytoplasm_channel' (the input image's single channel, selected "
+        "explicitly instead of via the default grayscale averaging), "
+        "exercising the ndim == 3 branch's channel selection."
+    )
+
+
+def test_non_zero_nuclear_channel(run_component, tmp_path):
+    output = tmp_path / "segmented_nuclear_channel.zarr"
+
+    run_component(
+        [
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--nuclear_channel",
+            "1",
+        ]
+    )
+
+    assert output.is_dir(), "Output Zarr store was not created."
+    sdata = sd.read_zarr(output)
+    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+    n_objects = len(np.unique(labels_arr)) - 1
+    assert n_objects > 0, (
+        "Expected at least one segmented object with a non-zero "
+        "'--nuclear_channel' (the input image's single channel, selected "
+        "explicitly instead of via the default grayscale averaging), "
+        "exercising the ndim == 3 branch's channel selection."
+    )
+
+
 def test_custom_output_labels(run_component, tmp_path):
     output = tmp_path / "segmented_custom.zarr"
 
