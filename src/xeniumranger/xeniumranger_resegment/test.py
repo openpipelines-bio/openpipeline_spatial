@@ -16,10 +16,16 @@ import scanpy as sc
 meta = {"name": "xeniumranger_resegment", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
-input = meta["resources_dir"] + "/xenium_tiny/"
-id = "xeniun_tiny_resegment"
-boundary_stain = "ATP1A1/CD45/E-Cadherin"
-interior_stain = "18S"
+# 1. Nuclear expansion arguments
+input_ne = meta["resources_dir"] + "/xenium_tiny/" # ne = nuclear expansion path
+id = "xeniun_tiny_resegment_ne"
+boundary_stain_ne = "disable"
+interior_stain_ne = "disable"
+
+# 2. Multimodal segmentation arguments
+
+
+# 3. General arguments
 dapi_filter = 5
 changed_files = [
     "cells.csv.gz",
@@ -126,26 +132,7 @@ def assert_identical(input, output, skip_files):
                 os.path.join(input, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
 
-def _read_experiment_xenium_pair(input, output):
-    with open(Path(input) / "experiment.xenium") as f:
-        input_exp = json.load(f)
-    with open(Path(output) / "experiment.xenium") as f:
-        output_exp = json.load(f)
-    return input_exp, output_exp
-
-
-def _read_metrics_summary_pair(input, output):
-    input_metrics = pd.read_csv(Path(input) / "metrics_summary.csv").iloc[0]
-    output_metrics = pd.read_csv(Path(output) / "metrics_summary.csv").iloc[0]
-    return input_metrics, output_metrics
-
-
-def _read_analysis_summary_html_pair(input, output):
-    input_html = (Path(input) / "analysis_summary.html").read_text()
-    output_html = (Path(output) / "analysis_summary.html").read_text()
-    return input_html, output_html
-
-
+# 1. Nuclear expansion path
 def test_basic_execution(run_component, random_path):
     output = random_path()
     run_component(
@@ -155,9 +142,9 @@ def test_basic_execution(run_component, random_path):
             "--id",
             id,
             "--boundary_stain",
-            boundary_stain, 
+            boundary_stain_ne, 
             "--interior_stain",
-            interior_stain,
+            interior_stain_ne,
             "--segment_large_cells"
             "--expansion_distance", 
             "--dapi-filter", 
@@ -171,3 +158,7 @@ def test_basic_execution(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
+
+
+def test_resegment_nuclei(run_component, random_path): 
+    
