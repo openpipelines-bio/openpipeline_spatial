@@ -130,12 +130,13 @@ def main():
         print(f"  patch {patch_id}: {count} cells")
     n_noise = int(all_counts[~keep].sum())
     if n_noise:
-        print(f"  {n_noise} cells in clusters smaller than MIN_CELLS_PER_PATCH (excluded)")
+        print(
+            f"  {n_noise} cells in clusters smaller than MIN_CELLS_PER_PATCH (excluded)"
+        )
 
     if PATCH_RANK >= len(patch_ids):
         raise ValueError(
-            f"PATCH_RANK {PATCH_RANK} out of range: only {len(patch_ids)} "
-            "patches found"
+            f"PATCH_RANK {PATCH_RANK} out of range: only {len(patch_ids)} patches found"
         )
     chosen_patch = patch_ids[PATCH_RANK]
     patch_coords = coords_um[labels == chosen_patch]
