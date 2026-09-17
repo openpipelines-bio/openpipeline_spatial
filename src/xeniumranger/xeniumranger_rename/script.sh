@@ -10,18 +10,15 @@ par_cassette_name=''
 par_output='xeniumranger_rename_test'
 ## VIASH END
 
-# Make sure paths are absolute, since we cd into a tempdir before running xeniumranger
 par_xenium_bundle=`realpath $par_xenium_bundle`
 par_output=`realpath $par_output`
 
-# create temporary directory
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
 function clean_up {
     rm -rf "$tmpdir"
 }
 trap clean_up EXIT
 
-# cd into tempdir
 cd "$tmpdir"
 
 xeniumranger rename \
