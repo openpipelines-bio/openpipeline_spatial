@@ -35,7 +35,7 @@ par = {
     "resample": True,
     "augment": False,
     "batch_size": 8,
-    "use_gpu": False,
+    "device_type": "cpu",
     "normalize_percentile_low": 1.0,
     "normalize_percentile_high": 99.9,
     # Outputs
@@ -79,17 +79,27 @@ if image_arr.ndim == 3:
     channels = [par["cytoplasm_channel"], par["nuclear_channel"]]
     channel_axis = 0
 else:
+    # A 2D image has no channel axis to select from, so a non-zero
+    # '--cytoplasm_channel'/'--nuclear_channel' would otherwise be silently
+    # dropped here.
+    if par["cytoplasm_channel"] != 0 or par["nuclear_channel"] != 0:
+        logger.warning(
+            "'--cytoplasm_channel' and/or '--nuclear_channel' were set to a "
+            f"non-zero value, but the input image '{image_key}' has no "
+            f"channel axis (ndim={image_arr.ndim}); ignoring the requested "
+            "channel(s)."
+        )
     channels = [0, 0]
     channel_axis = None
 
-# Requesting GPU usage (--use_gpu) on compute resources that don't actually
+# Requesting GPU usage (--device_type) on compute resources that don't actually
 # have one available would otherwise be silently downgraded deep inside
 # Cellpose; resolving and logging it here makes the actual device used
 # explicit in this component's own logs.
-use_gpu = par["use_gpu"] and (cuda_is_available() or mps_is_available())
-if par["use_gpu"] and not use_gpu:
+use_gpu = par["device_type"] == "gpu" and (cuda_is_available() or mps_is_available())
+if par["device_type"] == "gpu" and not use_gpu:
     logger.warning(
-        "GPU requested via --use_gpu, but no GPU is available; falling back to CPU."
+        "GPU requested via --device_type, but no GPU is available; falling back to CPU."
     )
 logger.info(f"GPU enabled? {use_gpu}")
 
