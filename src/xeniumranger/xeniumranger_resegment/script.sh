@@ -22,6 +22,16 @@ for par in ${unset_if_false[@]}; do
     [[ "$test_val" == "false" ]] && unset $par
 done
 
+unset_if_disable=(
+    par_boundary_stain
+    par_interior_stain
+)
+
+for par in ${unset_if_disable[@]}; do
+    test_val="${!par}"
+    [[ "$test_val" == "disable" ]] && unset $par
+done
+
 par_xenium_bundle=`realpath $par_xenium_bundle`
 par_output=`realpath $par_output`
 

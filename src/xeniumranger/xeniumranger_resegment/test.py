@@ -21,6 +21,7 @@ input_ne = meta["resources_dir"] + "/xenium_tiny/" # ne = nuclear expansion path
 id = "xeniun_tiny_resegment_ne"
 boundary_stain_ne = "disable"
 interior_stain_ne = "disable"
+dapi_filter_ne = "5"
 
 # 2. Multimodal segmentation arguments
 
@@ -51,7 +52,7 @@ def assert_outputs_exists(input, output):
         "Output directory exists and is non-empty"
     )
 
-    expected_output_dirs = ["morphology_focus"]
+    expected_output_dirs = ["analysis", "cell_feature_matrix", "morphology_focus"]
 
     input_not_in_output = [
         "aux_outputs.tar.gz",
@@ -132,33 +133,62 @@ def assert_identical(input, output, skip_files):
                 os.path.join(input, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
 
-# 1. Nuclear expansion path
+# Nuclear expansion path
 def test_basic_execution(run_component, random_path):
     output = random_path()
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_ne,
             "--id",
             id,
             "--boundary_stain",
-            boundary_stain_ne, 
+            boundary_stain_ne,
             "--interior_stain",
             interior_stain_ne,
-            "--segment_large_cells"
-            "--expansion_distance", 
-            "--dapi-filter", 
-            dapi_filter, 
-            "--resegment_nuclei",
+            "--dapi_filter",
+            dapi_filter_ne,
             "--output",
             output,
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_ne, output)
     assert_valid_files(output)
-    assert_identical(input, output, changed_files)
+    assert_identical(input_ne, output, changed_files)
 
 
-def test_resegment_nuclei(run_component, random_path): 
-    
+def test_resegment_nuclei(run_component, random_path):
+    output = random_path()
+    run_component(
+            [
+                "--xenium_bundle",
+                input_ne,
+                "--id",
+                id,
+                "--boundary_stain",
+                boundary_stain_ne,
+                "--interior_stain",
+                interior_stain_ne,
+                "--dapi_filter",
+                dapi_filter_ne,
+                "--resegment_nuclei",
+                "--output",
+                output,
+            ]
+        )
+
+    assert_outputs_exists(input_ne, output)
+    assert_valid_files(output)
+    assert_identical(input_ne, output, changed_files)
+
+    input_nb_parquet = pd.read_parquet(Path(input_ne)/"nucleus_boundaries.parquet")
+    output_nb_parquet = pd.read_parquet(Path(output)/"nucleus_boundaries.parquet")
+
+    assert not input_nb_parquet.equals(output_nb_parquet), (
+        "--resegment_nuclei should alter nuclear boundaries "
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__]))
