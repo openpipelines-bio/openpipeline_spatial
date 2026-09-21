@@ -2,30 +2,37 @@
 
 set -eo pipefail
 
-# A multimodal-cell-segmentation Xenium tiny test fixture: converts 10x's own
+# A multimodal-cell-segmentation Xenium tiny test fixture: crops 10x's own
 # "Xenium V1 MultiCellSeg Human Ovary tiny" XOA v4.0 example dataset (their site:
-# "artificially subset to three 640 pixel square patches across two FOVs") and
-# crops it down to one dense patch.
+# "artificially subset to three 640 pixel square patches across two FOVs") down
+# to one dense patch, kept in the native raw Xenium bundle format (like
+# xenium_tiny.sh's fixture), plus a SpatialData-converted copy alongside it.
 #
-# Why this dataset and method, rather than xenium_tiny.sh's:
+# Why this dataset, rather than xenium_tiny.sh's:
 #  * xenium_tiny.sh's source (nf-core "Xenium_Prime_Mouse_Ileum_tiny_outs") and the
 #    plain "Xenium V1 Human Ovary tiny" dataset are both segmented from nuclear
 #    expansion alone -- a single DAPI channel. Neither exercises the multi-channel
 #    (DAPI + protein/RNA boundary stains) multimodal cell segmentation path that
 #    xeniumranger components need to test against.
-#  * This script converts the *full* MultiCellSeg Ovary dataset first (all elements,
-#    `cells.zarr.zip` parsed exactly once by spatialdata_io itself), then crops the
-#    resulting SpatialData object with spatialdata's own bounding_box_query() --
-#    The result keeps everything: images (all morphology_focus channels),
-#    raster labels, boundary shapes, transcripts, and the cell annotation table, all
-#    consistently cropped together.
-
+#
+# Cropping uses the `filter/subset_xenium` component, which crops the raw bundle
+# directly (cells.parquet, cell/nucleus boundaries, transcripts, the
+# cell_feature_matrix.h5 CellRanger matrix, the morphology_focus OME-TIFF
+# channels, and the cells.zarr.zip raster labels + metadata table), rather than
+# converting first and cropping the converted representation. It's run locally
+# since it was added alongside this test fixture and isn't part of a release yet.
+#
+# The cropped bundle is then also converted to SpatialData, using the
+# openpipeline_spatial v0.6.0 release published on Viash Hub
+# (https://www.viash-hub.com/packages/openpipeline_spatial), the same way
+# cosmx_tiny.sh converts its own cropped/subset bundle.
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
 
-DIR="$REPO_ROOT/resources_test/xenium"
+DIR="resources_test/xenium"
 ID="xenium_multicellseg_tiny"
+OPENPIPELINE_SPATIAL_VERSION="v0.6.0"
 
 MY_TEMP="${VIASH_TEMP:-/tmp}"
 TMPDIR=$(mktemp -d "$MY_TEMP/$ID-XXXXXX")
@@ -43,24 +50,36 @@ curl -fSL -o "$TMPDIR/xenium_multicellseg_tiny.zip" \
     "https://cf.10xgenomics.com/samples/xenium/4.0.0/Xenium_V1_MultiCellSeg_Human_Ovary_tiny/Xenium_V1_MultiCellSeg_Human_Ovary_tiny_outs.zip"
 unzip -q "$TMPDIR/xenium_multicellseg_tiny.zip" -d "$SRC_OUTS"
 
-# 2. convert the *full* dataset (all cells, all three patches, full imaging FOV,
-#    all four morphology_focus channels) -- every element enabled (the converter's
-#    defaults)
-viash run "$REPO_ROOT/src/convert/from_xenium_to_spatialdata/config.vsh.yaml" -- \
+# 2. crop to one dense patch (the largest, by default) with the local
+#    filter/subset_xenium component, keeping the native raw bundle format.
+rm -rf "$DIR/$ID"
+viash run "$REPO_ROOT/src/filter/subset_xenium/config.vsh.yaml" -- \
     --input "$SRC_OUTS" \
-    --output "$TMPDIR/full.zarr"
+    --output "$DIR/$ID"
 
-# 3. crop to one dense patch (the largest, by default) with bounding_box_query.
-CONVERTER_IMAGE="ghcr.io/openpipelines-bio/openpipeline_spatial/convert/from_xenium_to_spatialdata:latest"
+echo "> Cropping complete"
+
+# 3. also publish a SpatialData-converted copy of the cropped bundle, using the
+#    openpipeline_spatial $OPENPIPELINE_SPATIAL_VERSION release published on
+#    Viash Hub.
+cat > "$TMPDIR/convert_params.yaml" <<HERE
+param_list:
+- id: $ID
+  input: "$DIR/$ID"
+  output: "$ID.zarr"
+HERE
+
 rm -rf "$DIR/$ID.zarr"
-docker run --rm \
-    -v "$TMPDIR:$TMPDIR" \
-    -v "$DIR:$DIR" \
-    -v "$SCRIPT_DIR:$SCRIPT_DIR" \
-    "$CONVERTER_IMAGE" \
-    python3 "$SCRIPT_DIR/crop_xenium_to_patch.py" \
-        --input "$TMPDIR/full.zarr" \
-        --output "$DIR/$ID.zarr"
+nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
+  -revision "$OPENPIPELINE_SPATIAL_VERSION" \
+  -main-script target/nextflow/convert/from_xenium_to_spatialdata/main.nf \
+  -params-file "$TMPDIR/convert_params.yaml" \
+  -profile docker \
+  -resume \
+  -c src/workflows/utils/labels_ci.config \
+  --publish_dir "$DIR"
+
+echo "> Conversion to SpatialData complete"
 
 # Sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
