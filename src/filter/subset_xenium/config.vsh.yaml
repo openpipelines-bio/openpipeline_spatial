@@ -1,0 +1,118 @@
+name: "subset_xenium"
+scope: "private"
+namespace: "filter"
+description: |
+  Crops a raw 10x Genomics Xenium output bundle down to one dense patch of cells.
+
+  This operates directly on the *raw* `outs/` bundle (the same format read by
+  `convert/from_xenium_to_spatialdata`/`convert/from_xenium_to_h5mu`), producing a
+  smaller bundle in the same native format, rather than converting first and
+  cropping the converted representation. The following files are read, cropped
+  (consistently, to the same patch) and written back in place:
+
+    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`,
+      `transcripts.parquet`: filtered by cell/spatial membership.
+    - `cell_feature_matrix.h5`: the CellRanger-format HDF5 matrix, resliced to
+      the kept cell barcodes.
+    - `morphology_focus/*.ome.tif`: cropped to the same pixel region; each
+      channel file's OME-XML is reused as-is (channel names, IDs) with only
+      `SizeX`/`SizeY` patched, since the reader depends on it for multi-channel
+      datasets.
+    - `cells.zarr.zip`: the per-cell raster segmentation labels and metadata
+      table. `masks/1` (the cell label raster) is cropped first, and the set of
+      surviving (nonzero) label values is used as the canonical "kept cells" set
+      for every other file, since label value `L` corresponds directly to row
+      `L-1` of `cell_id`/`cell_summary`. This guarantees the cropped labels stay
+      internally consistent with the cropped table (required by
+      `spatialdata_io`, which cross-checks them and raises if they don't align).
+      `polygon_sets` is copied through unmodified: it is unused by the reader
+      beyond a self-consistency check on its own (untouched) length.
+
+  `experiment.xenium` and `metrics_summary.csv` are copied through unchanged.
+  Files not read by either converter (`gene_panel.json`, `analysis_summary.html`,
+  the `*.tar.gz`/`*.zarr.zip` Xenium Explorer companions, and legacy `*.csv.gz`
+  duplicates of the parquet files) are dropped from the output bundle.
+
+  Cell centroids (`cells.parquet`'s `x_centroid`/`y_centroid`, in microns) are
+  clustered by distance to find spatially separated patches, useful for source
+  datasets that were themselves "artificially subset to N square patches" within
+  one larger image, so a plain bounding box over all cells would span the
+  (mostly empty) gaps between patches instead of just one dense region. One
+  patch is then picked (ranked by cell count) and its micron bounding box, with
+  a margin, is used to crop the bundle.
+
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+    roles: [ author ]
+
+arguments:
+  - name: "--input"
+    alternatives: ["-i"]
+    type: file
+    description: |
+      Input folder. Must contain the raw output from a Xenium run (the same
+      bundle read by `convert/from_xenium_to_spatialdata`).
+    example: xenium_data
+    direction: input
+    required: true
+  - name: "--output"
+    alternatives: ["-o"]
+    type: file
+    description: The directory where the cropped Xenium output bundle will be stored.
+    example: "xenium_data_tiny"
+    direction: output
+    required: true
+  - name: "--margin_um"
+    type: double
+    default: 10.0
+    description: Padding, in microns, around the selected patch's cell bounding box.
+  - name: "--eps_um"
+    type: double
+    default: 30.0
+    description: |
+      Single-linkage radius, in microns, for patch clustering: cells within
+      this distance of each other are considered part of the same patch.
+  - name: "--min_cells_per_patch"
+    type: integer
+    default: 5
+    description: |
+      Minimum number of cells to form a patch. Smaller clusters and isolated
+      cells are excluded.
+  - name: "--patch_rank"
+    type: integer
+    default: 0
+    description: |
+      Which patch to keep, ranked by cell count descending (0 = largest).
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_multicellseg_tiny/
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        packages:
+          - pandas~=2.2.3
+          - numpy~=2.1.3
+          - pyarrow~=18.0.0
+          - scipy~=1.17.1
+          - h5py~=3.12.1
+          - tifffile~=2024.12.12
+          - zarr~=3.0.6
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowmem, singlecpu]
