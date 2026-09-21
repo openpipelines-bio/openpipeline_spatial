@@ -65,6 +65,16 @@ def cell_id_str_from_prefix_suffix(prefix, suffix):
     return np.array([p.rjust(8, "a") + f"-{s}" for p, s in zip(prefix_shifted, suffix)])
 
 
+def _create_array(group, name, data):
+    """Create a zarr array and populate it, without relying on create_array's
+    data= kwarg: not present in zarr 3.0.x (our pinned version), only added in
+    later 3.x releases.
+    """
+    arr = group.create_array(name, shape=data.shape, dtype=data.dtype)
+    arr[:] = data
+    return arr
+
+
 def crop_cells_zarr(
     src_zip, dst_zip, px_x0, px_x1, px_y0, px_y1, origin_x_um, origin_y_um
 ):
@@ -124,12 +134,12 @@ def crop_cells_zarr(
             dst.attrs["number_cells"] = int(len(kept_row_idx))
 
             masks_grp = dst.create_group("masks")
-            masks_grp.create_array("0", data=masks_0)
-            masks_grp.create_array("1", data=masks_1)
-            masks_grp.create_array("homogeneous_transform", data=transform)
+            _create_array(masks_grp, "0", masks_0)
+            _create_array(masks_grp, "1", masks_1)
+            _create_array(masks_grp, "homogeneous_transform", transform)
 
-            dst.create_array("cell_id", data=cell_id_arr)
-            summary_arr = dst.create_array("cell_summary", data=cell_summary)
+            _create_array(dst, "cell_id", cell_id_arr)
+            summary_arr = _create_array(dst, "cell_summary", cell_summary)
             summary_arr.attrs["column_names"] = column_names
             summary_arr.attrs["column_descriptions"] = column_descriptions
 
@@ -141,7 +151,7 @@ def crop_cells_zarr(
                 sub_src = src_polygon_sets[key]
                 sub_dst = dst_polygon_sets.create_group(key)
                 for arr_name in sub_src.keys():
-                    arr = sub_dst.create_array(arr_name, data=sub_src[arr_name][...])
+                    arr = _create_array(sub_dst, arr_name, sub_src[arr_name][...])
                     arr.attrs.update(dict(sub_src[arr_name].attrs))
                 sub_dst.attrs.update(dict(sub_src.attrs))
 
@@ -201,8 +211,17 @@ def main(par):
     input_dir = Path(par["input"])
     output_dir = Path(par["output"])
     if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True)
+        # Clear contents rather than removing and recreating the directory
+        # itself: output_dir may be a Docker bind-mount point (e.g. when
+        # re-running against an existing, possibly empty, output path), which
+        # can't be rmdir'd from inside the container.
+        for child in output_dir.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+    else:
+        output_dir.mkdir(parents=True)
 
     logger.info("Reading cells.parquet")
     cells = pd.read_parquet(input_dir / "cells.parquet")

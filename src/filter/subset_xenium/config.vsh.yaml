@@ -109,6 +109,9 @@ engines:
           - scipy~=1.17.1
           - h5py~=3.12.1
           - tifffile~=2024.12.12
+          # backend tifffile needs to decode the morphology_focus OME-TIFF
+          # channels, which are JPEG2000-compressed
+          - imagecodecs~=2024.12.30
           - zarr~=3.0.6
     __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
 runners:
