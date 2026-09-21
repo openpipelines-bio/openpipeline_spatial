@@ -49,7 +49,7 @@ xeniumranger resegment \
   --disable-ui=true \
   ${par_boundary_stain:+--boundary-stain="$par_boundary_stain"} \
   ${par_interior_stain:+--interior-stain="$par_interior_stain"} \
-  ${par_segment_large_cells:+--segment-large-cells} \
+  ${par_segment_large_cells:+--segment-large-cells="$par_segment_large_cells"} \
   ${par_expansion_distance:+--expansion-distance="$par_expansion_distance"} \
   ${par_dapi_filter:+--dapi-filter="$par_dapi_filter"} \
   ${par_resegment_nuclei:+--resegment-nuclei="$par_resegment_nuclei"} \

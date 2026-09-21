@@ -52,7 +52,7 @@ argument_groups:
     description: |
       Nuclei boundary expansion distance in µm. (Min: 0, Max: 15 if either --boundary_stain
       or --interior_stain are enabled and 100 if nucleus-expansion only).
-    default: 5
+    default: 0
   - name: "--dapi_filter"
     type: integer
     required: false
@@ -83,6 +83,7 @@ test_resources:
   - type: python_script
     path: test.py
   - path: /resources_test/xenium/xenium_tiny
+  - path: /resources_test/xenium/xenium_multicellseg_tiny_raw
 engines:
   - type: docker
     image: quay.io/nf-core/xeniumranger:4.0
