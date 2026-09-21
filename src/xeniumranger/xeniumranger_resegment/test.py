@@ -6,8 +6,6 @@ import filecmp
 import subprocess
 import pytest
 import re
-import random
-import string
 import shutil
 
 
@@ -52,6 +50,7 @@ changed_files = [
     "experiment.xenium",
 ]
 
+
 def assert_outputs_exists(input, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
         "Output directory exists and is non-empty"
@@ -62,7 +61,7 @@ def assert_outputs_exists(input, output):
     input_not_in_output = [
         "aux_outputs.tar.gz",
         "analysis.tar.gz",
-        "cell_feature_matrix.tar.gz"
+        "cell_feature_matrix.tar.gz",
     ]
 
     input_files = sorted(
@@ -111,6 +110,7 @@ def assert_valid_files(output):
 
     return transcripts, cells, panel_data
 
+
 def assert_stain_segmentation_used(output, boundary_stain, interior_stain):
     with open(Path(output) / "experiment.xenium") as f:
         exp = json.load(f)
@@ -118,7 +118,10 @@ def assert_stain_segmentation_used(output, boundary_stain, interior_stain):
     assert exp["segmentation_stain"], (
         "segmentation_stain should be non-empty when --boundary_stain/--interior_stain are set"
     )
-    assert exp["segmented_cell_boundary_frac"] > 0 or exp["segmented_cell_interior_frac"] > 0, (
+    assert (
+        exp["segmented_cell_boundary_frac"] > 0
+        or exp["segmented_cell_interior_frac"] > 0
+    ), (
         "stain-based segmentation fractions should be non-zero when a  boundary/interior stain is configured"
     )
     assert exp["segmented_cell_nuc_expansion_frac"] < 1.0, (
@@ -130,7 +133,7 @@ def assert_identical(input, output, skip_files):
     input_not_in_output = [
         "aux_outputs.tar.gz",
         "analysis.tar.gz",
-        "cell_feature_matrix.tar.gz"
+        "cell_feature_matrix.tar.gz",
     ]
     input_files = sorted(
         f
@@ -151,6 +154,7 @@ def assert_identical(input, output, skip_files):
             assert filecmp.cmp(
                 os.path.join(input, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
+
 
 # Nuclear expansion path
 def test_basic_execution(run_component, random_path):
@@ -174,6 +178,7 @@ def test_basic_execution(run_component, random_path):
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
+
 
 def test_valid_id(run_component, random_path):
     input = meta["resources_dir"] + "/xenium_tiny/"
@@ -205,31 +210,32 @@ def test_resegment_nuclei(run_component, random_path):
     input = meta["resources_dir"] + "/xenium_tiny/"
     output = random_path()
     run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--id",
-                id,
-                "--boundary_stain",
-                boundary_stain_ne,
-                "--interior_stain",
-                interior_stain_ne,
-                "--resegment_nuclei",
-                "--output",
-                output,
-            ]
-        )
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--boundary_stain",
+            boundary_stain_ne,
+            "--interior_stain",
+            interior_stain_ne,
+            "--resegment_nuclei",
+            "--output",
+            output,
+        ]
+    )
 
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
 
-    input_nb_parquet = pd.read_parquet(Path(input)/"nucleus_boundaries.parquet")
-    output_nb_parquet = pd.read_parquet(Path(output)/"nucleus_boundaries.parquet")
+    input_nb_parquet = pd.read_parquet(Path(input) / "nucleus_boundaries.parquet")
+    output_nb_parquet = pd.read_parquet(Path(output) / "nucleus_boundaries.parquet")
 
     assert not input_nb_parquet.equals(output_nb_parquet), (
         "--resegment_nuclei should alter nuclear boundaries "
     )
+
 
 def test_missing_file(run_component, random_path, tmp_path):
     output = random_path()
@@ -259,65 +265,68 @@ def test_multimodal_fixtures(run_component, random_path):
     input = meta["resources_dir"] + "/xenium_multicellseg_tiny_raw/"
     output = random_path()
     run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--id",
-                id,
-                "--boundary_stain",
-                boundary_stain_mm,
-                "--interior_stain",
-                interior_stain_mm,
-                "--output",
-                output,
-            ]
-        )
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--boundary_stain",
+            boundary_stain_mm,
+            "--interior_stain",
+            interior_stain_mm,
+            "--output",
+            output,
+        ]
+    )
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
     assert_stain_segmentation_used(output, boundary_stain_mm, interior_stain_mm)
+
 
 def test_segment_large_cells(run_component, random_path):
     input = meta["resources_dir"] + "/xenium_multicellseg_tiny_raw/"
     baseline_output = random_path()
     run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--id",
-                id,
-                "--boundary_stain",
-                boundary_stain_mm,
-                "--interior_stain",
-                interior_stain_mm,
-                "--output",
-                baseline_output,
-            ]
-        )
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--boundary_stain",
+            boundary_stain_mm,
+            "--interior_stain",
+            interior_stain_mm,
+            "--output",
+            baseline_output,
+        ]
+    )
 
     output = random_path()
     run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--id",
-                id,
-                "--boundary_stain",
-                boundary_stain_mm,
-                "--interior_stain",
-                interior_stain_mm,
-                "--segment_large_cells",
-                "--output",
-                output,
-            ]
-        )
+        [
+            "--xenium_bundle",
+            input,
+            "--id",
+            id,
+            "--boundary_stain",
+            boundary_stain_mm,
+            "--interior_stain",
+            interior_stain_mm,
+            "--segment_large_cells",
+            "--output",
+            output,
+        ]
+    )
     assert_outputs_exists(input, output)
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
     assert_stain_segmentation_used(output, boundary_stain_mm, interior_stain_mm)
 
-    baseline_cb_parquet = pd.read_parquet(Path(baseline_output)/"cell_boundaries.parquet")
-    output_cb_parquet = pd.read_parquet(Path(output)/"cell_boundaries.parquet")
+    baseline_cb_parquet = pd.read_parquet(
+        Path(baseline_output) / "cell_boundaries.parquet"
+    )
+    output_cb_parquet = pd.read_parquet(Path(output) / "cell_boundaries.parquet")
 
     assert not baseline_cb_parquet.equals(output_cb_parquet), (
         "--segment_large_cells should alter cell boundaries relative to a resegment run without it"
