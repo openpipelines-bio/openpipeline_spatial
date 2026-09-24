@@ -1,0 +1,130 @@
+name: xeniumranger_import_segmentation
+namespace: xeniumranger
+scope: public
+description: |
+  Specify 2D nuclei and/or cell segmentation results to use for assigning transcripts to cells and recalculate all Xenium Onboard Analysis (XOA) outputs that depend on segmentation. 
+keywords: [xeniumranger]
+links:
+  documentation: https://www.10xgenomics.com/support/software/xenium-ranger/latest/analysis/running-pipelines/XR-import-segmentation
+authors:
+  - __merge__: /src/authors/hannes_demeyer.yaml
+    roles: [ author ]
+argument_groups:
+- name: Inputs
+  arguments:
+  - name: "--xenium_bundle"
+    type: file
+    required: true
+    description: |
+      File path to directory containing all required Xenium Onboard Analysis output files.
+    example: "/path/to/xenium_output_bundle"
+  - name: "--id"
+    type: string
+    required: true
+    description: |
+      Unique string to specify the name of the import-segmentation output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
+    example: "sample_import_segmentation"
+- name: General arguments
+  arguments:
+  - name: "--units"
+    type: string
+    required: false
+    description: |
+      Indicates whether segmentation results are in physical space ("microns") or pixel space ("pixels"). Must be set as "microns" if --coordinate-transform or --transcript_assignment is used.
+    choices: ["microns", "pixels"]
+    default: "pixels"
+- name: Image based segmentation arguments 
+  arguments:
+  - name: "--expansion_distance"
+    type: integer
+    required: false
+    description: |
+      Nuclei boundary expansion distance in µm. Only for use when nucleus segmentation provided as input (accepted range: 0 - 100).
+      If not set, Xenium Ranger uses its default of 5 µm when --nuclei is provided.
+    example: 5
+  - name: "--nuclei"
+    type: file
+    required: false
+    description: |
+      Label mask (TIFF or NPY), polygons of nucleus segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the nucleus masks as input). --nuclei will use nucleusGeometry polygon if it exists in the GeoJSON (i.e., for QuPath-like GeoJSON files), or geometry if it does not. Error if --transcript-assignment argument is used.
+    example: "/path/to/cells.zarr"
+  - name: "--cells"
+    type: file
+    required: false
+    description: |
+      Label mask (TIFF or NPY), polygons of cell segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the cell masks as input). Features with a non-cell objectType will be ignored. Must be used together with --nuclei. Error if --transcript-assignment argument is used.
+    example: '/path/to/cells.zarr'
+  - name: "--coordinate_transform"
+    type: file
+    required: false
+    description: |
+      Image alignment file containing similarity transform matrix. Works with segmentation results in polygon or label mask format
+    example: "/path/to/_imagealignment.csv"
+- name: Transcript based segmentation arguments
+  arguments:
+  - name: "--viz_polygons"
+    type: file
+    required: false
+    description: |
+      Cell boundary polygons (GeoJSON) from 3rd party segmentation tools. Provided as input to Xenium Ranger so visualization polygons are included in output bundle to view in Xenium Explorer and 3rd party plotting tools. Required if --transcript-assignment argument used. Error if --cells or --nuclei arguments used.
+    example: "/path/to/segmentation_polygons_2d.json"
+  - name: "--transcript_assignment"
+    type: file
+    required: false
+    description: |
+      Transcript CSV with cell assignment from 3rd party segmentation tools. Error if --cells or --nuclei arguments are used.
+    example: "/path/to/segmentation.csv"
+- name: Outputs
+  arguments:
+  - name: "--output"
+    type: file
+    required: true
+    direction: output
+    description: |
+      The folder to store the Xenium Ranger output bundle with the imported segmentation applied.
+    example: "/path/to/output"
+resources:
+  - type: bash_script
+    path: script.sh
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny
+  - path: /resources_test/xenium/xenium_multicellseg_tiny_raw
+  - path: /resources_test/xenium/xenium_multicellseg_tiny_transcript_assignment
+engines:
+  - type: docker
+    image: quay.io/nf-core/xeniumranger:4.0
+    setup:
+      - type: docker
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt update && \
+          apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
+    test_setup:
+      - type: docker
+        run: |
+          export DEBIAN_FRONTEND=noninteractive && \
+          apt update && \
+          apt install -y python3.9 python3.9-venv python3.9-distutils python-is-python3 git curl ca-certificates && \
+          curl -sS https://bootstrap.pypa.io/pip/3.9/get-pip.py | python3.9 && \
+          update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 10 && \
+          update-alternatives --set python3 /usr/bin/python3.9 && \
+          rm -rf /var/lib/apt/lists/*
+      - type: python
+        packages:
+          - pyarrow==21.0.0
+          - numpy<2
+          - scanpy~=1.9.8
+      - type: python
+        packages:
+          - anndata==0.10.8
+          - viashpy==0.9.0
+        __merge__: /src/base/requirements/openpipeline_testutils.yaml
+      - type: python
+        packages:
+          - tifffile==2023.7.10
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [highcpu, veryhighmem, highdisk]
