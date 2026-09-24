@@ -1,3 +1,9 @@
+# openpipeline_spatial (unreleased)
+
+## NEW FUNCTIONALITY
+
+* `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
+
 # openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
