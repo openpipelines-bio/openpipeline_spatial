@@ -1,3 +1,9 @@
+# openpipeline_spatial (unreleased)
+
+## NEW FUNCTIONALITY
+ 
+* `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis output files via Xenium Ranger 4.0 (PR #82).
+
 # openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
