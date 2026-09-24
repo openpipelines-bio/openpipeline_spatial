@@ -152,6 +152,39 @@ def assert_import_segmentation_used(output):
     )
 
 
+def assert_transcript_assignment_imported(output, transcript_assignment):
+    assignment = pd.read_csv(transcript_assignment, keep_default_na=False)
+    assigned = assignment[assignment["cell"] != ""]
+    imported_cells = set(assigned["cell"])
+
+    cell_id_map = pd.read_csv(Path(output) / "cell_id_map.csv.gz")
+    assert set(cell_id_map["Imported cell ID"]) == imported_cells, (
+        "cell_id_map.csv.gz should map exactly the imported cell IDs"
+    )
+    new_cells = set(cell_id_map["Xenium Ranger new cell ID"])
+    assert len(new_cells) == len(imported_cells), (
+        "Each imported cell should map to a unique Xenium Ranger cell ID"
+    )
+
+    cells = sc.read_10x_h5(Path(output) / "cell_feature_matrix.h5")
+    assert cells.n_obs == len(imported_cells), (
+        "cell_feature_matrix.h5 should contain one cell per imported cell"
+    )
+    assert set(cells.obs_names) == new_cells, (
+        "cell_feature_matrix.h5 barcodes should match the cell_id_map output IDs"
+    )
+
+    transcripts = pd.read_parquet(Path(output) / "transcripts.parquet")
+    assert (transcripts["cell_id"] != "UNASSIGNED").sum() == len(assigned), (
+        "Only transcripts assigned in the input CSV should be assigned to cells"
+    )
+
+    with open(Path(output) / "experiment.xenium") as f:
+        exp = json.load(f)
+    assert exp["num_cells"] == len(imported_cells)
+    assert exp["imported_cell_frac"] == 1.0, "All cells should be imported"
+
+
 def assert_identical(input, output, skip_files, input_not_in_output, output_not_in_input):
     input_files = sorted(
         f
@@ -329,6 +362,7 @@ def test_transcript_assignment(run_component, random_path):
         input_mm, output, changed_files_mm, input_not_in_output_mm, output_not_in_input_mm
     )
     assert_import_segmentation_used(output)
+    assert_transcript_assignment_imported(output, transcript_assignment)
 
 
 if __name__ == "__main__":
