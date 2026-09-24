@@ -1,3 +1,9 @@
+# openpipeline_spatial (unreleased)
+
+## NEW FUNCTIONALITY
+
+* `xeniumranger/xeniumranger_import_segmentation`: Component to import nucleus and/or cell segmentation results (label masks, GeoJSON polygons or `cells.zarr.zip`) or third-party transcript assignments (Baysor-style CSV + GeoJSON viz polygons) and recalculate all segmentation-dependent Xenium Onboard Analysis outputs via Xenium Ranger 4.0. Adds `resources_test_scripts/xenium_multicellseg_tiny_transcript_assignment.sh` to generate the transcript assignment test resources (PR #85).
+
 # openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
