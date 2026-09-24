@@ -1,3 +1,10 @@
+# openpipeline_spatial (unreleased)
+
+## NEW FUNCTIONALITY
+
+* `xeniumranger/xeniumranger_resegment`: Component to generate a new segmentation of the morphology image by rerunning the Xenium Onboard Analysis segmentation algorithms with modified parameters via Xenium Ranger 4.0 (PR #84).
+
+
 # openpipeline_spatial 0.6.0
 
 ## BREAKING CHANGES
