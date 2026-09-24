@@ -13,7 +13,10 @@ import pandas as pd
 import scanpy as sc
 
 ## VIASH START
-meta = {"name": "xeniumranger_import_segmentation", "resources_dir": "resources_test/xenium"}
+meta = {
+    "name": "xeniumranger_import_segmentation",
+    "resources_dir": "resources_test/xenium",
+}
 ## VIASH END
 
 # 1. Nuclear-expansion fixture (full raw XOA bundle), ne = nuclear expansion
@@ -185,7 +188,9 @@ def assert_transcript_assignment_imported(output, transcript_assignment):
     assert exp["imported_cell_frac"] == 1.0, "All cells should be imported"
 
 
-def assert_identical(input, output, skip_files, input_not_in_output, output_not_in_input):
+def assert_identical(
+    input, output, skip_files, input_not_in_output, output_not_in_input
+):
     input_files = sorted(
         f
         for f in os.listdir(input)
@@ -209,7 +214,7 @@ def assert_identical(input, output, skip_files, input_not_in_output, output_not_
             ), f"{f} should be identical between input and output"
 
 
-# Nuclear expansion path 
+# Nuclear expansion path
 def test_basic_execution(run_component, random_path):
     nuclei = input_ne + "cells.zarr.zip"
     output = random_path()
@@ -230,10 +235,16 @@ def test_basic_execution(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input_ne, output, input_not_in_output_ne, output_not_in_input_ne)
+    assert_outputs_exists(
+        input_ne, output, input_not_in_output_ne, output_not_in_input_ne
+    )
     assert_valid_files(output)
     assert_identical(
-        input_ne, output, changed_files_ne, input_not_in_output_ne, output_not_in_input_ne
+        input_ne,
+        output,
+        changed_files_ne,
+        input_not_in_output_ne,
+        output_not_in_input_ne,
     )
     assert_import_segmentation_used(output)
 
@@ -277,7 +288,7 @@ def test_missing_file(run_component, random_path, tmp_path):
         )
 
 
-# Multimodal path 
+# Multimodal path
 def test_basic_execution_multichannel(run_component, random_path):
     nuclei = input_mm + "cells.zarr.zip"
     output = random_path()
@@ -298,16 +309,23 @@ def test_basic_execution_multichannel(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input_mm, output, input_not_in_output_mm, output_not_in_input_mm)
+    assert_outputs_exists(
+        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
+    )
     assert_valid_files(output)
     assert_identical(
-        input_mm, output, changed_files_mm, input_not_in_output_mm, output_not_in_input_mm
+        input_mm,
+        output,
+        changed_files_mm,
+        input_not_in_output_mm,
+        output_not_in_input_mm,
     )
     assert_import_segmentation_used(output)
 
+
 def test_cells_nuclei(run_component, random_path):
     nuclei = input_mm + "cells.zarr.zip"
-    cells = input_mm + "cells.zarr.zip" 
+    cells = input_mm + "cells.zarr.zip"
     output = random_path()
     run_component(
         [
@@ -317,7 +335,7 @@ def test_cells_nuclei(run_component, random_path):
             id_mm,
             "--nuclei",
             nuclei,
-            "--cells", 
+            "--cells",
             cells,
             "--units",
             units,
@@ -328,12 +346,19 @@ def test_cells_nuclei(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input_mm, output, input_not_in_output_mm, output_not_in_input_mm)
+    assert_outputs_exists(
+        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
+    )
     assert_valid_files(output)
     assert_identical(
-        input_mm, output, changed_files_mm, input_not_in_output_mm, output_not_in_input_mm
+        input_mm,
+        output,
+        changed_files_mm,
+        input_not_in_output_mm,
+        output_not_in_input_mm,
     )
     assert_import_segmentation_used(output)
+
 
 def test_transcript_assignment(run_component, random_path):
     transcript_assignment = input_ta + "segmentation.csv"
@@ -356,10 +381,16 @@ def test_transcript_assignment(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input_mm, output, input_not_in_output_mm, output_not_in_input_mm)
+    assert_outputs_exists(
+        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
+    )
     assert_valid_files(output)
     assert_identical(
-        input_mm, output, changed_files_mm, input_not_in_output_mm, output_not_in_input_mm
+        input_mm,
+        output,
+        changed_files_mm,
+        input_not_in_output_mm,
+        output_not_in_input_mm,
     )
     assert_import_segmentation_used(output)
     assert_transcript_assignment_imported(output, transcript_assignment)
