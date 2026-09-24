@@ -30,7 +30,7 @@ argument_groups:
     type: string
     required: false
     description: |
-      Indicates whether segmentation results are in physical space ("microns") or pixel space ("pixels"). Must be set as "microns" if --coordinate-transform is used.
+      Indicates whether segmentation results are in physical space ("microns") or pixel space ("pixels"). Must be set as "microns" if --coordinate-transform or --transcript_assignment is used.
     choices: ["microns", "pixels"]
     default: "pixels"
 - name: Image based segmentation arguments 
@@ -39,8 +39,9 @@ argument_groups:
     type: integer
     required: false
     description: |
-      Nuclei boundary expansion distance in µm. Only for use when nucleus segmentation provided as input (accepted range: 0 - 100). 
-    default: 5
+      Nuclei boundary expansion distance in µm. Only for use when nucleus segmentation provided as input (accepted range: 0 - 100).
+      If not set, Xenium Ranger uses its default of 5 µm when --nuclei is provided.
+    example: 5
   - name: "--nuclei"
     type: file
     required: false
@@ -90,6 +91,7 @@ test_resources:
     path: test.py
   - path: /resources_test/xenium/xenium_tiny
   - path: /resources_test/xenium/xenium_multicellseg_tiny_raw
+  - path: /resources_test/xenium/xenium_multicellseg_tiny_transcript_assignment
 engines:
   - type: docker
     image: quay.io/nf-core/xeniumranger:4.0
