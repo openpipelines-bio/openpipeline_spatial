@@ -4,14 +4,16 @@ import shutil
 import sys
 import tempfile
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 
 import h5py
+import numcodecs
 import numpy as np
 import pandas as pd
 import tifffile
 import zarr
-from scipy.sparse import coo_matrix, csc_matrix
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
@@ -31,6 +33,17 @@ sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
 
 logger = setup_logger()
+
+# Xenium's *.zarr.zip stores are zarr v2 (.zgroup/.zarray) with Blosc/zstd
+# compression. xeniumranger can only read v2, so every store is written back in
+# that format, rather than zarr-python 3's default v3 layout.
+ZARR_COMPRESSOR = numcodecs.Blosc(
+    cname="zstd", clevel=5, shuffle=numcodecs.Blosc.SHUFFLE
+)
+
+# Transcripts with a Phred-scaled quality value at or above this threshold are
+# "high quality" in XOA's outputs (transcripts.zarr.zip tiles, density grids).
+HIGH_QV_THRESHOLD = 20
 
 
 def cluster_by_distance(coords, eps):
@@ -65,55 +78,110 @@ def cell_id_str_from_prefix_suffix(prefix, suffix):
     return np.array([p.rjust(8, "a") + f"-{s}" for p, s in zip(prefix_shifted, suffix)])
 
 
-def _create_array(group, name, data):
+@contextmanager
+def read_zarr_zip(path):
+    with tempfile.TemporaryDirectory() as extract_dir:
+        with zipfile.ZipFile(path) as zf:
+            zf.extractall(extract_dir)
+        yield zarr.open_group(extract_dir, mode="r")
+
+
+@contextmanager
+def write_zarr_zip(path):
+    """Yield a fresh zarr v2 group, zipped (uncompressed, like XOA) to `path` on exit."""
+    with tempfile.TemporaryDirectory() as store_dir:
+        yield zarr.open_group(store_dir, mode="w", zarr_format=2)
+        path = Path(path)
+        if path.exists():
+            path.unlink()
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_STORED) as zf:
+            for file_path in sorted(Path(store_dir).rglob("*")):
+                if file_path.is_file():
+                    zf.write(file_path, arcname=file_path.relative_to(store_dir))
+
+
+def _create_array(group, name, data, attrs=None):
     """Create a zarr array and populate it, without relying on create_array's
     data= kwarg: not present in zarr 3.0.x (our pinned version), only added in
     later 3.x releases.
     """
-    arr = group.create_array(name, shape=data.shape, dtype=data.dtype)
-    arr[:] = data
+    data = np.asarray(data)
+    arr = group.create_array(
+        name, shape=data.shape, dtype=data.dtype, compressors=ZARR_COMPRESSOR
+    )
+    if data.size:
+        arr[...] = data
+    if attrs:
+        arr.attrs.update(dict(attrs))
     return arr
 
 
-def crop_cells_zarr(
-    src_zip, dst_zip, px_x0, px_x1, px_y0, px_y1, origin_x_um, origin_y_um
-):
-    """Crop cells.zarr.zip and return the set of kept cell IDs.
+def _label_pixel_counts(mask_full, mask_crop, n_labels):
+    """Per label row (label L -> row L-1): its pixel count in total and inside the crop."""
+    total = np.bincount(mask_full.ravel(), minlength=n_labels + 1)[1 : n_labels + 1]
+    inside = np.bincount(mask_crop.ravel(), minlength=n_labels + 1)[1 : n_labels + 1]
+    return total, inside
 
-    masks/1 (the cell label raster) is cropped first; the surviving nonzero
-    label values are the canonical "kept cells" (label L -> row L-1 of
-    cell_id/cell_summary), which keeps the output internally consistent, since
-    spatialdata_io cross-checks the cropped labels against the cropped table.
+
+def _relabel(mask, keep_rows, n_labels):
+    """Renumber a label raster to 1..N following `keep_rows` order; other labels become 0."""
+    lut = np.zeros(n_labels + 1, dtype=mask.dtype)
+    lut[keep_rows + 1] = np.arange(1, len(keep_rows) + 1, dtype=mask.dtype)
+    return lut[mask]
+
+
+def _shift_vertices(vertices, origin_x_um, origin_y_um):
+    # Rows are flattened (x0, y0, x1, y1, ...) pairs, padded by repeating the
+    # last vertex, so every even/odd column is a valid x/y coordinate.
+    shifted = vertices.copy()
+    shifted[:, 0::2] -= origin_x_um
+    shifted[:, 1::2] -= origin_y_um
+    return shifted
+
+
+def crop_cells_zarr(src_zip, dst_zip, window_px, origin_x_um, origin_y_um):
+    """Crop cells.zarr.zip and return the (sorted) row indices of the kept cells.
+
+    Only cells lying *entirely* inside the crop window, with all of their
+    nuclei, are kept: cells cut by the window edge would otherwise end up with
+    truncated masks and polygons, and transcripts/nuclei outside the bundle.
+    Both label rasters are renumbered to a contiguous 1..N range matching the
+    row order of the cropped tables (label L -> row L-1), and the polygon sets
+    are subset to the same cells/nuclei, since xeniumranger derives its imported
+    cell/nucleus counts from them and requires them to match the rasters.
     """
-    with tempfile.TemporaryDirectory() as extract_dir:
-        with zipfile.ZipFile(src_zip) as zf:
-            zf.extractall(extract_dir)
-        src = zarr.open(extract_dir, mode="r")
+    px_x0, px_x1, px_y0, px_y1 = window_px
+    with read_zarr_zip(src_zip) as src:
+        # polygon_set_names is ["nucleus", "cell"]: index 0 holds the nuclei
+        # (masks/0, polygon_sets/0), index 1 the cells (masks/1, polygon_sets/1).
+        nucleus_mask = src["masks"]["0"][...]
+        cell_mask = src["masks"]["1"][...]
+        nucleus_mask_crop = nucleus_mask[px_y0:px_y1, px_x0:px_x1]
+        cell_mask_crop = cell_mask[px_y0:px_y1, px_x0:px_x1]
 
-        masks_0 = src["masks"]["0"][px_y0:px_y1, px_x0:px_x1]
-        masks_1 = src["masks"]["1"][px_y0:px_y1, px_x0:px_x1]
-        transform = src["masks"]["homogeneous_transform"][...]
+        n_cells = src["cell_id"].shape[0]
+        nucleus_cell_index = src["polygon_sets"]["0"]["cell_index"][...]
+        n_nuclei = len(nucleus_cell_index)
 
-        kept_label_ids = np.unique(masks_1)
-        kept_label_ids = kept_label_ids[kept_label_ids > 0]
-        kept_row_idx = kept_label_ids - 1
-
-        # Renumber masks_1 to a fresh, contiguous 1..N range matching the row
-        # order of the cropped cell_id/cell_summary below (label L -> row L-1),
-        # rather than leaving the original (now sparse) global label values in
-        # place. Without this, cropping an already-cropped bundle a second time
-        # would look up cell_id/cell_summary rows using stale label values that
-        # no longer fit the (smaller) cropped arrays.
-        remap = np.zeros(int(masks_1.max()) + 1, dtype=masks_1.dtype)
-        remap[kept_label_ids] = np.arange(
-            1, len(kept_label_ids) + 1, dtype=masks_1.dtype
+        cell_total, cell_in_crop = _label_pixel_counts(
+            cell_mask, cell_mask_crop, n_cells
         )
-        masks_1 = remap[masks_1]
+        nucleus_total, nucleus_in_crop = _label_pixel_counts(
+            nucleus_mask, nucleus_mask_crop, n_nuclei
+        )
+        cell_inside = (cell_total > 0) & (cell_in_crop == cell_total)
+        cells_with_cut_nucleus = np.unique(
+            nucleus_cell_index[nucleus_in_crop < nucleus_total]
+        )
+        cell_inside[cells_with_cut_nucleus] = False
 
-        cell_id_arr = src["cell_id"][...][kept_row_idx]
-        cell_summary = src["cell_summary"][...][kept_row_idx].copy()
+        kept_cells = np.nonzero(cell_inside)[0]
+        kept_nuclei = np.nonzero(np.isin(nucleus_cell_index, kept_cells))[0]
+        new_cell_index = np.full(n_cells, -1, dtype=np.int64)
+        new_cell_index[kept_cells] = np.arange(len(kept_cells))
+
+        cell_summary = src["cell_summary"][...][kept_cells].copy()
         column_names = list(src["cell_summary"].attrs["column_names"])
-        column_descriptions = list(src["cell_summary"].attrs["column_descriptions"])
         # rebase centroid columns to the crop's own origin, same as every other
         # micron-valued coordinate (see the note in main() for why).
         for col, offset in [
@@ -124,47 +192,45 @@ def crop_cells_zarr(
         ]:
             cell_summary[:, column_names.index(col)] -= offset
 
-        cell_id_str = cell_id_str_from_prefix_suffix(
-            cell_id_arr[:, 0], cell_id_arr[:, 1]
-        )
-
-        with tempfile.TemporaryDirectory() as store_dir:
-            dst = zarr.open(store_dir, mode="w")
+        with write_zarr_zip(dst_zip) as dst:
             dst.attrs.update(dict(src.attrs))
-            dst.attrs["number_cells"] = int(len(kept_row_idx))
+            dst.attrs["number_cells"] = int(len(kept_cells))
 
             masks_grp = dst.create_group("masks")
-            _create_array(masks_grp, "0", masks_0)
-            _create_array(masks_grp, "1", masks_1)
-            _create_array(masks_grp, "homogeneous_transform", transform)
+            _create_array(
+                masks_grp, "0", _relabel(nucleus_mask_crop, kept_nuclei, n_nuclei)
+            )
+            _create_array(masks_grp, "1", _relabel(cell_mask_crop, kept_cells, n_cells))
+            _create_array(
+                masks_grp,
+                "homogeneous_transform",
+                src["masks"]["homogeneous_transform"][...],
+            )
 
-            _create_array(dst, "cell_id", cell_id_arr)
-            summary_arr = _create_array(dst, "cell_summary", cell_summary)
-            summary_arr.attrs["column_names"] = column_names
-            summary_arr.attrs["column_descriptions"] = column_descriptions
+            _create_array(dst, "cell_id", src["cell_id"][...][kept_cells])
+            _create_array(dst, "cell_summary", cell_summary, src["cell_summary"].attrs)
 
-            # polygon_sets is unused by the reader beyond a self-consistency check
-            # on its own (unmodified) length, so it's copied through untouched.
-            src_polygon_sets = src["polygon_sets"]
             dst_polygon_sets = dst.create_group("polygon_sets")
-            for key in src_polygon_sets.keys():
-                sub_src = src_polygon_sets[key]
-                sub_dst = dst_polygon_sets.create_group(key)
-                for arr_name in sub_src.keys():
-                    arr = _create_array(sub_dst, arr_name, sub_src[arr_name][...])
-                    arr.attrs.update(dict(sub_src[arr_name].attrs))
-                sub_dst.attrs.update(dict(sub_src.attrs))
+            for key, keep_rows in [("0", kept_nuclei), ("1", kept_cells)]:
+                src_set = src["polygon_sets"][key]
+                dst_set = dst_polygon_sets.create_group(key)
+                dst_set.attrs.update(dict(src_set.attrs))
+                for arr_name, arr in src_set.arrays():
+                    data = arr[...][keep_rows]
+                    if arr_name == "cell_index":
+                        data = new_cell_index[data].astype(arr.dtype)
+                    elif arr_name == "vertices":
+                        data = _shift_vertices(data, origin_x_um, origin_y_um)
+                    _create_array(dst_set, arr_name, data, arr.attrs)
 
-            store_root = Path(store_dir)
-            dst_zip = Path(dst_zip)
-            if dst_zip.exists():
-                dst_zip.unlink()
-            with zipfile.ZipFile(dst_zip, "w", zipfile.ZIP_STORED) as zf:
-                for file_path in sorted(store_root.rglob("*")):
-                    if file_path.is_file():
-                        zf.write(file_path, arcname=file_path.relative_to(store_root))
-
-        return set(cell_id_str.tolist())
+        logger.info(
+            f"cells.zarr.zip: {len(kept_cells)} of {n_cells} cells and "
+            f"{len(kept_nuclei)} of {n_nuclei} nuclei lie entirely inside the crop"
+        )
+        cell_id_str = cell_id_str_from_prefix_suffix(
+            src["cell_id"][...][kept_cells, 0], src["cell_id"][...][kept_cells, 1]
+        )
+    return kept_cells, cell_id_str
 
 
 def crop_cell_feature_matrix(src_path, dst_path, keep_cell_ids):
@@ -205,6 +271,392 @@ def crop_cell_feature_matrix(src_path, dst_path, keep_cell_ids):
                 feat_grp.create_dataset(key, data=src_feat[key][...])
             for key, val in src_feat.attrs.items():
                 feat_grp.attrs[key] = val
+
+
+def crop_cell_feature_matrix_zarr(src_zip, dst_zip, kept_cells):
+    """Subset cell_feature_matrix.zarr.zip (Xenium Explorer's copy of the matrix)
+    to the kept cells: stored both feature-major (CSR, top level) and cell-major
+    (`csc/`), with cells in the same row order as cells.zarr.zip.
+    """
+    with read_zarr_zip(src_zip) as src, write_zarr_zip(dst_zip) as dst:
+        src_cf = src["cell_features"]
+        n_features = int(src_cf.attrs["number_features"])
+        n_cells = int(src_cf.attrs["number_cells"])
+        mat = csr_matrix(
+            (src_cf["data"][...], src_cf["indices"][...], src_cf["indptr"][...]),
+            shape=(n_features, n_cells),
+        )[:, kept_cells]
+        by_feature = mat.tocsr()
+        by_feature.sort_indices()
+        by_cell = mat.tocsc()
+        by_cell.sort_indices()
+
+        dst_cf = dst.create_group("cell_features")
+        dst_cf.attrs.update(dict(src_cf.attrs))
+        dst_cf.attrs["number_cells"] = int(len(kept_cells))
+        _create_array(dst_cf, "cell_id", src_cf["cell_id"][...][kept_cells])
+        for dst_grp, src_grp, sparse in [
+            (dst_cf, src_cf, by_feature),
+            (dst_cf.create_group("csc"), src_cf["csc"], by_cell),
+        ]:
+            for name in ["data", "indices", "indptr"]:
+                _create_array(
+                    dst_grp, name, getattr(sparse, name).astype(src_grp[name].dtype)
+                )
+
+
+def crop_analysis_zarr(src_zip, dst_zip, kept_cells, n_cells):
+    """Subset analysis.zarr.zip's cell groupings (clusterings: per grouping, a
+    CSR of group -> cell row indices) to the kept cells, renumbering the cell
+    indices to the cropped row order. Groups may end up empty; they're kept so
+    group_names stay aligned.
+    """
+    new_cell_index = np.full(n_cells, -1, dtype=np.int64)
+    new_cell_index[kept_cells] = np.arange(len(kept_cells))
+    with read_zarr_zip(src_zip) as src, write_zarr_zip(dst_zip) as dst:
+        dst.attrs.update(dict(src.attrs))
+        src_groups = src["cell_groups"]
+        dst_groups = dst.create_group("cell_groups")
+        dst_groups.attrs.update(dict(src_groups.attrs))
+        for key, grouping in src_groups.groups():
+            indices = grouping["indices"][...]
+            indptr = grouping["indptr"][...]
+            new_indices, new_indptr = [], [0]
+            for start, end in zip(indptr[:-1], indptr[1:]):
+                members = new_cell_index[indices[start:end]]
+                members = members[members >= 0]
+                new_indices.append(members)
+                new_indptr.append(new_indptr[-1] + len(members))
+            dst_grouping = dst_groups.create_group(key)
+            _create_array(
+                dst_grouping,
+                "indices",
+                np.concatenate(new_indices).astype(indices.dtype),
+            )
+            _create_array(
+                dst_grouping, "indptr", np.array(new_indptr, dtype=indptr.dtype)
+            )
+
+
+def _tile_layout(location, gene_identity, is_high_quality, grid_size, n_genes):
+    """Split transcripts (or clusters) over the square tiles of one grid level.
+
+    Returns a list of (tile key, row order, gene_offset) tuples. Within a tile,
+    XOA stores all high quality rows first, then all low quality rows, each
+    sorted by gene; gene_offset gives, per gene, the [start, end) of its low
+    quality rows followed by those of its high quality rows (0, 0 when empty).
+    """
+    tile_x = np.floor(location[:, 0] / grid_size).astype(np.int64)
+    tile_y = np.floor(location[:, 1] / grid_size).astype(np.int64)
+    tiles = []
+    for tx, ty in sorted(set(zip(tile_x.tolist(), tile_y.tolist()))):
+        rows = np.nonzero((tile_x == tx) & (tile_y == ty))[0]
+        rows = rows[np.lexsort((gene_identity[rows], ~is_high_quality[rows]))]
+        gene_offset = np.zeros((n_genes, 4), dtype=np.uint32)
+        n_high = int(is_high_quality[rows].sum())
+        for block_start, block, cols in [
+            (0, rows[:n_high], [2, 3]),
+            (n_high, rows[n_high:], [0, 1]),
+        ]:
+            counts = np.bincount(gene_identity[block], minlength=n_genes)
+            ends = block_start + np.cumsum(counts)
+            starts = ends - counts
+            present = counts > 0
+            gene_offset[present, cols[0]] = starts[present]
+            gene_offset[present, cols[1]] = ends[present]
+        tiles.append((f"{tx},{ty}", rows, gene_offset))
+    return tiles
+
+
+def _density_csr(location, identity, n_ids, origin, grid_size, rows, cols):
+    """Count transcripts per (identity, grid row, grid col), as a CSR with
+    one row per (identity, grid row) pair, the layout of transcripts.zarr.zip's
+    density/gene and density/codeword groups.
+    """
+    grid_col = ((location[:, 0] - origin[0]) // grid_size[0]).astype(np.int64)
+    grid_row = ((location[:, 1] - origin[1]) // grid_size[1]).astype(np.int64)
+    mat = coo_matrix(
+        (
+            np.ones(len(location), dtype=np.int64),
+            (identity.astype(np.int64) * rows + grid_row, grid_col),
+        ),
+        shape=(n_ids * rows, cols),
+    ).tocsr()
+    mat.sum_duplicates()
+    mat.sort_indices()
+    return mat
+
+
+def crop_transcripts_zarr(src_zip, dst_zip, keep_transcript_ids, origin_um, window_um):
+    """Rebuild transcripts.zarr.zip from the transcripts kept in transcripts.parquet.
+
+    The store holds a multi-resolution grid of square tiles: level 0 has one
+    row per transcript (every field kept verbatim, bar the rebased location),
+    coarser levels hold per-gene clusters of nearby transcripts for zoomed-out
+    rendering in Xenium Explorer. Since rebasing the coordinates moves
+    transcripts between tiles, every level is recomputed from the kept level 0
+    rows, as are the high quality transcript density grids. The coarse
+    metrics_density grid (derived QC metrics, not recomputable from the
+    transcripts alone) is sliced to the bins overlapping the crop instead.
+    """
+    origin_x_um, origin_y_um = origin_um
+    with read_zarr_zip(src_zip) as src:
+        src_grids = src["grids"]
+        grid_size = float(src_grids.attrs["grid_size"][0])
+        n_levels = int(src_grids.attrs["number_levels"])
+        n_genes = int(src.attrs["number_genes"])
+        n_codewords = int(src.attrs["codeword_count"])
+
+        level0_keys = src_grids.attrs["grid_keys"][0]
+        fields = [
+            name
+            for name, _ in src_grids["0"][level0_keys[0]].arrays()
+            if name != "gene_offset"
+        ]
+        level0 = {
+            name: np.concatenate(
+                [src_grids["0"][key][name][...] for key in level0_keys]
+            )
+            for name in fields
+        }
+        uuid = level0["uuid"].astype(np.uint64)
+        transcript_id = (uuid[:, 1] << np.uint64(32)) | uuid[:, 0]
+        keep = np.isin(transcript_id, keep_transcript_ids)
+        level0 = {name: values[keep] for name, values in level0.items()}
+        location = level0["location"].copy()
+        location[:, 0] -= origin_x_um
+        location[:, 1] -= origin_y_um
+        level0["location"] = location
+        gene_identity = level0["gene_identity"][:, 0]
+        is_high_quality = level0["quality_score"][:, 0] >= HIGH_QV_THRESHOLD
+        codeword = level0["codeword_identity"][:, 0]
+        logger.info(f"transcripts.zarr.zip: {int(keep.sum())} of {len(keep)} kept")
+
+        with write_zarr_zip(dst_zip) as dst:
+            dst.attrs.update(dict(src.attrs))
+            dst.attrs["number_rnas"] = int(keep.sum())
+
+            grids_attrs = dict(src_grids.attrs)
+            grids_attrs["codeword_to_transcript_counts"] = np.bincount(
+                codeword, minlength=n_codewords
+            ).tolist()
+            grid_keys, grid_number_objects, objects_per_tile_per_gene = [], [], []
+            dst_grids = dst.create_group("grids")
+            for level in range(n_levels):
+                if level == 0:
+                    level_data = level0
+                    level_gene = gene_identity
+                    level_high_quality = is_high_quality
+                else:
+                    # Merge transcripts of the same gene and quality class
+                    # within a bin that doubles in size with every level, as
+                    # an approximation of XOA's own (undocumented) clustering
+                    # (bin sizes chosen to give similar cluster counts).
+                    bin_um = 4.0 * 2**level
+                    group_keys = np.column_stack(
+                        [
+                            gene_identity,
+                            is_high_quality,
+                            np.floor(location[:, 0] / bin_um),
+                            np.floor(location[:, 1] / bin_um),
+                        ]
+                    )
+                    cluster_keys, cluster, cluster_count = np.unique(
+                        group_keys, axis=0, return_inverse=True, return_counts=True
+                    )
+                    cluster = cluster.ravel()
+                    n_clusters = len(cluster_count)
+                    cluster_location = (
+                        np.column_stack(
+                            [
+                                np.bincount(cluster, location[:, dim], n_clusters)
+                                for dim in range(3)
+                            ]
+                        )
+                        / cluster_count[:, None]
+                    )
+                    level_gene = cluster_keys[:, 0].astype(gene_identity.dtype)
+                    level_high_quality = cluster_keys[:, 1].astype(bool)
+                    level_data = {
+                        "location": cluster_location.astype(np.float32),
+                        "cluster_count": cluster_count.astype(np.uint32)[:, None],
+                        "gene_identity": level_gene.astype(np.uint16)[:, None],
+                    }
+
+                tiles = _tile_layout(
+                    level_data["location"],
+                    level_gene,
+                    level_high_quality,
+                    grid_size * 2**level,
+                    n_genes,
+                )
+                # every tile array carries column_names/column_descriptions
+                # attributes, which xeniumranger reads the columns by: reuse
+                # those of the source's first tile at the same level.
+                src_tile = src_grids[str(level)][src_grids.attrs["grid_keys"][level][0]]
+                dst_level = dst_grids.create_group(str(level))
+                high_counts, low_counts = [], []
+                for key, rows, gene_offset in tiles:
+                    dst_tile = dst_level.create_group(key)
+                    for name, values in level_data.items():
+                        _create_array(
+                            dst_tile, name, values[rows], src_tile[name].attrs
+                        )
+                    _create_array(
+                        dst_tile,
+                        "gene_offset",
+                        gene_offset,
+                        src_tile["gene_offset"].attrs,
+                    )
+                    high_counts.append(gene_offset[:, 3] - gene_offset[:, 2])
+                    low_counts.append(gene_offset[:, 1] - gene_offset[:, 0])
+                grid_keys.append([key for key, _, _ in tiles])
+                grid_number_objects.append([len(rows) for _, rows, _ in tiles])
+                objects_per_tile_per_gene.append(
+                    {
+                        "high_qscore": np.max(high_counts, axis=0).tolist(),
+                        "low_qscore": np.max(low_counts, axis=0).tolist(),
+                    }
+                )
+            grids_attrs["grid_keys"] = grid_keys
+            grids_attrs["grid_number_objects"] = grid_number_objects
+            grids_attrs["grid_array_shapes"] = [
+                [{} for _ in keys] for keys in grid_keys
+            ]
+            grids_attrs["number_objects_per_tile_per_gene"] = objects_per_tile_per_gene
+            dst_grids.attrs.update(grids_attrs)
+
+            dst_density = dst.create_group("density")
+            for name, identity, n_ids in [
+                ("gene", gene_identity, n_genes),
+                ("codeword", codeword, n_codewords),
+            ]:
+                src_density = src["density"][name]
+                density_attrs = dict(src_density.attrs)
+                density_grid = [float(g) for g in density_attrs["grid_size"]]
+                origin = [
+                    float(np.floor(location[:, dim].min() / density_grid[dim]))
+                    * density_grid[dim]
+                    for dim in range(2)
+                ]
+                cols, rows = [
+                    int((location[:, dim].max() - origin[dim]) // density_grid[dim]) + 1
+                    for dim in range(2)
+                ]
+                # Only high quality transcripts are counted, and (for
+                # codewords) only a subset of identities is covered, by an
+                # undocumented rule: keep the source's own selection, i.e.
+                # every identity with a non-empty density row in the source.
+                src_rows_per_id = int(src_density.attrs["rows"])
+                covered = (
+                    np.diff(src_density["indptr"][...])
+                    .reshape(n_ids, src_rows_per_id)
+                    .sum(axis=1)
+                    > 0
+                )
+                counted = is_high_quality & covered[identity]
+                density = _density_csr(
+                    location[counted],
+                    identity[counted],
+                    n_ids,
+                    origin,
+                    density_grid,
+                    rows,
+                    cols,
+                )
+                density_attrs.update(
+                    {
+                        "origin": {"x": origin[0], "y": origin[1]},
+                        "rows": rows,
+                        "cols": cols,
+                    }
+                )
+                dst_grp = dst_density.create_group(name)
+                dst_grp.attrs.update(density_attrs)
+                for arr_name in ["data", "indices", "indptr"]:
+                    _create_array(
+                        dst_grp,
+                        arr_name,
+                        getattr(density, arr_name).astype(src_density[arr_name].dtype),
+                    )
+
+            metrics_density = src["metrics_density"][...]
+            slices = []
+            for axis, dim, (window_start, window_end), crop_origin in [
+                (1, "x", window_um[0], origin_x_um),
+                (0, "y", window_um[1], origin_y_um),
+            ]:
+                grid_origin = src.attrs[f"metrics_density_{dim}_origin"]
+                spacing = src.attrs[f"metrics_density_{dim}_spacing"]
+                count = metrics_density.shape[axis]
+                start = int(np.clip((window_start - grid_origin) // spacing, 0, count))
+                end = int(
+                    np.clip(np.ceil((window_end - grid_origin) / spacing), start, count)
+                )
+                slices.append(slice(start, end))
+                dst.attrs[f"metrics_density_{dim}_origin"] = float(
+                    grid_origin + start * spacing - crop_origin
+                )
+                dst.attrs[f"metrics_density_{dim}_count"] = end - start
+            _create_array(
+                dst,
+                "metrics_density",
+                metrics_density[slices[1], slices[0]],
+                src["metrics_density"].attrs,
+            )
+
+            for name, arr in src.arrays():
+                if name != "metrics_density":
+                    _create_array(dst, name, arr[...], arr.attrs)
+
+
+def crop_ome_tiff(src_path, dst_path, window_px):
+    """Crop every plane of a (possibly multi-plane, pyramidal) XOA OME-TIFF.
+
+    The layout of the source is preserved: tiled, same compression, and the
+    same number of 2x-downsampled sub-resolutions per plane, stored as SubIFDs.
+    The reader (for multi-channel datasets) requires a valid OME-XML
+    ImageDescription with named channels, and reconstructs the multi-file
+    series from it; a plain tifffile.imwrite(..., ome=True) auto-generates
+    unnamed channels and breaks that. So the file's own original OME-XML
+    (identical across the channel files bar its own document UUID) is reused
+    verbatim, with only SizeX/SizeY patched to the cropped extent.
+    """
+    px_x0, px_x1, px_y0, px_y1 = window_px
+    ome_xml = tifffile.tiffcomment(src_path)
+    ome_xml = re.sub(r'SizeX="\d+"', f'SizeX="{px_x1 - px_x0}"', ome_xml)
+    ome_xml = re.sub(r'SizeY="\d+"', f'SizeY="{px_y1 - px_y0}"', ome_xml)
+    with tifffile.TiffFile(src_path) as tif, tifffile.TiffWriter(dst_path) as writer:
+        first_page = tif.pages[0]
+        n_sublevels = len(first_page.subifds or ())
+        options = {
+            "photometric": "minisblack",
+            "compression": first_page.compression,
+            "tile": (
+                (first_page.tilelength, first_page.tilewidth)
+                if first_page.is_tiled
+                else None
+            ),
+            "metadata": None,
+        }
+        # Iterate the file's own top-level pages (one per plane), not its OME
+        # series: the OME metadata references sibling channel files, which
+        # would otherwise make tifffile stitch them into one (C, Y, X) array.
+        for page_idx, page in enumerate(tif.pages):
+            plane = page.asarray()[px_y0:px_y1, px_x0:px_x1]
+            writer.write(
+                plane,
+                subifds=n_sublevels,
+                description=ome_xml.encode("utf-8") if page_idx == 0 else None,
+                **options,
+            )
+            for _ in range(n_sublevels):
+                plane = plane[::2, ::2]
+                writer.write(plane, subfiletype=1, **options)
+        logger.info(
+            f"{Path(src_path).name}: {len(tif.pages)} x {first_page.shape} -> "
+            f"{(px_y1 - px_y0, px_x1 - px_x0)}"
+        )
 
 
 def main(par):
@@ -262,58 +714,87 @@ def main(par):
         experiment = json.load(f)
     pixel_size = experiment["pixel_size"]
 
-    px_x0, px_x1 = int(x_min / pixel_size), int(np.ceil(x_max / pixel_size))
-    px_y0, px_y1 = int(y_min / pixel_size), int(np.ceil(y_max / pixel_size))
+    focus_paths = sorted((input_dir / "morphology_focus").glob("*.ome.tif"))
+    with tifffile.TiffFile(focus_paths[0]) as tif:
+        image_height, image_width = tif.pages[0].shape
+    px_x0 = max(int(x_min / pixel_size), 0)
+    px_x1 = min(int(np.ceil(x_max / pixel_size)), image_width)
+    px_y0 = max(int(y_min / pixel_size), 0)
+    px_y1 = min(int(np.ceil(y_max / pixel_size)), image_height)
     logger.info(f"bbox (px): x=[{px_x0},{px_x1}] y=[{px_y0},{px_y1}]")
+    window_px = (px_x0, px_x1, px_y0, px_y1)
+    # The crop window in (source) microns, matching the cropped pixel extent.
+    window_um = (
+        (px_x0 * pixel_size, px_x1 * pixel_size),
+        (px_y0 * pixel_size, px_y1 * pixel_size),
+    )
 
     # The cropped images/masks are new arrays starting at pixel (0, 0); every
     # micron-valued coordinate (cell/nucleus centroids, boundary vertices,
     # transcript locations) must be rebased by the same origin so they stay
     # aligned with the cropped pixel data, since the raw bundle format has no
     # separate offset/translation field to record a crop's origin.
-    origin_x_um = px_x0 * pixel_size
-    origin_y_um = px_y0 * pixel_size
+    origin_x_um = window_um[0][0]
+    origin_y_um = window_um[1][0]
 
     logger.info("Cropping cells.zarr.zip")
-    keep_cell_ids = crop_cells_zarr(
+    kept_cells, kept_cell_ids = crop_cells_zarr(
         input_dir / "cells.zarr.zip",
         output_dir / "cells.zarr.zip",
-        px_x0,
-        px_x1,
-        px_y0,
-        px_y1,
+        window_px,
         origin_x_um,
         origin_y_um,
     )
-    logger.info(f"{len(keep_cell_ids)} cells kept after cropping cells.zarr.zip")
+    keep_cell_ids = set(kept_cell_ids.tolist())
 
+    tables = {}
     cells_kept = cells[cells["cell_id"].isin(keep_cell_ids)].copy()
     cells_kept["x_centroid"] -= origin_x_um
     cells_kept["y_centroid"] -= origin_y_um
-    cells_kept.to_parquet(output_dir / "cells.parquet", index=False)
+    tables["cells"] = cells_kept
     logger.info(f"cells.parquet: {len(cells_kept)} rows kept (of {len(cells)})")
 
-    for fname in ["cell_boundaries.parquet", "nucleus_boundaries.parquet"]:
-        df = pd.read_parquet(input_dir / fname)
+    for name in ["cell_boundaries", "nucleus_boundaries"]:
+        df = pd.read_parquet(input_dir / f"{name}.parquet")
         df_kept = df[df["cell_id"].isin(keep_cell_ids)].copy()
         df_kept["vertex_x"] -= origin_x_um
         df_kept["vertex_y"] -= origin_y_um
-        df_kept.to_parquet(output_dir / fname, index=False)
-        logger.info(f"{fname}: {len(df_kept)} rows kept (of {len(df)})")
+        tables[name] = df_kept
+        logger.info(f"{name}.parquet: {len(df_kept)} rows kept (of {len(df)})")
 
     logger.info("Cropping transcripts.parquet")
     transcripts = pd.read_parquet(input_dir / "transcripts.parquet")
     tmask = (
-        (transcripts["x_location"] >= x_min)
-        & (transcripts["x_location"] <= x_max)
-        & (transcripts["y_location"] >= y_min)
-        & (transcripts["y_location"] <= y_max)
+        (transcripts["x_location"] >= window_um[0][0])
+        & (transcripts["x_location"] < window_um[0][1])
+        & (transcripts["y_location"] >= window_um[1][0])
+        & (transcripts["y_location"] < window_um[1][1])
     )
     transcripts_kept = transcripts[tmask].copy()
+    # transcripts inside the window assigned to a cell cut by the window edge
+    # (and so dropped) become unassigned.
+    dropped_cell = ~transcripts_kept["cell_id"].isin(keep_cell_ids) & (
+        transcripts_kept["cell_id"] != "UNASSIGNED"
+    )
+    transcripts_kept.loc[dropped_cell, "cell_id"] = "UNASSIGNED"
+    transcripts_kept.loc[dropped_cell, "overlaps_nucleus"] = 0
+    keep_transcript_ids = transcripts_kept["transcript_id"].to_numpy(dtype=np.uint64)
     transcripts_kept["x_location"] -= origin_x_um
     transcripts_kept["y_location"] -= origin_y_um
-    transcripts_kept.to_parquet(output_dir / "transcripts.parquet", index=False)
-    logger.info(f"{int(tmask.sum())} transcripts kept (of {len(transcripts)})")
+    tables["transcripts"] = transcripts_kept
+    logger.info(
+        f"{int(tmask.sum())} transcripts kept (of {len(transcripts)}), "
+        f"{int(dropped_cell.sum())} unassigned from dropped edge cells"
+    )
+
+    # The parquet tables are what the converters read; the legacy *.csv.gz
+    # duplicates are only written when the source bundle has them, so the
+    # cropped bundle keeps the same file set as the source (xeniumranger copies
+    # or regenerates each of them in its output bundle).
+    for name, df in tables.items():
+        df.to_parquet(output_dir / f"{name}.parquet", index=False)
+        if (input_dir / f"{name}.csv.gz").exists():
+            df.to_csv(output_dir / f"{name}.csv.gz", index=False, compression="gzip")
 
     logger.info("Cropping cell_feature_matrix.h5")
     crop_cell_feature_matrix(
@@ -322,38 +803,45 @@ def main(par):
         keep_cell_ids,
     )
 
-    logger.info("Cropping morphology_focus images")
-    morphology_dir = input_dir / "morphology_focus"
+    # Xenium Explorer companions, required by xeniumranger. Optional here, so
+    # bundles without them (e.g. from older versions of this component) can
+    # still be cropped for the converters.
+    optional_zarr_stores = {
+        "transcripts.zarr.zip": lambda src, dst: crop_transcripts_zarr(
+            src, dst, keep_transcript_ids, (origin_x_um, origin_y_um), window_um
+        ),
+        "cell_feature_matrix.zarr.zip": lambda src, dst: crop_cell_feature_matrix_zarr(
+            src, dst, kept_cells
+        ),
+        "analysis.zarr.zip": lambda src, dst: crop_analysis_zarr(
+            src, dst, kept_cells, len(cells)
+        ),
+    }
+    for fname, crop in optional_zarr_stores.items():
+        if (input_dir / fname).exists():
+            logger.info(f"Cropping {fname}")
+            crop(input_dir / fname, output_dir / fname)
+        else:
+            logger.warning(f"{fname} not found in input bundle, skipping")
+
+    logger.info("Cropping morphology images")
     (output_dir / "morphology_focus").mkdir()
-    crop_h = px_y1 - px_y0
-    crop_w = px_x1 - px_x0
-    for tif_path in sorted(morphology_dir.glob("*.ome.tif")):
-        # key=0: the OME metadata references sibling channel files, which would
-        # otherwise make tifffile stitch them into one (C, Y, X) array; we want
-        # just this file's own single physical (Y, X) page.
-        image = tifffile.imread(tif_path, key=0)
-        cropped = image[px_y0:px_y1, px_x0:px_x1]
+    tif_paths = list(focus_paths)
+    if (input_dir / "morphology.ome.tif").exists():
+        tif_paths.append(input_dir / "morphology.ome.tif")
+    for tif_path in tif_paths:
+        crop_ome_tiff(tif_path, output_dir / tif_path.relative_to(input_dir), window_px)
 
-        # The reader (for multi-channel datasets) requires a valid OME-XML
-        # ImageDescription with named channels, and reconstructs the multi-file
-        # series from it; a plain tifffile.imwrite(..., ome=True) auto-generates
-        # unnamed channels and breaks that. So each file's own original OME-XML
-        # (identical across the channel files bar its own document UUID) is
-        # reused verbatim, with only SizeX/SizeY patched to the cropped extent.
-        ome_xml = tifffile.tiffcomment(tif_path)
-        ome_xml = re.sub(r'SizeX="\d+"', f'SizeX="{crop_w}"', ome_xml)
-        ome_xml = re.sub(r'SizeY="\d+"', f'SizeY="{crop_h}"', ome_xml)
-        tifffile.imwrite(
-            output_dir / "morphology_focus" / tif_path.name,
-            cropped,
-            description=ome_xml.encode("utf-8"),
-            metadata=None,
-            photometric="minisblack",
-        )
-        logger.info(f"{tif_path.name}: {image.shape} -> {cropped.shape}")
+    experiment["num_cells"] = int(len(kept_cells))
+    with open(output_dir / "experiment.xenium", "w") as f:
+        json.dump(experiment, f, indent=4)
 
-    shutil.copy2(input_dir / "experiment.xenium", output_dir / "experiment.xenium")
-    shutil.copy2(input_dir / "metrics_summary.csv", output_dir / "metrics_summary.csv")
+    # Copied through unchanged: xeniumranger requires these to be present, and
+    # regenerates the metrics and summary for its own output bundle. The
+    # *.tar.gz archives (Xenium Explorer / aux outputs) are dropped.
+    for fname in ["metrics_summary.csv", "gene_panel.json", "analysis_summary.html"]:
+        if (input_dir / fname).exists():
+            shutil.copy2(input_dir / fname, output_dir / fname)
 
     logger.info(f"Wrote cropped bundle to {output_dir}")
 

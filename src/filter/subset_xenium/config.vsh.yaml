@@ -7,31 +7,38 @@ description: |
   This operates directly on the *raw* `outs/` bundle (the same format read by
   `convert/from_xenium_to_spatialdata`/`convert/from_xenium_to_h5mu`), producing a
   smaller bundle in the same native format, rather than converting first and
-  cropping the converted representation. The following files are read, cropped
-  (consistently, to the same patch) and written back in place:
+  cropping the converted representation. The output is a complete bundle, valid
+  as input for both the converters and Xenium Ranger (e.g. `import-segmentation`,
+  `resegment`). The following files are read, cropped (consistently, to the same
+  patch) and written back in place:
 
-    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`,
-      `transcripts.parquet`: filtered by cell/spatial membership.
+    - `cells.zarr.zip`: the cell and nucleus label rasters (`masks/1`,
+      `masks/0`), metadata table and polygon sets. Only cells lying entirely
+      inside the crop window, with all of their nuclei, are kept (the canonical
+      "kept cells" set for every other file). Both rasters are renumbered to a
+      contiguous 1..N range matching the row order of the cropped tables (label
+      `L` -> row `L-1`), and the polygon sets are subset to the same
+      cells/nuclei, since `spatialdata_io` and Xenium Ranger cross-check them.
+    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`:
+      filtered to the kept cells.
+    - `transcripts.parquet`: filtered to the crop window; transcripts assigned
+      to a dropped cell become `UNASSIGNED`.
     - `cell_feature_matrix.h5`: the CellRanger-format HDF5 matrix, resliced to
       the kept cell barcodes.
-    - `morphology_focus/*.ome.tif`: cropped to the same pixel region; each
-      channel file's OME-XML is reused as-is (channel names, IDs) with only
-      `SizeX`/`SizeY` patched, since the reader depends on it for multi-channel
-      datasets.
-    - `cells.zarr.zip`: the per-cell raster segmentation labels and metadata
-      table. `masks/1` (the cell label raster) is cropped first, and the set of
-      surviving (nonzero) label values is used as the canonical "kept cells" set
-      for every other file, since label value `L` corresponds directly to row
-      `L-1` of `cell_id`/`cell_summary`. This guarantees the cropped labels stay
-      internally consistent with the cropped table (required by
-      `spatialdata_io`, which cross-checks them and raises if they don't align).
-      `polygon_sets` is copied through unmodified: it is unused by the reader
-      beyond a self-consistency check on its own (untouched) length.
+    - `transcripts.zarr.zip`, `cell_feature_matrix.zarr.zip`,
+      `analysis.zarr.zip`: the Xenium Explorer companions (required by Xenium
+      Ranger), rebuilt from the kept transcripts and cells, when present.
+    - `morphology_focus/*.ome.tif`, `morphology.ome.tif`: every plane cropped to
+      the same pixel region, keeping the tiled, pyramidal layout. Each file's
+      OME-XML is reused as-is (channel names, IDs) with only `SizeX`/`SizeY`
+      patched, since the reader depends on it for multi-channel datasets.
+    - `*.csv.gz`: legacy duplicates of the parquet tables, rewritten from the
+      cropped tables when present in the source.
 
-  `experiment.xenium` and `metrics_summary.csv` are copied through unchanged.
-  Files not read by either converter (`gene_panel.json`, `analysis_summary.html`,
-  the `*.tar.gz`/`*.zarr.zip` Xenium Explorer companions, and legacy `*.csv.gz`
-  duplicates of the parquet files) are dropped from the output bundle.
+  All zarr stores are written in zarr v2 format, the only one Xenium Ranger
+  reads. `experiment.xenium` is copied with `num_cells` updated;
+  `metrics_summary.csv`, `gene_panel.json` and `analysis_summary.html` are copied
+  through unchanged. The `*.tar.gz` archives are dropped from the output bundle.
 
   Cell centroids (`cells.parquet`'s `x_centroid`/`y_centroid`, in microns) are
   clustered by distance to find spatially separated patches, useful for source

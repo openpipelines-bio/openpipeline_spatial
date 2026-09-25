@@ -18,10 +18,11 @@ set -eo pipefail
 #    xeniumranger components need to test against.
 #
 # Cropping uses the `filter/subset_xenium` component, which crops the raw bundle
-# directly (cells.parquet, cell/nucleus boundaries, transcripts, the
-# cell_feature_matrix.h5 CellRanger matrix, the morphology_focus OME-TIFF
-# channels, and the cells.zarr.zip raster labels + metadata table). It's run locally
-# since it was added alongside this test fixture and isn't part of a release yet.
+# directly (cells, cell/nucleus boundaries, transcripts, the cell_feature_matrix.h5
+# CellRanger matrix, the morphology OME-TIFFs, cells.zarr.zip and the other Xenium
+# Explorer *.zarr.zip stores), so the cropped bundle is also valid input for the
+# xeniumranger components. It's run locally since it was added alongside this
+# test fixture and isn't part of a release yet.
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
