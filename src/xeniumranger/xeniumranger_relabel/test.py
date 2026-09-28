@@ -19,7 +19,6 @@ meta = {"name": "xeniumranger_relabel", "resources_dir": "resources_test/xenium"
 
 input = meta["resources_dir"] + "/xenium_tiny/"
 panel = meta["resources_dir"] + "/xenium_tiny/gene_panel.json"
-id = "xeniun_tiny_relabel"
 
 
 def _read_parquet_pair(input, output, filename, columns=None):
@@ -216,8 +215,6 @@ def test_basic_execution(run_component, random_path):
             input,
             "--panel",
             panel,
-            "--id",
-            id,
             "--output",
             output,
         ]
@@ -239,8 +236,6 @@ def test_relabelling(run_component, random_path, tmp_path):
             input,
             "--panel",
             altered_panel,
-            "--id",
-            id,
             "--output",
             output,
         ]
@@ -267,30 +262,6 @@ def test_relabelling(run_component, random_path, tmp_path):
 
     assert_morphology_unchanged(input, output)
 
-
-def test_valid_id(run_component, random_path):
-    output = random_path()
-    malformed_id = ", ,"
-    with pytest.raises(subprocess.CalledProcessError) as err:
-        run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--panel",
-                panel,
-                "--id",
-                malformed_id,
-                "--output",
-                output,
-            ]
-        )
-    assert re.search(
-        r"invalid value.*--id",
-        err.value.stdout.decode("utf-8"),
-        re.IGNORECASE,
-    )
-
-
 def test_valid_panel(run_component, random_path, tmp_path):
     output = random_path()
 
@@ -306,8 +277,6 @@ def test_valid_panel(run_component, random_path, tmp_path):
                 input,
                 "--panel",
                 malformed_panel,
-                "--id",
-                id,
                 "--output",
                 output,
             ]
@@ -328,8 +297,6 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
                 incomplete_bundle,
                 "--panel",
                 panel,
-                "--id",
-                id,
                 "--output",
                 output,
             ]
@@ -348,8 +315,6 @@ def test_relative_paths(run_component, tmp_path, monkeypatch):
             "bundle",
             "--panel",
             "bundle/gene_panel.json",
-            "--id",
-            id,
             "--output",
             "out",
         ]
@@ -368,8 +333,6 @@ def test_repeated_id_isolation(run_component, random_path):
             input,
             "--panel",
             panel,
-            "--id",
-            id,
             "--output",
             output_first,
         ]
@@ -380,8 +343,6 @@ def test_repeated_id_isolation(run_component, random_path):
             input,
             "--panel",
             panel,
-            "--id",
-            id,
             "--output",
             output_second,
         ]

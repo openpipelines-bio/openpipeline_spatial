@@ -17,12 +17,6 @@ argument_groups:
     description: |
       File path to directory containing all required Xenium Onboard Analysis output files.
     example: "/path/to/xenium_output_bundle"
-  - name: "--id"
-    type: string
-    required: true
-    description: |
-      Unique string to specify the name of the relabel output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
-    example: "sample_relabel"
   - name: "--panel"
     type: file
     required: true
