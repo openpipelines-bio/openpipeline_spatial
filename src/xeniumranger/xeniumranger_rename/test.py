@@ -266,28 +266,6 @@ def test_no_name_given_omitted(run_component, random_path):
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
 
-
-def test_valid_id(run_component, random_path):
-    output = random_path()
-    malformed_id = ", ,"
-    with pytest.raises(subprocess.CalledProcessError) as err:
-        run_component(
-            [
-                "--xenium_bundle",
-                input,
-                "--id",
-                malformed_id,
-                "--output",
-                output,
-            ]
-        )
-    assert re.search(
-        r"invalid value.*--id",
-        err.value.stdout.decode("utf-8"),
-        re.IGNORECASE,
-    )
-
-
 def test_length_region_name(run_component, random_path):
     output = random_path()
     long_region = "".join(random.choices(string.ascii_letters, k=65))

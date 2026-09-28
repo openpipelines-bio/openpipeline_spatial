@@ -4,7 +4,6 @@ set -eo pipefail
 
 ## VIASH START
 par_xenium_bundle='resources_test/xenium/xenium_tiny'
-par_id='xenium_tiny_rename'
 par_region_name=''
 par_cassette_name=''
 par_output='xeniumranger_rename_test'
@@ -21,8 +20,13 @@ trap clean_up EXIT
 
 cd "$tmpdir"
 
+temp_id="xeniumranger_rename_run"
+
+# Disable anonymized telemetry collection
+export TENX_DISABLE_TELEMETRY=1
+
 xeniumranger rename \
-  --id="$par_id" \
+  --id="$temp_id" \
   --xenium-bundle="$par_xenium_bundle" \
   ${par_region_name:+--region-name="$par_region_name"} \
   ${par_cassette_name:+--cassette-name="$par_cassette_name"} \
@@ -31,6 +35,5 @@ xeniumranger rename \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 
 mkdir -p "$par_output"
-mv -f "$par_id"/outs/* "$par_output"/
-rm -rf "$par_id"/outs
+mv -f "$temp_id"/outs/* "$par_output"/
 
