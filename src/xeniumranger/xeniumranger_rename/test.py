@@ -6,7 +6,6 @@ import filecmp
 import shutil
 import subprocess
 import pytest
-import re
 import random
 import string
 
@@ -18,7 +17,6 @@ meta = {"name": "xeniumranger_rename", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
 input = meta["resources_dir"] + "/xenium_tiny/"
-id = "xeniun_tiny_rename"
 input_region_name = "region"
 input_cassette_name = "cassette"
 output_region_name = "region_renamed"
@@ -189,8 +187,6 @@ def test_basic_execution_both(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id,
             "--region_name",
             output_region_name,
             "--cassette_name",
@@ -213,8 +209,6 @@ def test_basic_execution_region_only(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id,
             "--region_name",
             output_region_name,
             "--output",
@@ -227,6 +221,11 @@ def test_basic_execution_region_only(run_component, random_path):
     assert_region_renaming(input, output)
     assert_identical(input, output, changed_files)
 
+    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    assert output_exp["cassette_name"] == input_exp["cassette_name"], (
+        "Output cassette_name should not change, when only region_name is changed"
+    )
+
 
 def test_basic_execution_cassette_only(run_component, random_path):
     output = random_path()
@@ -234,8 +233,6 @@ def test_basic_execution_cassette_only(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id,
             "--cassette_name",
             output_cassette_name,
             "--output",
@@ -248,6 +245,11 @@ def test_basic_execution_cassette_only(run_component, random_path):
     assert_cassette_renaming(input, output)
     assert_identical(input, output, changed_files)
 
+    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    assert output_exp["region_name"] == input_exp["region_name"], (
+        "Output region_name should not change, when only cassette_name is changed"
+    )
+
 
 def test_no_name_given_omitted(run_component, random_path):
     output = random_path()
@@ -255,8 +257,6 @@ def test_no_name_given_omitted(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id + "_no_name_given",
             "--output",
             output,
         ]
@@ -266,6 +266,7 @@ def test_no_name_given_omitted(run_component, random_path):
     assert_valid_files(output)
     assert_identical(input, output, changed_files)
 
+
 def test_length_region_name(run_component, random_path):
     output = random_path()
     long_region = "".join(random.choices(string.ascii_letters, k=65))
@@ -274,8 +275,6 @@ def test_length_region_name(run_component, random_path):
             [
                 "--xenium_bundle",
                 input,
-                "--id",
-                id + "_bad_region",
                 "--region_name",
                 long_region,
                 "--output",
@@ -292,8 +291,6 @@ def test_length_cassette_name(run_component, random_path):
             [
                 "--xenium_bundle",
                 input,
-                "--id",
-                id + "_bad_cassette",
                 "--cassette_name",
                 long_cassette,
                 "--output",
@@ -310,8 +307,6 @@ def test_valid_region(run_component, random_path):
             [
                 "--xenium_bundle",
                 input,
-                "--id",
-                id + "_malformed_region",
                 "--region_name",
                 malformed_region,
                 "--output",
@@ -328,8 +323,6 @@ def test_valid_cassette(run_component, random_path):
             [
                 "--xenium_bundle",
                 input,
-                "--id",
-                id + "_malformed_cassette",
                 "--cassette_name",
                 malformed_cassette,
                 "--output",
@@ -348,8 +341,6 @@ def test_missing_file(run_component, random_path, tmp_path):
             [
                 "--xenium_bundle",
                 str(incomplete_bundle),
-                "--id",
-                id,
                 "--output",
                 output,
             ]
@@ -362,8 +353,6 @@ def test_no_name_given_empty(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id + "_no_name_given_2",
             "--region_name",
             "",
             "--cassette_name",
@@ -388,8 +377,6 @@ def test_relative_paths(run_component, tmp_path, monkeypatch):
         [
             "--xenium_bundle",
             "bundle",
-            "--id",
-            id,
             "--output",
             "out",
         ]
@@ -406,8 +393,6 @@ def test_repeated_id_isolation(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id,
             "--output",
             output_first,
         ]
@@ -416,8 +401,6 @@ def test_repeated_id_isolation(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id,
             "--output",
             output_second,
         ]
@@ -437,8 +420,6 @@ def test_rename_in_sequence(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id + "_seq_1",
             "--region_name",
             region_name_1,
             "--output",
@@ -450,8 +431,6 @@ def test_rename_in_sequence(run_component, random_path):
         [
             "--xenium_bundle",
             output_first,
-            "--id",
-            id + "_seq_2",
             "--region_name",
             region_name_2,
             "--output",
@@ -480,8 +459,6 @@ def test_rename_same_name(run_component, random_path):
         [
             "--xenium_bundle",
             input,
-            "--id",
-            id + "_same_name",
             "--region_name",
             input_region_name,
             "--cassette_name",

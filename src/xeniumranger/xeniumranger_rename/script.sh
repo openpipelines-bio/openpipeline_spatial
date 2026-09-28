@@ -3,20 +3,21 @@
 set -eo pipefail
 
 ## VIASH START
-par_xenium_bundle='resources_test/xenium/xenium_tiny'
+par_xenium_bundle="$par_xenium_bundle"
 par_region_name=''
 par_cassette_name=''
-par_output='xeniumranger_rename_test'
+par_output="xeniumranger_rename_test"
 ## VIASH END
-
-par_xenium_bundle=`realpath $par_xenium_bundle`
-par_output=`realpath $par_output`
 
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
 function clean_up {
     rm -rf "$tmpdir"
 }
 trap clean_up EXIT
+
+# Resolve paths before changing directory so relative inputs keep working
+par_xenium_bundle=$(realpath "$par_xenium_bundle")
+par_output=$(realpath -m "$par_output")
 
 cd "$tmpdir"
 
@@ -36,4 +37,3 @@ xeniumranger rename \
 
 mkdir -p "$par_output"
 mv -f "$temp_id"/outs/* "$par_output"/
-
