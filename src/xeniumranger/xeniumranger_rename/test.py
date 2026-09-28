@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import pytest
 import random
+import re
 import string
 
 import pandas as pd
@@ -270,7 +271,7 @@ def test_no_name_given_omitted(run_component, random_path):
 def test_length_region_name(run_component, random_path):
     output = random_path()
     long_region = "".join(random.choices(string.ascii_letters, k=65))
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -281,12 +282,15 @@ def test_length_region_name(run_component, random_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(r"region.name", stdout, re.IGNORECASE)
+    assert re.search(r"\b64\b", stdout, re.IGNORECASE)
 
 
 def test_length_cassette_name(run_component, random_path):
     output = random_path()
     long_cassette = "".join(random.choices(string.ascii_letters, k=33))
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -297,12 +301,15 @@ def test_length_cassette_name(run_component, random_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(r"cassette.name", stdout, re.IGNORECASE)
+    assert re.search(r"\b32\b", stdout, re.IGNORECASE)
 
 
 def test_valid_region(run_component, random_path):
     output = random_path()
     malformed_region = ", ,"
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -313,12 +320,15 @@ def test_valid_region(run_component, random_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    # xeniumranger 4.0 reports an invalid region name as a "Cassette name" error
+    assert re.search(r"must be alphanumeric or underscore", stdout)
 
 
 def test_valid_cassette(run_component, random_path):
     output = random_path()
     malformed_cassette = ", ,"
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -329,6 +339,8 @@ def test_valid_cassette(run_component, random_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(r"Cassette name must be alphanumeric or underscore", stdout)
 
 
 def test_missing_file(run_component, random_path, tmp_path):
@@ -336,7 +348,7 @@ def test_missing_file(run_component, random_path, tmp_path):
     incomplete_bundle = tmp_path / "incomplete_bundle"
     shutil.copytree(input, incomplete_bundle)
     os.remove(incomplete_bundle / "experiment.xenium")
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -345,6 +357,8 @@ def test_missing_file(run_component, random_path, tmp_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(r"experiment\.xenium", stdout, re.IGNORECASE)
 
 
 def test_no_name_given_empty(run_component, random_path):
