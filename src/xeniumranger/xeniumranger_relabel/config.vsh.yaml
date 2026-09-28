@@ -1,7 +1,7 @@
 name: xeniumranger_relabel
 namespace: xeniumranger
 scope: public
-description: Re-assign the gene identity of already-decoded transcript spots using a corrected or updated gene panel using Xenium Ranger 4.0. 
+description: Re-assign the gene identity of already-decoded transcript spots using a corrected or updated gene panel using Xenium Ranger 4.0.
 keywords: [xeniumranger]
 links:
   documentation: https://www.10xgenomics.com/support/software/xenium-ranger/latest/analysis/running-pipelines/XR-relabel
@@ -41,7 +41,7 @@ test_resources:
   - path: /resources_test/xenium/xenium_tiny
 engines:
   - type: docker
-    image: quay.io/nf-core/xeniumranger:4.0 
+    image: quay.io/nf-core/xeniumranger:4.0
     setup:
       - type: docker
         run: |

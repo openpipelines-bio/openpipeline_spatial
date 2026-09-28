@@ -6,7 +6,7 @@ set -eo pipefail
 par_xenium_bundle='resources_test/xenium/xenium_tiny'
 par_panel='resources_test/xenium/xenium_tiny/gene_panel.json'
 par_output='xeniumranger_relabel_test'
-## VIASH END 
+## VIASH END
 
 par_xenium_bundle=`realpath $par_xenium_bundle`
 par_panel=`realpath $par_panel`

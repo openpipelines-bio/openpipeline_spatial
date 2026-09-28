@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -261,6 +260,7 @@ def test_relabelling(run_component, random_path, tmp_path):
     assert_geometry_unchanged(input, output)
 
     assert_morphology_unchanged(input, output)
+
 
 def test_valid_panel(run_component, random_path, tmp_path):
     output = random_path()
