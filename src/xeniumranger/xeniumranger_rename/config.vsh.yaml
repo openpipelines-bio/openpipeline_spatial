@@ -74,9 +74,6 @@ engines:
         __merge__: /src/base/requirements/openpipeline_testutils.yaml
       - type: python
         packages:
-          - tifffile==2023.7.10
-      - type: python
-        packages:
           - pyarrow==21.0.0
 runners:
   - type: executable
