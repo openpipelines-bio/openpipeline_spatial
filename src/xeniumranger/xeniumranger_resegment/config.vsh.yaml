@@ -83,7 +83,7 @@ test_resources:
   - type: python_script
     path: test.py
   - path: /resources_test/xenium/xenium_tiny
-  - path: /resources_test/xenium/xenium_multicellseg_tiny_raw
+  - path: /resources_test/xenium/xenium_multicellseg_tiny
 engines:
   - type: docker
     image: quay.io/nf-core/xeniumranger:4.0

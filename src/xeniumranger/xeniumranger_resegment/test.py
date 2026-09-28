@@ -262,7 +262,7 @@ def test_missing_file(run_component, random_path, tmp_path):
 
 # 2. Multimodal path
 def test_multimodal_fixtures(run_component, random_path):
-    input = meta["resources_dir"] + "/xenium_multicellseg_tiny_raw/"
+    input = meta["resources_dir"] + "/xenium_multicellseg_tiny/"
     output = random_path()
     run_component(
         [
@@ -285,7 +285,7 @@ def test_multimodal_fixtures(run_component, random_path):
 
 
 def test_segment_large_cells(run_component, random_path):
-    input = meta["resources_dir"] + "/xenium_multicellseg_tiny_raw/"
+    input = meta["resources_dir"] + "/xenium_multicellseg_tiny/"
     baseline_output = random_path()
     run_component(
         [
