@@ -90,7 +90,7 @@ test_resources:
   - type: python_script
     path: test.py
   - path: /resources_test/xenium/xenium_tiny
-  - path: /resources_test/xenium/xenium_multicellseg_tiny_raw
+  - path: /resources_test/xenium/xenium_multicellseg_tiny
   - path: /resources_test/xenium/xenium_multicellseg_tiny_transcript_assignment
 engines:
   - type: docker

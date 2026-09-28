@@ -24,7 +24,7 @@ input_ne = meta["resources_dir"] + "/xenium_tiny/"
 id_ne = "xenium_tiny_import_segmentation"
 
 # 2. Multichannel fixture (full raw XOA bundle), mm = multichannel
-input_mm = meta["resources_dir"] + "/xenium_multicellseg_tiny_raw/"
+input_mm = meta["resources_dir"] + "/xenium_multicellseg_tiny/"
 id_mm = "xenium_multicellseg_tiny_import_segmentation"
 # Baysor-style transcript assignment + viz polygons derived from the mm bundle (micron units)
 input_ta = meta["resources_dir"] + "/xenium_multicellseg_tiny_transcript_assignment/"
