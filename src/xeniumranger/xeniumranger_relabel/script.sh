@@ -21,6 +21,8 @@ trap clean_up EXIT
 
 cd "$tmpdir"
 
+export TENX_DISABLE_TELEMETRY=1
+
 xeniumranger relabel \
   --id="$par_id" \
   --xenium-bundle="$par_xenium_bundle" \
