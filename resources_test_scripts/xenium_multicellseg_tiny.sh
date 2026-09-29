@@ -3,12 +3,12 @@
 set -eo pipefail
 
 # A multimodal-cell-segmentation Xenium tiny test fixture, meant to replace
-# xenium_tiny.sh's fixture going forward: crops 10x's own "Xenium V1
-# MultiCellSeg Human Ovary tiny" XOA v4.0 example dataset (their site:
-# "artificially subset to three 640 pixel square patches across two FOVs")
-# down to one dense patch, kept in the native raw Xenium bundle format (like
-# xenium_tiny.sh's fixture), then runs the same processing suite xenium_tiny.sh
-# does, so downstream components/tests can eventually switch over to it.
+# xenium_tiny.sh's fixture going forward: 10x's own "Xenium V1 MultiCellSeg
+# Human Ovary tiny" XOA v4.0 example dataset (their site: "artificially subset
+# to three 640 pixel square patches across two FOVs"), kept in the native raw
+# Xenium bundle format exactly as downloaded (like xenium_tiny.sh's fixture),
+# then run through the same processing suite xenium_tiny.sh does, so
+# downstream components/tests can eventually switch over to it.
 #
 # Why this dataset, rather than xenium_tiny.sh's:
 #  * xenium_tiny.sh's source (nf-core "Xenium_Prime_Mouse_Ileum_tiny_outs") and the
@@ -17,17 +17,16 @@ set -eo pipefail
 #    (DAPI + protein/RNA boundary stains) multimodal cell segmentation path that
 #    xeniumranger components need to test against.
 #
-# Cropping uses the `filter/subset_xenium` component, which crops the raw bundle
-# directly (cells, cell/nucleus boundaries, transcripts, the cell_feature_matrix.h5
-# CellRanger matrix, the morphology OME-TIFFs, cells.zarr.zip and the other Xenium
-# Explorer *.zarr.zip stores), so the cropped bundle is also valid input for the
-# xeniumranger components. It's run locally since it was added alongside this
-# test fixture and isn't part of a release yet.
+# The bundle is deliberately not cropped: cropping keeps some files (e.g.
+# metrics_summary.csv, analysis_summary.html) unchanged, so they would no
+# longer match the rest of the bundle, and it relies on this dataset's patch
+# layout. Components that need a smaller input can crop it themselves at test
+# time with the `filter/subset_xenium` component.
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
-DIR="resources_test/xenium"
+DIR="resources_test/xenium_multichannel"
 ID="xenium_multicellseg_tiny"
 OPENPIPELINE_SPATIAL_VERSION="v0.6.0"
 
@@ -41,22 +40,15 @@ trap clean_up EXIT
 mkdir -p "$DIR"
 
 # 1. fetch the source dataset (10x's own XOA v4.0 example data)
-SRC_OUTS="$TMPDIR/Xenium_V1_MultiCellSeg_Human_Ovary_tiny_outs"
-mkdir -p "$SRC_OUTS"
+rm -rf "$DIR/$ID"
+mkdir -p "$DIR/$ID"
 curl -fSL -o "$TMPDIR/xenium_multicellseg_tiny.zip" \
     "https://cf.10xgenomics.com/samples/xenium/4.0.0/Xenium_V1_MultiCellSeg_Human_Ovary_tiny/Xenium_V1_MultiCellSeg_Human_Ovary_tiny_outs.zip"
-unzip -q "$TMPDIR/xenium_multicellseg_tiny.zip" -d "$SRC_OUTS"
+unzip -q "$TMPDIR/xenium_multicellseg_tiny.zip" -d "$DIR/$ID"
 
-# 2. crop to one dense patch (the largest, by default) with the local
-#    filter/subset_xenium component, keeping the native raw bundle format.
-rm -rf "$DIR/$ID"
-viash run "$REPO_ROOT/src/filter/subset_xenium/config.vsh.yaml" -- \
-    --input "$SRC_OUTS" \
-    --output "$DIR/$ID"
+echo "> Download complete"
 
-echo "> Cropping complete"
-
-# 3. convert the cropped bundle to SpatialData, then to h5mu, using the
+# 2. convert the bundle to SpatialData, then to h5mu, using the
 #    openpipeline_spatial $OPENPIPELINE_SPATIAL_VERSION release on Viash Hub.
 cat > "$TMPDIR/convert_params.yaml" <<HERE
 param_list:
@@ -95,7 +87,7 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
 
 echo "> Conversion to h5mu complete"
 
-# 4. spatial neighborhood graph on the raw h5mu, in place.
+# 3. spatial neighborhood graph on the raw h5mu, in place.
 cat > "$TMPDIR/neighbors_params.yaml" <<HERE
 param_list:
 - id: $ID
@@ -114,7 +106,7 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
 
 echo "> Spatial neighborhood graph complete"
 
-# 5. QC workflow, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
+# 4. QC workflow, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
 cat > "$TMPDIR/qc.yaml" <<HERE
 param_list:
   - id: $ID
@@ -137,7 +129,7 @@ nextflow run openpipelines-bio/openpipeline \
 
 echo "> QC complete"
 
-# 6. spatial neighborhood graph on the QC'd h5mu.
+# 5. spatial neighborhood graph on the QC'd h5mu.
 cat > "$TMPDIR/neighbors_qc_params.yaml" <<HERE
 param_list:
 - id: $ID
@@ -156,7 +148,7 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
 
 echo "> Post-QC spatial neighborhood graph complete"
 
-# 7. PCA, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
+# 6. PCA, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
 cat > "$TMPDIR/pca.yaml" <<HERE
 param_list:
   - id: $ID
@@ -177,7 +169,7 @@ nextflow run openpipelines-bio/openpipeline \
 
 echo "> PCA complete"
 
-# 8. find_neighbors, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
+# 7. find_neighbors, from the openpipelines-bio/openpipeline repo (as in xenium_tiny.sh).
 cat > "$TMPDIR/find_neighbors.yaml" <<HERE
 param_list:
   - id: $ID
@@ -204,6 +196,6 @@ mv "$TMPDIR/$ID.qc.all_neighbors.pca.h5mu" "$DIR/$ID.qc.all_neighbors.pca.h5mu"
 aws s3 sync \
     --profile di \
     "$DIR" \
-    s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium \
+    s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium_multichannel \
     --delete \
     --dryrun
