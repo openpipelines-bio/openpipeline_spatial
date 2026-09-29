@@ -19,7 +19,7 @@ from scipy.spatial import cKDTree
 
 ## VIASH START
 par = {
-    "input": "resources_test/xenium/xenium_multicellseg_tiny",
+    "input": "resources_test/xenium_multichannel/xenium_multicellseg_tiny",
     "output": "xenium_multicellseg_tiny_cropped",
     "margin_um": 10.0,
     "eps_um": 30.0,

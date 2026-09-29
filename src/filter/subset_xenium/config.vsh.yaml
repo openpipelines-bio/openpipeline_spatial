@@ -4,13 +4,18 @@ namespace: "filter"
 description: |
   Crops a raw 10x Genomics Xenium output bundle down to one dense patch of cells.
 
-  This operates directly on the *raw* `outs/` bundle (the same format read by
-  `convert/from_xenium_to_spatialdata`/`convert/from_xenium_to_h5mu`), producing a
-  smaller bundle in the same native format, rather than converting first and
-  cropping the converted representation. The output is a complete bundle, valid
-  as input for both the converters and Xenium Ranger (e.g. `import-segmentation`,
-  `resegment`). The following files are read, cropped (consistently, to the same
-  patch) and written back in place:
+  **Scope.** For now this component is only used to crop the
+  `xenium_multicellseg_tiny` test data before it is used to test the
+  `cellpose_sam` segmentation component. It is not part of generating the
+  shared test resources: that fixture is stored uncropped, exactly as
+  downloaded. This is not a general-purpose subsetting tool.
+
+  This component operates directly on the *raw* `outs/` bundle (the same format read 
+  by `convert/from_xenium_to_spatialdata`/`convert/from_xenium_to_h5mu`), producing
+  a smaller bundle in the same native format. All micron coordinates are
+  rebased so the crop starts at (0, 0), and all zarr stores are written in zarr
+  v2 format (the only one Xenium Ranger reads). The following files are cropped
+  consistently, to the same window:
 
     - `cells.zarr.zip`: the cell and nucleus label rasters (`masks/1`,
       `masks/0`), metadata table and polygon sets. Only cells lying entirely
@@ -25,9 +30,12 @@ description: |
       to a dropped cell become `UNASSIGNED`.
     - `cell_feature_matrix.h5`: the CellRanger-format HDF5 matrix, resliced to
       the kept cell barcodes.
-    - `transcripts.zarr.zip`, `cell_feature_matrix.zarr.zip`,
-      `analysis.zarr.zip`: the Xenium Explorer companions (required by Xenium
-      Ranger), rebuilt from the kept transcripts and cells, when present.
+    - `cell_feature_matrix.zarr.zip`, `analysis.zarr.zip`: subset to the kept
+      cells, when present.
+    - `transcripts.zarr.zip`, when present: level 0 of the tile grid and the
+      transcript density grids are rebuilt exactly from the kept transcripts.
+      The coarser (clustered) grid levels are approximated, and
+      `metrics_density` is only sliced to the bins overlapping the crop.
     - `morphology_focus/*.ome.tif`, `morphology.ome.tif`: every plane cropped to
       the same pixel region, keeping the tiled, pyramidal layout. Each file's
       OME-XML is reused as-is (channel names, IDs) with only `SizeX`/`SizeY`
@@ -35,18 +43,14 @@ description: |
     - `*.csv.gz`: legacy duplicates of the parquet tables, rewritten from the
       cropped tables when present in the source.
 
-  All zarr stores are written in zarr v2 format, the only one Xenium Ranger
-  reads. `experiment.xenium` is copied with `num_cells` updated;
-  `metrics_summary.csv`, `gene_panel.json` and `analysis_summary.html` are copied
-  through unchanged. The `*.tar.gz` archives are dropped from the output bundle.
+  Not updated for the crop:
 
-  Cell centroids (`cells.parquet`'s `x_centroid`/`y_centroid`, in microns) are
-  clustered by distance to find spatially separated patches, useful for source
-  datasets that were themselves "artificially subset to N square patches" within
-  one larger image, so a plain bounding box over all cells would span the
-  (mostly empty) gaps between patches instead of just one dense region. One
-  patch is then picked (ranked by cell count) and its micron bounding box, with
-  a margin, is used to crop the bundle.
+    - `experiment.xenium`: copied with only `num_cells` updated; all other
+      run-level metrics still describe the full dataset.
+    - `metrics_summary.csv`, `gene_panel.json`, `analysis_summary.html`: copied
+      through unchanged.
+    - `*.tar.gz` archives (Xenium Explorer / aux outputs) and `.end-of-run`:
+      dropped.
 
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
@@ -99,7 +103,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_multicellseg_tiny/
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny/
 
 engines:
   - type: docker
