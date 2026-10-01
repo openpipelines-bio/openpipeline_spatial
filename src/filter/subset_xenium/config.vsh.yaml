@@ -5,52 +5,38 @@ description: |
   Crops a raw 10x Genomics Xenium output bundle down to one dense patch of cells.
 
   **Scope.** For now this component is only used to crop the
-  `xenium_multicellseg_tiny` test data before it is used to test the
-  `cellpose_sam` segmentation component. It is not part of generating the
-  shared test resources: that fixture is stored uncropped, exactly as
-  downloaded. This is not a general-purpose subsetting tool.
+  `xenium_multicellseg_tiny` test data before testing the `cellpose_sam`
+  component; the shared test fixture itself is stored uncropped, as downloaded.
+  It is not a general-purpose subsetting tool: it only works on bundles that
+  already consist of separate patches of cells (datasets that are already tiny,
+  e.g. 10x's "tiny" examples). Cell centroids are clustered by distance
+  (`--eps_um`), one patch is picked by cell count (`--patch_rank`), and its
+  bounding box plus a margin (`--margin_um`) is the crop window. On a contiguous
+  tissue section the cells typically form a single cluster, so nothing is cropped.
 
-  This component operates directly on the *raw* `outs/` bundle (the same format read 
-  by `convert/from_xenium_to_spatialdata`/`convert/from_xenium_to_h5mu`), producing
-  a smaller bundle in the same native format. All micron coordinates are
-  rebased so the crop starts at (0, 0), and all zarr stores are written in zarr
-  v2 format (the only one Xenium Ranger reads). The following files are cropped
-  consistently, to the same window:
+  It operates on the *raw* `outs/` bundle (the format read by
+  `convert/from_xenium_to_spatialdata`) and writes a smaller bundle in the same
+  format, with micron coordinates rebased to start at (0, 0) and zarr stores in
+  zarr v2 (the only version Xenium Ranger reads). Cropped consistently:
 
-    - `cells.zarr.zip`: the cell and nucleus label rasters (`masks/1`,
-      `masks/0`), metadata table and polygon sets. Only cells lying entirely
-      inside the crop window, with all of their nuclei, are kept (the canonical
-      "kept cells" set for every other file). Both rasters are renumbered to a
-      contiguous 1..N range matching the row order of the cropped tables (label
-      `L` -> row `L-1`), and the polygon sets are subset to the same
-      cells/nuclei, since `spatialdata_io` and Xenium Ranger cross-check them.
-    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`:
-      filtered to the kept cells.
-    - `transcripts.parquet`: filtered to the crop window; transcripts assigned
-      to a dropped cell become `UNASSIGNED`.
-    - `cell_feature_matrix.h5`: the CellRanger-format HDF5 matrix, resliced to
-      the kept cell barcodes.
-    - `cell_feature_matrix.zarr.zip`, `analysis.zarr.zip`: subset to the kept
-      cells, when present.
-    - `transcripts.zarr.zip`, when present: level 0 of the tile grid and the
-      transcript density grids are rebuilt exactly from the kept transcripts.
-      The coarser (clustered) grid levels are approximated, and
+    - `cells.zarr.zip`: cell and nucleus label masks (renumbered to 1..N),
+      cell table and polygon sets. Only cells lying entirely inside the window,
+      with all their nuclei, are kept; this "kept cells" set defines all other
+      files.
+    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`,
+      `cell_feature_matrix.h5`, `cell_feature_matrix.zarr.zip`,
+      `analysis.zarr.zip`, `*.csv.gz`: subset to the kept cells.
+    - `transcripts.parquet`: filtered to the window; transcripts of dropped
+      cells become `UNASSIGNED`.
+    - `transcripts.zarr.zip`: transcript tiles and density grids rebuilt from the
+      kept transcripts; the coarser (clustered) tile levels are approximated and
       `metrics_density` is only sliced to the bins overlapping the crop.
-    - `morphology_focus/*.ome.tif`, `morphology.ome.tif`: every plane cropped to
-      the same pixel region, keeping the tiled, pyramidal layout. Each file's
-      OME-XML is reused as-is (channel names, IDs) with only `SizeX`/`SizeY`
-      patched, since the reader depends on it for multi-channel datasets.
-    - `*.csv.gz`: legacy duplicates of the parquet tables, rewritten from the
-      cropped tables when present in the source.
+    - `morphology_focus/*.ome.tif`, `morphology.ome.tif`: all planes cropped,
+      OME-XML reused with only `SizeX`/`SizeY` patched.
 
-  Not updated for the crop:
-
-    - `experiment.xenium`: copied with only `num_cells` updated; all other
-      run-level metrics still describe the full dataset.
-    - `metrics_summary.csv`, `gene_panel.json`, `analysis_summary.html`: copied
-      through unchanged.
-    - `*.tar.gz` archives (Xenium Explorer / aux outputs) and `.end-of-run`:
-      dropped.
+  Not updated: `experiment.xenium` (only `num_cells` is), `metrics_summary.csv`,
+  `gene_panel.json` and `analysis_summary.html` are copied unchanged, so they
+  still describe the full dataset. The `*.tar.gz` archives are dropped.
 
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
