@@ -78,11 +78,36 @@ def cell_id_str_from_prefix_suffix(prefix, suffix):
     return np.array([p.rjust(8, "a") + f"-{s}" for p, s in zip(prefix_shifted, suffix)])
 
 
+def _canonicalize_zarray_dtypes(store_dir):
+    """Rewrite non-canonical zarr v2 `dtype` strings (e.g. XOA's own stores
+    write some 1-byte arrays as `"u1"` instead of the canonical `"|u1"`) to the
+    form `numpy.dtype` itself produces.
+
+    zarr-python's legacy v2 reader (<=3.0.x) passed the raw string straight to
+    numpy and so accepted either form; the dtype registry added in 3.1
+    matches it exactly against a fixed set of canonical strings and raises
+    "No Zarr data type found that matches ..." on the non-canonical one. This
+    normalizes metadata in place before opening, so the component reads
+    correctly regardless of which zarr-python version ends up installed
+    (`openpipeline_testutils`'s `anndata` dependency requires zarr>=3.1, which
+    silently overrides this component's own zarr pin in the test container).
+    """
+    for zarray_path in Path(store_dir).rglob(".zarray"):
+        meta = json.loads(zarray_path.read_text())
+        dtype = meta.get("dtype")
+        if isinstance(dtype, str):
+            canonical = np.dtype(dtype).str
+            if canonical != dtype:
+                meta["dtype"] = canonical
+                zarray_path.write_text(json.dumps(meta))
+
+
 @contextmanager
 def read_zarr_zip(path):
     with tempfile.TemporaryDirectory() as extract_dir:
         with zipfile.ZipFile(path) as zf:
             zf.extractall(extract_dir)
+        _canonicalize_zarray_dtypes(extract_dir)
         yield zarr.open_group(extract_dir, mode="r")
 
 
