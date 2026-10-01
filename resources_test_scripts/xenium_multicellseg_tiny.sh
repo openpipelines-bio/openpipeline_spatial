@@ -50,8 +50,7 @@ unzip -q "$TMPDIR/xenium_multicellseg_tiny.zip" -d "$DIR/$ID"
 
 echo "> Download complete"
 
-# crop to one dense patch (the largest, by default) with the local
-# filter/subset_xenium component, keeping the native raw bundle format.
+# crop to one dense patch with the local filter/subset_xenium component.
 rm -rf "$DIR/$ID_CROPPED"
 viash run "$REPO_ROOT/src/filter/subset_xenium/config.vsh.yaml" -- \
     --input "$DIR/$ID" \
@@ -59,7 +58,7 @@ viash run "$REPO_ROOT/src/filter/subset_xenium/config.vsh.yaml" -- \
 
 echo "> Cropping complete"
 
-# Sync to S3 (dry-run; drop --dryrun to upload)
+# sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
     --profile di \
     "$DIR" \

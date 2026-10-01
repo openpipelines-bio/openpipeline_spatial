@@ -8,36 +8,12 @@ description: |
   `xenium_multicellseg_tiny_cropped` test data from `xenium_multicellseg_tiny`
   (see `resources_test_scripts/xenium_multicellseg_tiny.sh`), which is stored
   next to the uncropped bundle and used by e.g. the `cellpose_sam` component.
-  It is not a general-purpose subsetting tool: it only works on bundles that
-  already consist of separate patches of cells (datasets that are already tiny,
-  e.g. 10x's "tiny" examples). Cell centroids are clustered by distance
-  (`--eps_um`), one patch is picked by cell count (`--patch_rank`), and its
-  bounding box plus a margin (`--margin_um`) is the crop window. On a contiguous
+  It is not a general-purpose subsetting tool: it only works on a *raw* `outs/` 
+  bundle that already consist of separate patches of cells (datasets that are 
+  already tiny, e.g. 10x's "tiny" examples). Cell centroids are clustered by 
+  distance (`--eps_um`), one patch is picked by cell count (`--patch_rank`), and 
+  its bounding box plus a margin (`--margin_um`) is the crop window. On a contiguous
   tissue section the cells typically form a single cluster, so nothing is cropped.
-
-  It operates on the *raw* `outs/` bundle (the format read by
-  `convert/from_xenium_to_spatialdata`) and writes a smaller bundle in the same
-  format, with micron coordinates rebased to start at (0, 0) and zarr stores in
-  zarr v2 (the only version Xenium Ranger reads). Cropped consistently:
-
-    - `cells.zarr.zip`: cell and nucleus label masks (renumbered to 1..N),
-      cell table and polygon sets. Only cells lying entirely inside the window,
-      with all their nuclei, are kept; this "kept cells" set defines all other
-      files.
-    - `cells.parquet`, `cell_boundaries.parquet`, `nucleus_boundaries.parquet`,
-      `cell_feature_matrix.h5`, `cell_feature_matrix.zarr.zip`,
-      `analysis.zarr.zip`, `*.csv.gz`: subset to the kept cells.
-    - `transcripts.parquet`: filtered to the window; transcripts of dropped
-      cells become `UNASSIGNED`.
-    - `transcripts.zarr.zip`: transcript tiles and density grids rebuilt from the
-      kept transcripts; the coarser (clustered) tile levels are approximated and
-      `metrics_density` is only sliced to the bins overlapping the crop.
-    - `morphology_focus/*.ome.tif`, `morphology.ome.tif`: all planes cropped,
-      OME-XML reused with only `SizeX`/`SizeY` patched.
-
-  Not updated: `experiment.xenium` (only `num_cells` is), `metrics_summary.csv`,
-  `gene_panel.json` and `analysis_summary.html` are copied unchanged, so they
-  still describe the full dataset. The `*.tar.gz` archives are dropped.
 
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
