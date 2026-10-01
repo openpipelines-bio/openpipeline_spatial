@@ -4,9 +4,10 @@ namespace: "filter"
 description: |
   Crops a raw 10x Genomics Xenium output bundle down to one dense patch of cells.
 
-  **Scope.** For now this component is only used to crop the
-  `xenium_multicellseg_tiny` test data before testing the `cellpose_sam`
-  component; the shared test fixture itself is stored uncropped, as downloaded.
+  **Scope.** For now this component is only used to create the cropped
+  `xenium_multicellseg_tiny_cropped` test data from `xenium_multicellseg_tiny`
+  (see `resources_test_scripts/xenium_multicellseg_tiny.sh`), which is stored
+  next to the uncropped bundle and used by e.g. the `cellpose_sam` component.
   It is not a general-purpose subsetting tool: it only works on bundles that
   already consist of separate patches of cells (datasets that are already tiny,
   e.g. 10x's "tiny" examples). Cell centroids are clustered by distance
