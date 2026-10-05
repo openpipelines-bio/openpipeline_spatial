@@ -59,6 +59,7 @@ def assert_outputs_exists(input, output):
     expected_output_dirs = ["analysis", "cell_feature_matrix", "morphology_focus"]
 
     input_not_in_output = [
+        ".end-of-run",
         "aux_outputs.tar.gz",
         "analysis.tar.gz",
         "cell_feature_matrix.tar.gz",
@@ -131,6 +132,7 @@ def assert_stain_segmentation_used(output, boundary_stain, interior_stain):
 
 def assert_identical(input, output, skip_files):
     input_not_in_output = [
+        ".end-of-run",
         "aux_outputs.tar.gz",
         "analysis.tar.gz",
         "cell_feature_matrix.tar.gz",
