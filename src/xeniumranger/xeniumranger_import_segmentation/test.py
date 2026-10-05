@@ -51,6 +51,7 @@ changed_files_ne = [
     "experiment.xenium",
 ]
 input_not_in_output_ne = [
+    ".end-of-run",
     "aux_outputs.tar.gz",
     "analysis.tar.gz",
     "cell_feature_matrix.tar.gz",
@@ -78,6 +79,7 @@ changed_files_mm = [
     "experiment.xenium",
 ]
 input_not_in_output_mm = [
+    ".end-of-run",
     "aux_outputs.tar.gz",
     "analysis.tar.gz",
     "cell_feature_matrix.tar.gz",
