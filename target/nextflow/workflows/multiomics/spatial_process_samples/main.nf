@@ -3793,7 +3793,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/multiomics/spatial_process_samples",
     "viash_version" : "0.9.7",
-    "git_commit" : "752730dfdfbd84640ad48449dd1601fdd354cf01",
+    "git_commit" : "224ecba9aaca758e5817c2bfc03989d2a9b2b986",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
