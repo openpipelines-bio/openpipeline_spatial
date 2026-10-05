@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component neighbors spatial_neighborhood_graph"
-LABEL org.opencontainers.image.created="2026-10-05T07:54:34Z"
+LABEL org.opencontainers.image.created="2026-10-05T08:32:55Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="224ecba9aaca758e5817c2bfc03989d2a9b2b986"
+LABEL org.opencontainers.image.revision="5fe056763c5d42af55fda82a9c99ceafcdd6fe56"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
