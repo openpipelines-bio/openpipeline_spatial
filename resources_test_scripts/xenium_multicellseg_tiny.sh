@@ -11,6 +11,8 @@ set -eo pipefail
 #  * xenium_multicellseg_tiny_cropped: the same bundle cropped to its largest
 #    patch, with the local `filter/subset_xenium` component, for components
 #    that need a smaller input (e.g. cellpose_sam).
+# Both bundles are also converted to SpatialData (.zarr) with the
+# `convert/from_xenium_to_spatialdata` component.
 #
 # Why this dataset, rather than xenium_tiny.sh's:
 #  * xenium_tiny.sh's source (nf-core "Xenium_Prime_Mouse_Ileum_tiny_outs") and the
@@ -57,6 +59,31 @@ viash run "$REPO_ROOT/src/filter/subset_xenium/config.vsh.yaml" -- \
     --output "$DIR/$ID_CROPPED"
 
 echo "> Cropping complete"
+
+# convert both the raw and the cropped bundle to SpatialData
+cat > "$TMPDIR/convert_params.yaml" <<HERE
+param_list:
+- id: $ID
+  input: "$DIR/$ID"
+  output: "$ID.zarr"
+- id: $ID_CROPPED
+  input: "$DIR/$ID_CROPPED"
+  output: "$ID_CROPPED.zarr"
+HERE
+
+rm -rf "$DIR/$ID.zarr" "$DIR/$ID_CROPPED.zarr"
+nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
+  -revision "$OPENPIPELINE_SPATIAL_VERSION" \
+  -main-script target/nextflow/convert/from_xenium_to_spatialdata/main.nf \
+  -params-file "$TMPDIR/convert_params.yaml" \
+  -profile docker \
+  -resume \
+  -c src/workflows/utils/labels_ci.config \
+  --publish_dir "$DIR"
+
+echo "> Conversion to SpatialData complete"
+
+rm -f "$DIR"/*.state.yaml
 
 # sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
