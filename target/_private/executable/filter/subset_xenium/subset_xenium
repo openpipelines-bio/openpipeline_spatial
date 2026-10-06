@@ -457,9 +457,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Mirte De Temmerman"
 LABEL org.opencontainers.image.description="Companion container for running component filter subset_xenium"
-LABEL org.opencontainers.image.created="2026-10-05T08:32:54Z"
+LABEL org.opencontainers.image.created="2026-10-06T08:35:54Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="5fe056763c5d42af55fda82a9c99ceafcdd6fe56"
+LABEL org.opencontainers.image.revision="0288e753d3c082cbccd6ac37570fcbb21dba0f9a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

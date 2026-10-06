@@ -3696,7 +3696,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/mapping/spaceranger_count",
     "viash_version" : "0.9.7",
-    "git_commit" : "5fe056763c5d42af55fda82a9c99ceafcdd6fe56",
+    "git_commit" : "0288e753d3c082cbccd6ac37570fcbb21dba0f9a",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
