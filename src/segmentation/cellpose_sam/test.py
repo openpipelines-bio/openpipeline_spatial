@@ -4,17 +4,16 @@ import sys
 import pytest
 import numpy as np
 import spatialdata as sd
-from spatialdata.models import Image2DModel
 from cellpose.models import CellposeModel
 
 ## VIASH START
 meta = {
     "executable": "./target/executable/segmentation/cellpose_sam/cellpose_sam",
-    "resources_dir": "resources_test/xenium/",
+    "resources_dir": "resources_test/xenium_multichannel/",
 }
 ## VIASH END
 
-input_file = f"{meta['resources_dir']}/xenium_tiny.zarr"
+input_file = f"{meta['resources_dir']}/xenium_multicellseg_tiny_cropped.zarr"
 
 
 def _get_image_array(image_element):
@@ -34,33 +33,13 @@ def pretrained_model_path():
     return CellposeModel(gpu=False, pretrained_model="cpsam_v2").pretrained_model
 
 
-@pytest.fixture(scope="module")
-def small_input_file(tmp_path_factory):
-    # Cellpose-SAM tiles its input into fixed 256x256 patches and runs a full
-    # transformer forward pass per tile, so segmenting the full ~3500x5800px
-    # xenium_tiny image test file (300+ tiles) takes on the order of hours on a
-    # CPU-only CI runner. Crop to a small, still cell-containing region so
-    # the tests that actually run inference stay within the CI time budget
-    # (this crop takes ~30s on CPU).
-    sdata = sd.read_zarr(input_file)
-    image_arr = _get_image_array(sdata.images["morphology_focus"])
-    crop = image_arr[:, 1536:2048, 4096:4608]
-
-    cropped_sdata = sd.SpatialData(
-        images={"morphology_focus": Image2DModel.parse(crop, dims=("c", "y", "x"))}
-    )
-    path = tmp_path_factory.mktemp("small_input") / "small_input.zarr"
-    cropped_sdata.write(path)
-    return str(path)
-
-
-def test_default_execution(run_component, tmp_path, small_input_file):
+def test_default_execution(run_component, tmp_path):
     output = tmp_path / "segmented.zarr"
 
     run_component(
         [
             "--input",
-            small_input_file,
+            input_file,
             "--output",
             str(output),
         ]
@@ -91,7 +70,7 @@ def test_default_execution(run_component, tmp_path, small_input_file):
     )
 
 
-def test_custom_output_labels_and_channels(run_component, tmp_path, small_input_file):
+def test_custom_output_labels_and_channels(run_component, tmp_path):
     # Combined into a single run (rather than separate tests per option) to
     # avoid paying for Cellpose-SAM's (comparatively heavy, transformer-based)
     # inference more than once per behavior under test.
@@ -100,7 +79,7 @@ def test_custom_output_labels_and_channels(run_component, tmp_path, small_input_
     run_component(
         [
             "--input",
-            small_input_file,
+            input_file,
             "--output",
             str(output),
             "--output_labels",
@@ -140,7 +119,7 @@ def test_fail_missing_image_key(run_component, tmp_path):
 
 
 def test_pretrained_model_file_takes_precedence_over_pretrained_model_name(
-    run_component, tmp_path, pretrained_model_path, small_input_file
+    run_component, tmp_path, pretrained_model_path
 ):
     # Also covers plain `--pretrained_model_file` usage (custom pretrained
     # model loading + successful segmentation): combined with the precedence
@@ -150,7 +129,7 @@ def test_pretrained_model_file_takes_precedence_over_pretrained_model_name(
     stdout = run_component(
         [
             "--input",
-            small_input_file,
+            input_file,
             "--output",
             str(output),
             "--pretrained_model_file",
