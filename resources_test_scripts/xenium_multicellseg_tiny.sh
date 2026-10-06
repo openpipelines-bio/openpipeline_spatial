@@ -83,6 +83,8 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline_spatial.git \
 
 echo "> Conversion to SpatialData complete"
 
+rm -f "$DIR"/*.state.yaml
+
 # sync to S3 (dry-run; drop --dryrun to upload)
 aws s3 sync \
     --profile di \
