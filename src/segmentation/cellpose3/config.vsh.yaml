@@ -178,7 +178,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_tiny.zarr
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny.zarr
 
 engines:
   - type: docker

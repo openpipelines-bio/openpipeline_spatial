@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 ## VIASH START
 par = {
     # Inputs
-    "input": "resources_test/xenium/xenium_tiny.zarr",
+    "input": "resources_test/xenium_multichannel/xenium_multicellseg_tiny.zarr",
     "input_image": "morphology_focus",
     "cytoplasm_channel": 0,
     "nuclear_channel": 0,

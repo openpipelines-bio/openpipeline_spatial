@@ -9,11 +9,11 @@ from cellpose.models import CellposeModel
 ## VIASH START
 meta = {
     "executable": "./target/executable/segmentation/cellpose3/cellpose3",
-    "resources_dir": "resources_test/xenium/",
+    "resources_dir": "resources_test/xenium_multichannel/",
 }
 ## VIASH END
 
-input_file = f"{meta['resources_dir']}/xenium_tiny.zarr"
+input_file = f"{meta['resources_dir']}/xenium_multicellseg_tiny.zarr"
 
 
 def _get_image_array(image_element):
@@ -70,8 +70,24 @@ def test_default_execution(run_component, tmp_path):
     )
 
 
-def test_non_zero_cytoplasm_channel(run_component, tmp_path):
-    output = tmp_path / "segmented_cytoplasm_channel.zarr"
+# Each case is one inference run over the 4-channel image, so the other
+# argument checks piggyback on them instead of paying for separate runs:
+#  * channel 1 also sets a custom '--output_labels' key.
+#  * channel 2 also sets '--nuclear_channel' (ignored by the default `nuclei`
+#    model, but exercises the two-channel selection in the ndim == 3 branch).
+@pytest.mark.parametrize(
+    "cytoplasm_channel,nuclear_channel,output_labels",
+    [
+        (1, 0, "nuclei_masks"),
+        (2, 1, "cellpose_labels"),
+        (3, 0, "cellpose_labels"),
+        (4, 0, "cellpose_labels"),
+    ],
+)
+def test_each_channel_of_multichannel_image(
+    run_component, tmp_path, cytoplasm_channel, nuclear_channel, output_labels
+):
+    output = tmp_path / f"segmented_channel_{cytoplasm_channel}.zarr"
 
     run_component(
         [
@@ -80,68 +96,38 @@ def test_non_zero_cytoplasm_channel(run_component, tmp_path):
             "--output",
             str(output),
             "--cytoplasm_channel",
-            "1",
-        ]
-    )
-
-    assert output.is_dir(), "Output Zarr store was not created."
-    sdata = sd.read_zarr(output)
-    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
-    n_objects = len(np.unique(labels_arr)) - 1
-    assert n_objects > 0, (
-        "Expected at least one segmented object with a non-zero "
-        "'--cytoplasm_channel' (the input image's single channel, selected "
-        "explicitly instead of via the default grayscale averaging), "
-        "exercising the ndim == 3 branch's channel selection."
-    )
-
-
-def test_non_zero_nuclear_channel(run_component, tmp_path):
-    output = tmp_path / "segmented_nuclear_channel.zarr"
-
-    run_component(
-        [
-            "--input",
-            input_file,
-            "--output",
-            str(output),
+            str(cytoplasm_channel),
             "--nuclear_channel",
-            "1",
+            str(nuclear_channel),
+            "--output_labels",
+            output_labels,
         ]
     )
 
     assert output.is_dir(), "Output Zarr store was not created."
     sdata = sd.read_zarr(output)
-    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+
+    image_arr = _get_image_array(sdata.images["morphology_focus"])
+    assert image_arr.ndim == 3 and image_arr.shape[0] == 4, (
+        "Expected the multichannel test image to have 4 channels."
+    )
+
+    assert output_labels in sdata.labels, (
+        f"Expected output labels key '{output_labels}' to be present."
+    )
+    if output_labels != "cellpose_labels":
+        assert "cellpose_labels" not in sdata.labels, (
+            "Default labels key should not be present when a custom key is used."
+        )
+
+    labels_arr = np.asarray(sdata.labels[output_labels].data)
+    assert labels_arr.shape == image_arr.shape[-2:], (
+        "Labels shape should match the (y, x) shape of the input image."
+    )
     n_objects = len(np.unique(labels_arr)) - 1
     assert n_objects > 0, (
-        "Expected at least one segmented object with a non-zero "
-        "'--nuclear_channel' (the input image's single channel, selected "
-        "explicitly instead of via the default grayscale averaging), "
-        "exercising the ndim == 3 branch's channel selection."
-    )
-
-
-def test_custom_output_labels(run_component, tmp_path):
-    output = tmp_path / "segmented_custom.zarr"
-
-    run_component(
-        [
-            "--input",
-            input_file,
-            "--output",
-            str(output),
-            "--output_labels",
-            "nuclei_masks",
-        ]
-    )
-
-    sdata = sd.read_zarr(output)
-    assert "nuclei_masks" in sdata.labels, (
-        "Expected custom output labels key to be present."
-    )
-    assert "cellpose_labels" not in sdata.labels, (
-        "Default labels key should not be present when a custom key is used."
+        f"Expected at least one segmented object when selecting channel "
+        f"{cytoplasm_channel} of the multichannel image."
     )
 
 
@@ -188,39 +174,13 @@ def test_fail_invalid_normalize_percentiles(run_component, tmp_path):
     )
 
 
-def test_pretrained_model_file(run_component, tmp_path, pretrained_model_path):
-    output = tmp_path / "segmented_pretrained.zarr"
-
-    stdout = run_component(
-        [
-            "--input",
-            input_file,
-            "--output",
-            str(output),
-            "--pretrained_model",
-            pretrained_model_path,
-        ]
-    ).decode("utf-8")
-
-    assert "Loading custom pretrained model" in stdout, (
-        "Expected the component to report that it is using the custom pretrained model."
-    )
-
-    assert output.is_dir(), "Output Zarr store was not created."
-    sdata = sd.read_zarr(output)
-    assert "cellpose_labels" in sdata.labels
-
-    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
-    n_objects = len(np.unique(labels_arr)) - 1
-    assert n_objects > 0, (
-        "Expected at least one segmented object using the custom pretrained model."
-    )
-
-
-def test_pretrained_model_takes_precedence_over_model_type(
+def test_pretrained_model_file_takes_precedence_over_model_type(
     run_component, tmp_path, pretrained_model_path
 ):
-    output = tmp_path / "segmented_precedence.zarr"
+    # Also covers plain `--pretrained_model` usage (custom pretrained model
+    # loading + successful segmentation): combined with the precedence check
+    # into a single run to avoid paying for a second inference pass.
+    output = tmp_path / "segmented_pretrained.zarr"
 
     stdout = run_component(
         [
@@ -238,10 +198,22 @@ def test_pretrained_model_takes_precedence_over_model_type(
         ]
     ).decode("utf-8")
 
-    assert "Loading custom pretrained model" in stdout
+    assert "Loading custom pretrained model" in stdout, (
+        "Expected the component to report that it is using the custom pretrained model."
+    )
     assert "Loading built-in model" not in stdout, (
         "'--pretrained_model' should take precedence over '--model_type', per "
         "the documented behavior of these two arguments."
+    )
+
+    assert output.is_dir(), "Output Zarr store was not created."
+    sdata = sd.read_zarr(output)
+    assert "cellpose_labels" in sdata.labels
+
+    labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+    n_objects = len(np.unique(labels_arr)) - 1
+    assert n_objects > 0, (
+        "Expected at least one segmented object using the custom pretrained model."
     )
 
 
