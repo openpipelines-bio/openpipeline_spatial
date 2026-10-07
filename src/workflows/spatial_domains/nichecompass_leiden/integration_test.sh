@@ -8,7 +8,7 @@ cd "$REPO_ROOT"
 
 nextflow \
   run . \
-  -main-script src/workflows/niche/nichecompass_leiden/test.nf \
+  -main-script src/workflows/spatial_domains/nichecompass_leiden/test.nf \
   -entry test_wf \
   -resume \
   -profile docker,no_publish \

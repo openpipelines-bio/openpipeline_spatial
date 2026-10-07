@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
-include { nichecompass_leiden } from params.rootDir + "/target/nextflow/workflows/niche/nichecompass_leiden/main.nf"
-include { nichecompass_leiden_test } from params.rootDir + "/target/_test/nextflow/test_workflows/niche/nichecompass_leiden_test/main.nf"
+include { nichecompass_leiden } from params.rootDir + "/target/nextflow/workflows/spatial_domains/nichecompass_leiden/main.nf"
+include { nichecompass_leiden_test } from params.rootDir + "/target/_test/nextflow/test_workflows/spatial_domains/nichecompass_leiden_test/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
