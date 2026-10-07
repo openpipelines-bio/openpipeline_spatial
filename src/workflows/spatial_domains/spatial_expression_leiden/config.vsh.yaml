@@ -1,17 +1,18 @@
 name: "spatial_expression_leiden"
-namespace: "workflows/spatial_domain_analysis"
+namespace: "workflows/spatial_domains"
 scope: "public"
 description: |
   A pipeline to identify spatial domains by fusing an expression k-NN graph
   with a spatial neighborhood graph and performing Leiden clustering on the
-  fused graph, producing per-resolution domain labels in `.obsm`.
+  fused graph, producing per-resolution domain labels in `.obs`.
 
   Required input:
     .obsp['connectivities']             -  A pre-computed expression k-NN graph (e.g. from process_samples).
     .obsm[--input_obsm_spatial_coords]  -  Spatial coordinates of the observations.
+    .obs[--input_obs_library_key]       -  The library (e.g. sample) each observation belongs to.
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
-    roles: [ author, maintainer ]
+    roles: [ author ]
 
 argument_groups:
   - name: Inputs
@@ -36,6 +37,13 @@ argument_groups:
         type: string
         default: "spatial"
         description: Key in `adata.obsm` where spatial coordinates are stored.
+      - name: "--input_obs_library_key"
+        type: string
+        default: "sample_id"
+        description: |
+          Key in `adata.obs` that identifies the library (e.g. sample) each observation belongs to.
+          The spatial neighborhood graph is computed separately for each library, so no spatial
+          edges are created between observations of different libraries.
 
   - name: "Spatial Neighbor Graph"
     description: |
@@ -91,7 +99,7 @@ argument_groups:
         description: |
           Control the coarseness of the clustering. Higher values lead to more clusters.
           Multiple values will result in clustering being performed multiple times, with
-          one resulting column per resolution stored in `--obsm_output`.
+          one resulting `.obs` column per resolution (see `--obs_cluster`).
       - name: "--leiden_n_iterations"
         type: integer
         description: |
@@ -102,12 +110,13 @@ argument_groups:
         min: 0
         description: |
           Fix the initialization of the optimization. Can be used to increase reproducibility.
-      - name: "--obsm_output"
+      - name: "--obs_cluster"
         type: string
         default: "leiden_domains"
         description: |
-          Key in `adata.obsm` under which to store the per-resolution spatial domain labels,
-          one column per value specified in `--resolution`.
+          Prefix for the `.obs` keys under which to store the spatial domain labels. Newly created
+          columns in `.obs` will be named after the value of `--obs_cluster`, suffixed with an
+          underscore and one of the resolutions specified in `--resolution`.
 
   - name: "Outputs"
     arguments:
@@ -123,6 +132,8 @@ dependencies:
   - name: neighbors/spatial_neighborhood_graph
   - name: neighbors/join_graphs
   - name: cluster/leiden
+    repository: openpipeline
+  - name: metadata/move_obsm_to_obs
     repository: openpipeline
 
 resources:

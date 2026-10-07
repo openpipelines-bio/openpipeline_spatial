@@ -1,3 +1,13 @@
+# openpipeline_spatial (unreleased)
+
+## NEW FUNCTIONALITY
+
+* `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+
+## MINOR CHANGES
+
+* `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
+
 # openpipeline_spatial 0.7.0
 
 ## MINOR CHANGES
@@ -11,8 +21,6 @@
 * `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Update Space Ranger from 3.1 to 4.1.0. `--probe_set` is now optional (omit for Visium HD 3' data), telemetry and the web UI are disabled for non-interactive runs, and new 4.x arguments are exposed for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64, PR #70).
 
 ## NEW FUNCTIONALITY
-
-* `workflows/spatial_domain_analysis/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
 

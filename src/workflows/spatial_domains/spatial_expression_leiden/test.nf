@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 targetDir = params.rootDir + "/target/nextflow"
 
-include { spatial_expression_leiden } from targetDir + "/workflows/spatial_domain_analysis/spatial_expression_leiden/main.nf"
+include { spatial_expression_leiden } from targetDir + "/workflows/spatial_domains/spatial_expression_leiden/main.nf"
 
 params.resources_test = params.rootDir + "/resources_test"
 
@@ -15,6 +15,8 @@ workflow test_wf {
       input: resources_test.resolve("xenium/xenium_tiny.qc.all_neighbors.pca.h5mu"),
       output: "output.h5mu",
       resolution: [0.5, 1.0],
+      // this fixture has no library column, so all observations are treated as a single library
+      input_obs_library_key: null,
     ],
     [
       id: "cosmx",

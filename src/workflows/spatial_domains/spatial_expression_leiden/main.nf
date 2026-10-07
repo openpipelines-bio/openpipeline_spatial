@@ -15,11 +15,11 @@ workflow run_wf {
         "input": "input",
         "modality": "modality",
         "input_obsm_spatial_coords": "input_obsm_spatial_coords",
+        "input_obs_library_key": "input_obs_library_key",
         "coord_type": "coord_type",
         "n_spatial_neighbors": "n_spatial_neighbors",
         "delaunay": "delaunay",
         "output_compression": "output_compression",
-        "output": "workflow_output",
       ],
       toState: ["input": "output"]
     )
@@ -31,7 +31,6 @@ workflow run_wf {
         "modality": "modality",
         "alpha": "alpha",
         "output_compression": "output_compression",
-        "output": "workflow_output",
       ],
       args: [
         "input_obsp_expression_graph": "connectivities",
@@ -49,12 +48,23 @@ workflow run_wf {
         "resolution": "resolution",
         "n_iterations": "leiden_n_iterations",
         "seed": "leiden_seed",
-        "obsm_name": "obsm_output",
+        "obsm_name": "obs_cluster",
         "output_compression": "output_compression",
-        "output": "workflow_output",
       ],
       args: [
         "obsp_connectivities": "spatial_expression_connectivities",
+      ],
+      toState: ["input": "output"]
+    )
+
+    // Move the per-resolution domain labels from .obsm to .obs
+    | move_obsm_to_obs.run(
+      fromState: [
+        "input": "input",
+        "modality": "modality",
+        "obsm_key": "obs_cluster",
+        "output_compression": "output_compression",
+        "output": "workflow_output",
       ],
       toState: ["output": "output"]
     )
