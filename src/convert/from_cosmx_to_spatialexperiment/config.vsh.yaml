@@ -16,7 +16,7 @@ description: |
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ author, maintainer ]
+    roles: [ author ]
 arguments:
   - name: "--input"
     alternatives: ["-i"]

@@ -11,7 +11,7 @@ description: |
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
-    roles: [ maintainer ]
+    roles: [ author ]
 
 argument_groups:
   - name: "Inputs"

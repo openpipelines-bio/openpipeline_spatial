@@ -4,9 +4,7 @@ scope: "public"
 description: "A pipeline to compute the spatial neighborhood graph, perform nichecompass embedding followed by Leiden clustering."
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ author, maintainer ]
-  - __merge__: /src/authors/weiwei_schultz.yaml
-    roles: [ contributor ]
+    roles: [ author ]
 info:
   test_dependencies:
     - name: nichecompass_leiden_test

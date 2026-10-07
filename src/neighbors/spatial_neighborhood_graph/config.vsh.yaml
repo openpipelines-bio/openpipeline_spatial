@@ -5,7 +5,7 @@ description: Calculates a spatial neighborhood graph based on the spatial coordi
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ maintainer ]
+    roles: [ author ]
 
 argument_groups:
   - name: "Inputs"
