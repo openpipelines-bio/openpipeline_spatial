@@ -1,6 +1,7 @@
 import pytest
 import subprocess
 import sys
+import h5py
 import mudata as md
 import numpy as np
 
@@ -210,6 +211,70 @@ def test_collinear_coordinates_raise(run_component, input_path, output_path, tmp
             ]
         )
     assert "QhullError" in err.value.stdout.decode("utf-8")
+
+
+def test_output_compression(run_component, input_path, output_path):
+    run_component(
+        [
+            "--input",
+            input_path,
+            "--output",
+            output_path,
+            "--output_compression",
+            "gzip",
+        ]
+    )
+
+    compressions = set()
+    with h5py.File(output_path, "r") as f:
+        f.visititems(
+            lambda _, obj: compressions.add(obj.compression)
+            if isinstance(obj, h5py.Dataset)
+            else None
+        )
+    assert "gzip" in compressions
+
+    adata = md.read_h5mu(output_path)["rna"]
+    assert "spatial_n_neighbors" in adata.obs.columns
+
+
+def test_other_modalities_unchanged(run_component, input_path, output_path, tmp_path):
+    mdata = md.read_h5mu(input_path)
+    prot = mdata["rna"][:, :5].copy()
+    multi_input = str(tmp_path / "multi_modal_input.h5mu")
+    md.MuData({"rna": mdata["rna"], "prot": prot}).write_h5mu(multi_input)
+
+    run_component(
+        [
+            "--input",
+            multi_input,
+            "--output",
+            output_path,
+        ]
+    )
+
+    result = md.read_h5mu(output_path)
+    assert set(result.mod.keys()) == {"rna", "prot"}
+    assert "spatial_n_neighbors" in result["rna"].obs.columns
+    assert list(result["prot"].obs.columns) == list(prot.obs.columns)
+    np.testing.assert_array_equal(result["prot"].X.toarray(), prot.X.toarray())
+
+
+def test_missing_modality_raises(run_component, input_path, output_path):
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_path,
+                "--output",
+                output_path,
+                "--modality",
+                "does_not_exist",
+            ]
+        )
+    assert "Modality 'does_not_exist' not found in MuData" in err.value.stdout.decode(
+        "utf-8"
+    )
 
 
 def test_custom_obs_total_counts(run_component, input_path, output_path, tmp_path):

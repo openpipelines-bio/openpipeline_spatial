@@ -68,6 +68,7 @@ argument_groups:
         default: "spatial_stats"
         description: |
           Name of the `.uns` slot in which to store the global spatial statistics.
+    __merge__: [., /src/base/h5_compression_argument.yaml]
 
   - name: Parameters
     arguments:
@@ -85,6 +86,7 @@ resources:
   - type: python_script
     path: script.py
   - path: /src/utils/setup_logger.py
+  - path: /src/utils/compress_h5mu.py
 
 test_resources:
   - type: python_script

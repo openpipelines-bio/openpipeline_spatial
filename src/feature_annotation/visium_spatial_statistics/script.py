@@ -1,5 +1,6 @@
 import sys
 
+import h5py
 import mudata as md
 import numpy as np
 
@@ -15,6 +16,7 @@ par = {
     "obs_total_counts": "total_counts",
     "output_prefix": "spatial_",
     "uns_spatial_stats": "spatial_stats",
+    "output_compression": None,
     "tissue_edge_max_neighbors": 6,
 }
 meta = {"resources_dir": "src/utils"}
@@ -22,6 +24,7 @@ meta = {"resources_dir": "src/utils"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from compress_h5mu import write_h5ad_to_h5mu_with_compression
 
 logger = setup_logger()
 
@@ -104,17 +107,16 @@ def calculate_global_statistics(spatial_coords):
 
 
 def main(par):
-    logger.info(f"Reading MuData from '{par['input']}'...")
-    mdata = md.read_h5mu(par["input"])
-    logger.info(mdata)
-
-    logger.info(f"Extracting modality '{par['modality']}'...")
-    if par["modality"] not in mdata.mod:
+    with h5py.File(par["input"], "r") as h5mu:
+        available_modalities = list(h5mu["mod"].keys())
+    if par["modality"] not in available_modalities:
         raise KeyError(
             f"Modality '{par['modality']}' not found in MuData. "
-            f"Available modalities: {list(mdata.mod.keys())}"
+            f"Available modalities: {available_modalities}"
         )
-    adata = mdata[par["modality"]]
+
+    logger.info(f"Reading modality '{par['modality']}' from '{par['input']}'...")
+    adata = md.read_h5ad(par["input"], mod=par["modality"])
     logger.info(adata)
 
     logger.info(
@@ -167,10 +169,14 @@ def main(par):
         adata.uns[uns_key] = {}
     adata.uns[uns_key].update(global_stats)
 
-    mdata.mod[par["modality"]] = adata
-
     logger.info(f"Writing output to '{par['output']}'...")
-    mdata.write_h5mu(par["output"])
+    write_h5ad_to_h5mu_with_compression(
+        par["output"],
+        par["input"],
+        par["modality"],
+        adata,
+        par["output_compression"],
+    )
 
     logger.info("Done!")
 
