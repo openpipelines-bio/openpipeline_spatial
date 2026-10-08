@@ -189,12 +189,19 @@ engines:
           - procps
       - type: docker
         run: |
-          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu124
+          pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
       - type: python
         __merge__: [ /src/base/requirements/spatialdata.yaml, . ]
       - type: python
         packages:
           - cellpose~=3.1.0
+      # Bake the default models into the image
+      - type: docker
+        env:
+          - CELLPOSE_LOCAL_MODELS_PATH=/opt/cellpose_models
+        run: |
+          python -c "from cellpose.models import CellposeModel; CellposeModel(gpu=False, model_type='nuclei'); CellposeModel(gpu=False, model_type='cyto3')" && \
+          chmod -R a+rwX /opt/cellpose_models
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:
