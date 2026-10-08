@@ -42,6 +42,20 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_library_key"
+    description: "Key in adata.obs that identifies the library (e.g. sample) each\
+      \ observation belongs to.\nWhen set, a spatial neighborhood graph is computed\
+      \ separately for each library, so no\nspatial edges are created between observations\
+      \ of different libraries. When not set,\nall observations are treated as a single\
+      \ library.\n"
+    info: null
+    example:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 - name: "Spatial Neighbors Calculation"
   arguments:
   - type: "string"
@@ -261,7 +275,7 @@ build_info:
   output: "target/nextflow/neighbors/spatial_neighborhood_graph"
   executable: "target/nextflow/neighbors/spatial_neighborhood_graph/main.nf"
   viash_version: "0.9.7"
-  git_commit: "0288e753d3c082cbccd6ac37570fcbb21dba0f9a"
+  git_commit: "203d556ac2ed5fecd06bb27ea0c992f9981e48ca"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"

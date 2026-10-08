@@ -1,0 +1,369 @@
+name: "spatial_expression_leiden"
+namespace: "workflows/spatial_domains"
+version: "build_main"
+authors:
+- name: "Jakub Majercik"
+  roles:
+  - "author"
+  info:
+    links:
+      github: "jakubmajercik"
+      linkedin: "jakubmajercik"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    alternatives:
+    - "-i"
+    description: "Path to the sample."
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Which modality to process."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obsm_spatial_coords"
+    description: "Key in `adata.obsm` where spatial coordinates are stored."
+    info: null
+    default:
+    - "spatial"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_library_key"
+    description: "Key in `adata.obs` that identifies the library (e.g. sample) each\
+      \ observation belongs to.\nThe spatial neighborhood graph is computed separately\
+      \ for each library, so no spatial\nedges are created between observations of\
+      \ different libraries.\n"
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Spatial Neighbor Graph"
+  description: "Options for the calculation of the spatial neighborhood graph.\n"
+  arguments:
+  - type: "string"
+    name: "--coord_type"
+    description: "Type of coordinate system. Valid options are:\n`grid` - grid coordinates.\
+      \ Only relevant for lattice-based layouts (e.g. Visium). Builds a graph assuming\
+      \ a regular grid topology, where neighbors are defined by grid adjacency rather\
+      \ than distance.\n`generic` - Generic coordinates. Recommended for imaging-based\
+      \ data. This option is appropriate for irregularly spaced points, such as cell\
+      \ centroids or spot coordinates from imaging-based assays (e.g. Xenium, CosMx).\
+      \ Setting this option avoids grid-assumption artifacts and ensures each node\
+      \ has spatial neighbors as defined by distance.\n"
+    info: null
+    default:
+    - "generic"
+    required: false
+    choices:
+    - "generic"
+    - "grid"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_spatial_neighbors"
+    description: "Depending on `--coord_type`:\n`grid` - number of neighboring tiles.\n\
+      `generic` - number of neighborhoods for non-grid data. Only used when `--delaunay\
+      \ False`.\n"
+    info: null
+    default:
+    - 6
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--delaunay"
+    description: "Whether to use Delaunay triangulation to determine spatial neighborhood\
+      \ graph.\nOnly used when `--coord_type generic`.\n"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Graph Fusion"
+  description: "Options for fusing the expression and spatial neighborhood graphs\
+    \ into a single graph.\nThe fusion is a linear combination of the expression connectivities\
+    \ and spatial\nconnectivities matrices, weighted by `--alpha`.\n"
+  arguments:
+  - type: "double"
+    name: "--alpha"
+    description: "Weight of the spatial graph in the graph fusion.\nA value of 0 results\
+      \ in the expression graph only;\na value of 1 results in the spatial graph only.\n"
+    info: null
+    default:
+    - 0.5
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Leiden Clustering"
+  description: "Options for Leiden clustering on the fused graph.\n"
+  arguments:
+  - type: "double"
+    name: "--resolution"
+    description: "Control the coarseness of the clustering. Higher values lead to\
+      \ more clusters.\nMultiple values will result in clustering being performed\
+      \ multiple times, with\none resulting `.obs` column per resolution (see `--obs_cluster`).\n"
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--leiden_n_iterations"
+    description: "How many iterations of the Leiden clustering algorithm to perform.\n\
+      When not set, the algorithm will run until it reaches its optimal clustering.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--leiden_seed"
+    description: "Fix the initialization of the optimization. Can be used to increase\
+      \ reproducibility.\n"
+    info: null
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_cluster"
+    description: "Prefix for the `.obs` keys under which to store the spatial domain\
+      \ labels. Newly created\ncolumns in `.obs` will be named after the value of\
+      \ `--obs_cluster`, suffixed with an\nunderscore and one of the resolutions specified\
+      \ in `--resolution`.\n"
+    info: null
+    default:
+    - "leiden_domains"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "Destination path to the output."
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_compression"
+    description: "Compression format to use for the output AnnData and/or Mudata objects.\n\
+      By default no compression is applied.\n"
+    info: null
+    example:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "A pipeline to identify spatial domains by fusing an expression k-NN\
+  \ graph\nwith a spatial neighborhood graph and performing Leiden clustering on the\n\
+  fused graph, producing per-resolution domain labels in `.obs`.\n\nRequired input:\n\
+  \  .obsp['connectivities']             -  A pre-computed expression k-NN graph (e.g.\
+  \ from process_samples).\n  .obsm[--input_obsm_spatial_coords]  -  Spatial coordinates\
+  \ of the observations.\n  .obs[--input_obs_library_key]       -  The library (e.g.\
+  \ sample) each observation belongs to.\n"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "file"
+  path: "xenium_tiny.qc.all_neighbors.pca.h5mu"
+- type: "file"
+  path: "Lung5_tiny_processed.h5mu"
+- type: "file"
+  path: "visium_tiny_processed.h5mu"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+dependencies:
+- name: "neighbors/spatial_neighborhood_graph"
+  repository:
+    type: "local"
+- name: "neighbors/join_graphs"
+  repository:
+    type: "local"
+- name: "cluster/leiden"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "metadata/move_obsm_to_obs"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/workflows/spatial_domains/spatial_expression_leiden/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/workflows/spatial_domains/spatial_expression_leiden"
+  executable: "target/nextflow/workflows/spatial_domains/spatial_expression_leiden/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "203d556ac2ed5fecd06bb27ea0c992f9981e48ca"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  dependencies:
+  - "target/nextflow/neighbors/spatial_neighborhood_graph"
+  - "target/nextflow/neighbors/join_graphs"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/cluster/leiden"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/metadata/move_obsm_to_obs"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"

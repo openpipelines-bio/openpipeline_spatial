@@ -3364,7 +3364,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spaceranger_to_h5mu",
     "viash_version" : "0.9.7",
-    "git_commit" : "0288e753d3c082cbccd6ac37570fcbb21dba0f9a",
+    "git_commit" : "203d556ac2ed5fecd06bb27ea0c992f9981e48ca",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

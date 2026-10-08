@@ -3098,6 +3098,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--input_obs_library_key",
+          "description" : "Key in adata.obs that identifies the library (e.g. sample) each observation belongs to.\nWhen set, a spatial neighborhood graph is computed separately for each library, so no\nspatial edges are created between observations of different libraries. When not set,\nall observations are treated as a single library.\n",
+          "example" : [
+            "sample_id"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3369,7 +3381,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/spatial_neighborhood_graph",
     "viash_version" : "0.9.7",
-    "git_commit" : "0288e753d3c082cbccd6ac37570fcbb21dba0f9a",
+    "git_commit" : "203d556ac2ed5fecd06bb27ea0c992f9981e48ca",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3426,6 +3438,7 @@ par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'modality': $( if [ ! -z ${VIASH_PAR_MODALITY+x} ]; then echo "r'${VIASH_PAR_MODALITY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_obsm_spatial_coords': $( if [ ! -z ${VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS+x} ]; then echo "r'${VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'input_obs_library_key': $( if [ ! -z ${VIASH_PAR_INPUT_OBS_LIBRARY_KEY+x} ]; then echo "r'${VIASH_PAR_INPUT_OBS_LIBRARY_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'coord_type': $( if [ ! -z ${VIASH_PAR_COORD_TYPE+x} ]; then echo "r'${VIASH_PAR_COORD_TYPE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'n_spatial_neighbors': $( if [ ! -z ${VIASH_PAR_N_SPATIAL_NEIGHBORS+x} ]; then echo "int(r'${VIASH_PAR_N_SPATIAL_NEIGHBORS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'delaunay': $( if [ ! -z ${VIASH_PAR_DELAUNAY+x} ]; then echo "r'${VIASH_PAR_DELAUNAY//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
@@ -3466,12 +3479,25 @@ logger = setup_logger()
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
+## Validate the library key
+library_key = par["input_obs_library_key"]
+if library_key:
+    if library_key not in adata.obs.columns:
+        raise ValueError(
+            f"--input_obs_library_key '{library_key}' not found in .obs of modality '{par['modality']}'."
+        )
+    # squidpy requires the library key to be a categorical column
+    if adata.obs[library_key].dtype.name != "category":
+        logger.info(f"Converting .obs['{library_key}'] to categorical...")
+        adata.obs[library_key] = adata.obs[library_key].astype("category")
+
 ## Compute spatial neighbor graph
 logger.info("Computing spatial neighbor graph...")
 sq.gr.spatial_neighbors(
     adata,
     coord_type=par["coord_type"],
     spatial_key=par["input_obsm_spatial_coords"],
+    library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
 )

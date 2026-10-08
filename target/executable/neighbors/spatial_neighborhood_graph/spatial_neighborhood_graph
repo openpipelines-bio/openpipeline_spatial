@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component neighbors spatial_neighborhood_graph"
-LABEL org.opencontainers.image.created="2026-10-06T08:35:55Z"
+LABEL org.opencontainers.image.created="2026-10-08T09:14:27Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="0288e753d3c082cbccd6ac37570fcbb21dba0f9a"
+LABEL org.opencontainers.image.revision="203d556ac2ed5fecd06bb27ea0c992f9981e48ca"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -597,6 +597,17 @@ function ViashHelp {
   echo "        default: spatial"
   echo "        Key in adata.obsm where spatial coordinates are stored"
   echo ""
+  echo "    --input_obs_library_key"
+  echo "        type: string"
+  echo "        example: sample_id"
+  echo "        Key in adata.obs that identifies the library (e.g. sample) each"
+  echo "        observation belongs to."
+  echo "        When set, a spatial neighborhood graph is computed separately for each"
+  echo "        library, so no"
+  echo "        spatial edges are created between observations of different libraries."
+  echo "        When not set,"
+  echo "        all observations are treated as a single library."
+  echo ""
   echo "Spatial Neighbors Calculation:"
   echo "    --coord_type"
   echo "        type: string"
@@ -722,6 +733,17 @@ while [[ $# -gt 0 ]]; do
         --input_obsm_spatial_coords=*)
             [ -n "$VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS" ] && ViashError Bad arguments for option \'--input_obsm_spatial_coords=*\': \'$VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --input_obs_library_key)
+            [ -n "$VIASH_PAR_INPUT_OBS_LIBRARY_KEY" ] && ViashError Bad arguments for option \'--input_obs_library_key\': \'$VIASH_PAR_INPUT_OBS_LIBRARY_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_OBS_LIBRARY_KEY="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --input_obs_library_key. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --input_obs_library_key=*)
+            [ -n "$VIASH_PAR_INPUT_OBS_LIBRARY_KEY" ] && ViashError Bad arguments for option \'--input_obs_library_key=*\': \'$VIASH_PAR_INPUT_OBS_LIBRARY_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_OBS_LIBRARY_KEY=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --coord_type)
@@ -1214,6 +1236,7 @@ par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'modality': $( if [ ! -z ${VIASH_PAR_MODALITY+x} ]; then echo "r'${VIASH_PAR_MODALITY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'input_obsm_spatial_coords': $( if [ ! -z ${VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS+x} ]; then echo "r'${VIASH_PAR_INPUT_OBSM_SPATIAL_COORDS//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'input_obs_library_key': $( if [ ! -z ${VIASH_PAR_INPUT_OBS_LIBRARY_KEY+x} ]; then echo "r'${VIASH_PAR_INPUT_OBS_LIBRARY_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'coord_type': $( if [ ! -z ${VIASH_PAR_COORD_TYPE+x} ]; then echo "r'${VIASH_PAR_COORD_TYPE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'n_spatial_neighbors': $( if [ ! -z ${VIASH_PAR_N_SPATIAL_NEIGHBORS+x} ]; then echo "int(r'${VIASH_PAR_N_SPATIAL_NEIGHBORS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'delaunay': $( if [ ! -z ${VIASH_PAR_DELAUNAY+x} ]; then echo "r'${VIASH_PAR_DELAUNAY//\'/\'\"\'\"r\'}'.lower() == 'true'"; else echo None; fi ),
@@ -1254,12 +1277,25 @@ logger = setup_logger()
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
+## Validate the library key
+library_key = par["input_obs_library_key"]
+if library_key:
+    if library_key not in adata.obs.columns:
+        raise ValueError(
+            f"--input_obs_library_key '{library_key}' not found in .obs of modality '{par['modality']}'."
+        )
+    # squidpy requires the library key to be a categorical column
+    if adata.obs[library_key].dtype.name != "category":
+        logger.info(f"Converting .obs['{library_key}'] to categorical...")
+        adata.obs[library_key] = adata.obs[library_key].astype("category")
+
 ## Compute spatial neighbor graph
 logger.info("Computing spatial neighbor graph...")
 sq.gr.spatial_neighbors(
     adata,
     coord_type=par["coord_type"],
     spatial_key=par["input_obsm_spatial_coords"],
+    library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
 )
