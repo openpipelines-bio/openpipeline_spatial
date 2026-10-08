@@ -38,7 +38,10 @@ argument_groups:
       - name: --obsp_spatial_graph
         type: string
         default: "spatial_connectivities"
-        description: Key in `.obsp` where spatial graph connectivities are stored.
+        description: |
+          Key in `.obsp` where spatial graph connectivities are stored. Every
+          non-zero entry is treated as an edge, so weighted or distance graphs
+          give the same neighbour metrics as their binary connectivities.
 
       - name: --obs_total_counts
         type: string

@@ -140,6 +140,31 @@ def test_custom_prefix(run_component, input_path, output_path):
         assert col in adata.obs.columns, f"Missing obs column: {col}"
 
 
+def test_weighted_spatial_graph(run_component, input_path, tmp_path):
+    """Edge weights do not change the neighbour metrics.
+
+    Replacing the binary connectivities with random positive weights on the
+    same edges must give the same neighbour counts and expression density.
+    """
+    mdata = md.read_h5mu(input_path)
+    weighted = mdata["rna"].obsp["spatial_connectivities"].copy()
+    rng = np.random.default_rng(0)
+    weighted.data = rng.uniform(0.1, 5, size=weighted.data.shape)
+    mdata["rna"].obsp["spatial_connectivities"] = weighted
+    weighted_input = str(tmp_path / "weighted_input.h5mu")
+    mdata.write_h5mu(weighted_input)
+
+    binary_output = str(tmp_path / "binary_output.h5mu")
+    weighted_output = str(tmp_path / "weighted_output.h5mu")
+    run_component(["--input", input_path, "--output", binary_output])
+    run_component(["--input", weighted_input, "--output", weighted_output])
+
+    binary_obs = md.read_h5mu(binary_output)["rna"].obs
+    weighted_obs = md.read_h5mu(weighted_output)["rna"].obs
+    for col in ["spatial_n_neighbors", "spatial_local_expression_density"]:
+        np.testing.assert_allclose(weighted_obs[col], binary_obs[col])
+
+
 def test_custom_uns_spatial_stats(run_component, input_path, output_path):
     run_component(
         [

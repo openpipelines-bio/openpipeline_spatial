@@ -33,15 +33,18 @@ def calculate_neighbors_metrics(
     adata, conn, prefix, obs_total_counts, tissue_edge_max_neighbors
 ):
     """Add per-spot neighbour metrics to adata.obs."""
-    adata.obs[f"{prefix}n_neighbors"] = np.asarray(conn.sum(axis=1)).flatten()
+    adata.obs[f"{prefix}n_neighbors"] = conn.count_nonzero(axis=1)
     adata.obs[f"{prefix}tissue_edge"] = (
         adata.obs[f"{prefix}n_neighbors"] < tissue_edge_max_neighbors
     )
 
     if obs_total_counts in adata.obs:
         counts = adata.obs[obs_total_counts].values
+        # Binarize the graph so the counts of neighbouring spots are summed
+        # as-is, rather than scaled by edge weights or distances
+        adjacency = (conn != 0).astype(float)
         adata.obs[f"{prefix}local_expression_density"] = np.asarray(
-            conn @ counts
+            adjacency @ counts
         ).flatten()
     else:
         logger.warning(
