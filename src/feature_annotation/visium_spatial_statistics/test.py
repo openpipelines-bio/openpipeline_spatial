@@ -1,6 +1,8 @@
 import pytest
+import subprocess
 import sys
 import mudata as md
+import numpy as np
 
 ## VIASH START
 meta = {
@@ -135,6 +137,79 @@ def test_custom_prefix(run_component, input_path, output_path):
         "vis_local_expression_density",
     ]:
         assert col in adata.obs.columns, f"Missing obs column: {col}"
+
+
+def test_custom_uns_spatial_stats(run_component, input_path, output_path):
+    run_component(
+        [
+            "--input",
+            input_path,
+            "--output",
+            output_path,
+            "--uns_spatial_stats",
+            "vis_stats",
+        ]
+    )
+
+    adata = md.read_h5mu(output_path)["rna"]
+    assert "vis_stats" in adata.uns
+    assert "spatial_stats" not in adata.uns
+    assert adata.uns["vis_stats"]["n_spots"] == len(adata)
+
+
+def test_distance_to_boundary(run_component, input_path, output_path, tmp_path):
+    """Distance to boundary is the distance to the nearest convex hull edge.
+
+    Spots are placed inside a 10 x 4 rectangle with all four corners occupied,
+    so the convex hull is the rectangle itself and the expected distance of
+    each spot is its distance to the closest side.
+    """
+    mdata = md.read_h5mu(input_path)
+    n_obs = mdata["rna"].n_obs
+    rng = np.random.default_rng(0)
+    coords = rng.uniform([0, 0], [10, 4], size=(n_obs, 2))
+    coords[:4] = [[0, 0], [10, 0], [0, 4], [10, 4]]
+    mdata["rna"].obsm["spatial"] = coords
+    rectangle_input = str(tmp_path / "rectangle_input.h5mu")
+    mdata.write_h5mu(rectangle_input)
+
+    run_component(
+        [
+            "--input",
+            rectangle_input,
+            "--output",
+            output_path,
+        ]
+    )
+
+    adata = md.read_h5mu(output_path)["rna"]
+    x, y = coords[:, 0], coords[:, 1]
+    expected = np.minimum.reduce([x, 10 - x, y, 4 - y])
+    np.testing.assert_allclose(
+        adata.obs["spatial_distance_to_boundary"], expected, atol=1e-8
+    )
+
+
+def test_collinear_coordinates_raise(run_component, input_path, output_path, tmp_path):
+    # A convex hull cannot be computed when all spots lie on a single line
+    mdata = md.read_h5mu(input_path)
+    n_obs = mdata["rna"].n_obs
+    mdata["rna"].obsm["spatial"] = np.column_stack(
+        [np.arange(n_obs, dtype=float), np.zeros(n_obs)]
+    )
+    collinear_input = str(tmp_path / "collinear_input.h5mu")
+    mdata.write_h5mu(collinear_input)
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                collinear_input,
+                "--output",
+                output_path,
+            ]
+        )
+    assert "QhullError" in err.value.stdout.decode("utf-8")
 
 
 def test_custom_obs_total_counts(run_component, input_path, output_path, tmp_path):

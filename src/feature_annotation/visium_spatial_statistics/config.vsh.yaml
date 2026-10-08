@@ -2,10 +2,13 @@ name: visium_spatial_statistics
 namespace: feature_annotation
 label: Visium Spatial Statistics
 description: |
-  Calculate various spatial statistics from Visium data including tissue
+  Calculate various spatial statistics from Visium or Visium HD data including tissue
   neighbourhood metrics, local expression density, position-based features,
   and global spatial patterns. This component expects a MuData object with a
   pre-computed spatial neighborhood graph in `.obsp`.
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ author ]
 
 argument_groups:
   - name: Inputs
@@ -58,7 +61,13 @@ argument_groups:
         type: string
         default: "spatial_"
         description: |
-          Prefix to add to all generated column names in `.obs` and keys in `.uns`.
+          Prefix to add to all generated column names in `.obs`.
+
+      - name: --uns_spatial_stats
+        type: string
+        default: "spatial_stats"
+        description: |
+          Name of the `.uns` slot in which to store the global spatial statistics.
 
   - name: Parameters
     arguments:
@@ -75,6 +84,7 @@ argument_groups:
 resources:
   - type: python_script
     path: script.py
+  - path: /src/utils/setup_logger.py
 
 test_resources:
   - type: python_script
@@ -91,8 +101,6 @@ engines:
       - type: python
         __merge__:
           - /src/base/requirements/anndata_mudata.yaml
-          - /src/base/requirements/scanpy.yaml
-          - /src/base/requirements/squidpy.yaml
     test_setup:
       - type: python
         packages:

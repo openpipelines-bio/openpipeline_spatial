@@ -1,10 +1,9 @@
 import sys
-import warnings
 
 import mudata as md
 import numpy as np
 
-from scipy.spatial import ConvexHull, distance_matrix
+from scipy.spatial import ConvexHull
 
 ## VIASH START
 par = {
@@ -15,9 +14,16 @@ par = {
     "obsp_spatial_graph": "spatial_connectivities",
     "obs_total_counts": "total_counts",
     "output_prefix": "spatial_",
+    "uns_spatial_stats": "spatial_stats",
     "tissue_edge_max_neighbors": 6,
 }
+meta = {"resources_dir": "src/utils"}
 ## VIASH END
+
+sys.path.append(meta["resources_dir"])
+from setup_logger import setup_logger
+
+logger = setup_logger()
 
 
 def calculate_neighbors_metrics(
@@ -35,15 +41,13 @@ def calculate_neighbors_metrics(
             conn @ counts
         ).flatten()
     else:
-        warnings.warn(
+        logger.warning(
             f"'{obs_total_counts}' not found in .obs; skipping local_expression_density"
         )
 
 
 def calculate_position_features(adata, spatial_coords, prefix):
     """Calculate position-based features."""
-    print("  Calculating position-based features...", flush=True)
-
     # Tissue centroid
     centroid = spatial_coords.mean(axis=0)
 
@@ -61,40 +65,30 @@ def calculate_position_features(adata, spatial_coords, prefix):
     adata.obs[f"{prefix}norm_y"] = normalized_coords[:, 1]
 
     # Distance to convex hull boundary
-    try:
-        hull = ConvexHull(spatial_coords)
-        hull_points = spatial_coords[hull.vertices]
+    hull = ConvexHull(spatial_coords)
 
-        # For each point, find distance to nearest hull vertex (approximation)
-        distances_to_boundary = np.min(
-            distance_matrix(spatial_coords, hull_points), axis=1
-        )
-        adata.obs[f"{prefix}distance_to_boundary"] = distances_to_boundary
-        print(
-            "    Added: distance_to_centroid, norm_x, norm_y, distance_to_boundary",
-            flush=True,
-        )
-    except Exception as e:
-        warnings.warn(f"Could not calculate convex hull: {e}")
-        print("    Added: distance_to_centroid, norm_x, norm_y", flush=True)
+    # Each row of hull.equations is an outward edge normal and offset, so
+    # -(normal . x + offset) is the distance from an interior point to that
+    # edge; the nearest edge gives the distance to the boundary.
+    homogeneous_coords = np.c_[spatial_coords, np.ones(len(spatial_coords))]
+    distances_to_boundary = np.clip(
+        -(hull.equations @ homogeneous_coords.T).max(axis=0), 0, None
+    )
+    adata.obs[f"{prefix}distance_to_boundary"] = distances_to_boundary
+    logger.info("Added: distance_to_centroid, norm_x, norm_y, distance_to_boundary")
 
 
 def calculate_global_statistics(spatial_coords):
     """Calculate global spatial statistics."""
-    print("  Calculating global spatial statistics...", flush=True)
-
     stats = {}
 
     # Global density
-    try:
-        hull = ConvexHull(spatial_coords)
-        area = hull.volume  # In 2D, volume of convex hull is the area
-        stats["area_calculation_method"] = "convex_hull"
-        stats["spot_density"] = len(spatial_coords) / area
-        stats["total_area"] = area
-        stats["n_spots"] = len(spatial_coords)
-    except Exception as e:
-        print(f"    Error: Could not calculate convex hull area ({e})", flush=True)
+    hull = ConvexHull(spatial_coords)
+    area = hull.volume  # In 2D, volume of convex hull is the area
+    stats["area_calculation_method"] = "convex_hull"
+    stats["spot_density"] = len(spatial_coords) / area
+    stats["total_area"] = area
+    stats["n_spots"] = len(spatial_coords)
 
     # Spatial extent
     min_coords = spatial_coords.min(axis=0)
@@ -104,34 +98,27 @@ def calculate_global_statistics(spatial_coords):
     stats["centroid_x"] = float(spatial_coords[:, 0].mean())
     stats["centroid_y"] = float(spatial_coords[:, 1].mean())
 
-    if "spot_density" in stats:
-        print(
-            f"    Global stats: spot_density={stats['spot_density']:.4f}",
-            flush=True,
-        )
+    logger.info(f"Global stats: spot_density={stats['spot_density']:.4f}")
 
     return stats
 
 
 def main(par):
-    print("====== Visium spatial statistics ======", flush=True)
-
-    print(f"\n>>> Reading MuData from '{par['input']}'...", flush=True)
+    logger.info(f"Reading MuData from '{par['input']}'...")
     mdata = md.read_h5mu(par["input"])
-    print(mdata, flush=True)
+    logger.info(mdata)
 
-    print(f"\n>>> Extracting modality '{par['modality']}'...", flush=True)
+    logger.info(f"Extracting modality '{par['modality']}'...")
     if par["modality"] not in mdata.mod:
         raise KeyError(
             f"Modality '{par['modality']}' not found in MuData. "
             f"Available modalities: {list(mdata.mod.keys())}"
         )
     adata = mdata[par["modality"]]
-    print(adata, flush=True)
+    logger.info(adata)
 
-    print(
-        f"\n>>> Extracting spatial coordinates from .obsm['{par['obsm_spatial_coordinates']}']...",
-        flush=True,
+    logger.info(
+        f"Extracting spatial coordinates from .obsm['{par['obsm_spatial_coordinates']}']..."
     )
     if par["obsm_spatial_coordinates"] not in adata.obsm:
         raise KeyError(
@@ -144,13 +131,12 @@ def main(par):
         raise ValueError(
             f"Expected 2D spatial coordinates, got shape {spatial_coords.shape}"
         )
-    print(f"  Shape: {spatial_coords.shape} (n_spots x 2)", flush=True)
+    logger.info(f"Shape: {spatial_coords.shape} (n_spots x 2)")
 
     prefix = par["output_prefix"]
 
-    print(
-        f"\n>>> Extracting spatial graph from .obsp['{par['obsp_spatial_graph']}']...",
-        flush=True,
+    logger.info(
+        f"Extracting spatial graph from .obsp['{par['obsp_spatial_graph']}']..."
     )
     if par["obsp_spatial_graph"] not in adata.obsp:
         raise KeyError(
@@ -158,9 +144,9 @@ def main(par):
             f"Available keys: {list(adata.obsp.keys())}"
         )
     conn = adata.obsp[par["obsp_spatial_graph"]]
-    print(f"  Shape: {conn.shape} (n_spots x n_spots)", flush=True)
+    logger.info(f"Shape: {conn.shape} (n_spots x n_spots)")
 
-    print("\n>>> Calculating neighbor metrics...", flush=True)
+    logger.info("Calculating neighbor metrics...")
     calculate_neighbors_metrics(
         adata,
         conn,
@@ -169,23 +155,24 @@ def main(par):
         par["tissue_edge_max_neighbors"],
     )
 
-    print("\n>>> Calculating position-based features...", flush=True)
+    logger.info("Calculating position-based features...")
     calculate_position_features(adata, spatial_coords, prefix)
 
-    print("\n>>> Calculating global spatial statistics...", flush=True)
+    logger.info("Calculating global spatial statistics...")
     global_stats = calculate_global_statistics(spatial_coords)
 
     # Store in uns
-    if "spatial_stats" not in adata.uns:
-        adata.uns["spatial_stats"] = {}
-    adata.uns["spatial_stats"].update(global_stats)
+    uns_key = par["uns_spatial_stats"]
+    if uns_key not in adata.uns:
+        adata.uns[uns_key] = {}
+    adata.uns[uns_key].update(global_stats)
 
     mdata.mod[par["modality"]] = adata
 
-    print(f"\n>>> Writing output to '{par['output']}'...", flush=True)
+    logger.info(f"Writing output to '{par['output']}'...")
     mdata.write_h5mu(par["output"])
 
-    print("\n>>> Done!\n", flush=True)
+    logger.info("Done!")
 
 
 if __name__ == "__main__":
