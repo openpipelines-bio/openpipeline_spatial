@@ -2,7 +2,7 @@
 
 ## BREAKING CHANGES
 
-* `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR 87).
+* `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR #87).
 
 # openpipeline_spatial 0.7.0
 
