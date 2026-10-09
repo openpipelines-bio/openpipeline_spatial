@@ -36,13 +36,18 @@ def pretrained_model_path():
 def test_default_execution(run_component, tmp_path):
     output = tmp_path / "segmented.zarr"
 
-    run_component(
+    stdout = run_component(
         [
             "--input",
             input_file,
             "--output",
             str(output),
         ]
+    ).decode("utf-8")
+
+    # The test image has four channels, more than Cellpose-SAM can use.
+    assert "only the first three are used" in stdout, (
+        "Expected a warning that only the first three channels are used."
     )
 
     assert output.is_dir(), "Output Zarr store was not created."
@@ -96,6 +101,78 @@ def test_custom_output_labels_and_channels(run_component, tmp_path):
     assert "cellpose_sam_labels" not in sdata.labels, (
         "Default labels key should not be present when a custom key is used."
     )
+
+
+def test_dino_backbone_model(run_component, tmp_path):
+    # The DINO-backbone models need the `dinov3` package, which is not a
+    # cellpose dependency; `cpdino-vitb` is the smallest model using it.
+    output = tmp_path / "segmented_dino.zarr"
+
+    run_component(
+        [
+            "--input",
+            input_file,
+            "--output",
+            str(output),
+            "--pretrained_model_name",
+            "cpdino-vitb",
+        ]
+    )
+
+    sdata = sd.read_zarr(output)
+    labels_arr = np.asarray(sdata.labels["cellpose_sam_labels"].data)
+    n_objects = len(np.unique(labels_arr)) - 1
+    assert n_objects > 0, (
+        "Expected at least one segmented object using the 'cpdino-vitb' model."
+    )
+
+
+def test_fail_more_than_three_channels(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--channels",
+                "0",
+                "--channels",
+                "1",
+                "--channels",
+                "2",
+                "--channels",
+                "3",
+            ]
+        )
+    assert re.search(
+        r"At most three channels can be selected with '--channels', got 4",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
+
+
+def test_fail_channel_out_of_range(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--channels",
+                "10",
+            ]
+        )
+    assert re.search(
+        r"Channel indices \[10\] passed to '--channels' are out of range",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
 
 
 def test_fail_missing_image_key(run_component, tmp_path):

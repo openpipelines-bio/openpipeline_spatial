@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import spatialdata as sd
+from xarray import DataTree
 from spatialdata.models import Labels2DModel
 from spatialdata.transformations import get_transformation
 from cellpose import models
@@ -60,17 +61,41 @@ if image_key not in sdata.images:
 image_element = sdata.images[image_key]
 transformations = get_transformation(image_element, get_all=True)
 
+if par["normalize_percentile_low"] >= par["normalize_percentile_high"]:
+    raise ValueError(
+        "'--normalize_percentile_low' "
+        f"({par['normalize_percentile_low']}) must be lower than "
+        f"'--normalize_percentile_high' ({par['normalize_percentile_high']})."
+    )
 # Multiscale images (DataTree) expose full-resolution pixel data under the
 # "scale0" node; single-scale images expose it directly via .data.
-if hasattr(image_element, "data"):
-    image_arr = np.asarray(image_element.data)
-else:
-    image_arr = np.asarray(image_element["scale0"]["image"].data)
-
+if isinstance(image_element, DataTree):
+    image_element = image_element["scale0"]["image"]
+image_arr = np.asarray(image_element.data)
 if image_arr.ndim == 3:
     channel_axis = 0
+    n_channels = image_arr.shape[channel_axis]
     if par["channels"]:
+        # Cellpose-SAM uses at most three input channels
+        if len(par["channels"]) > 3:
+            raise ValueError(
+                f"At most three channels can be selected with '--channels', "
+                f"got {len(par['channels'])}: {par['channels']}."
+            )
+        invalid_channels = [c for c in par["channels"] if not 0 <= c < n_channels]
+        if invalid_channels:
+            raise ValueError(
+                f"Channel indices {invalid_channels} passed to '--channels' are "
+                f"out of range for image '{image_key}' with {n_channels} channels."
+            )
         image_arr = image_arr[par["channels"], ...]
+    elif n_channels > 3:
+        logger.warning(
+            f"Image '{image_key}' has {n_channels} channels, but Cellpose-SAM "
+            "uses at most three; only the first three are used. Use "
+            "'--channels' to select specific channels."
+        )
+        image_arr = image_arr[:3, ...]
 else:
     if par["channels"]:
         raise ValueError(
