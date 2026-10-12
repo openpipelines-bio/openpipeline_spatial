@@ -1,5 +1,6 @@
 name: cellpose_sam
 namespace: segmentation
+scope: public
 description: |
   Segment cells or nuclei from a spatial image using Cellpose-SAM.
 
@@ -122,7 +123,7 @@ argument_groups:
           Whether to run dynamics on the full-resolution image rather than on
           the (typically smaller) resized image used internally by the model.
       - name: "--augment"
-        type: boolean
+        type: boolean_true
         default: false
         description: Whether to tile the image with overlapping tiles and average the predictions.
       - name: "--batch_size"
@@ -130,10 +131,14 @@ argument_groups:
         default: 8
         min: 1
         description: Number of 256x256 image tiles to run simultaneously on the GPU or CPU.
-      - name: "--use_gpu"
-        type: boolean
-        default: false
-        description: Whether to run the model on a GPU, if one is available.
+      - name: "--device_type"
+        type: string
+        default: 'cpu'
+        choices: ['cpu', 'gpu']
+        description: |
+          Device to run the model on. `gpu` requires a CUDA- or MPS-capable
+          device. If none is available the component logs a warning and falls
+          back to CPU.
       - name: "--normalize_percentile_low"
         type: double
         default: 1.0
@@ -188,24 +193,14 @@ engines:
           - procps
       - type: docker
         run: |
-          pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+          pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
       - type: python
         __merge__: [ /src/base/requirements/spatialdata.yaml, . ]
       - type: python
         packages:
           - cellpose~=4.2.0
-          # Required by the DINO-backbone models (`cpdino`, `cpdino-vitb`); not a
-          # cellpose dependency and not published on PyPI, so pinned to a commit.
-          - dinov3 @ https://github.com/facebookresearch/dinov3/archive/6876159a11b4df116f30f667f8c9888617df0751.tar.gz
       - type: docker
-        # Cache all built-in models into the image at build time. Each test
-        # invocation runs in a fresh, ephemeral container with no persisted
-        # cache, and the SAM-backbone models are ~1.15GB (vs. ~30MB for the
-        # previous Cellpose3 model) - downloading them fresh from Hugging Face
-        # on every run makes tests slow and flaky. Baking them in moves that
-        # cost to the build step instead. The models are stored outside the
-        # home directory and made readable for all users, so they also work
-        # when the container runs as a non-root user.
+        # Cache the built-in models into the image at build time.
         env:
           - CELLPOSE_LOCAL_MODELS_PATH=/opt/cellpose_models
         run: |
