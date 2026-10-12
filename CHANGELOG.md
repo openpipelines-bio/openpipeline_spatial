@@ -2,9 +2,7 @@
 
 ## NEW FUNCTIONALITY
 
-<<<<<<< HEAD
 * `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
-=======
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
 ## MINOR CHANGES
@@ -16,7 +14,6 @@
 ## MINOR CHANGES
 
 * `feature_annotation/xenium_spatial_statistics`: Optimise the density calculation step giving a significant improvement to the runtime of the component. (PR #78)
->>>>>>> origin/main
 
 # openpipeline_spatial 0.6.0
 
@@ -25,8 +22,6 @@
 * `mapping/spaceranger_count` and `workflows/ingestion/spaceranger_mapping`: Update Space Ranger from 3.1 to 4.1.0. `--probe_set` is now optional (omit for Visium HD 3' data), telemetry and the web UI are disabled for non-interactive runs, and new 4.x arguments are exposed for nucleus/cell segmentation (`--nucleus_segmentation`, `--custom_segmentation_file`, `--nucleus_expansion_distance_micron`, `--max_nucleus_diameter_px`), UMI-based registration (`--umi_registration`, `--umi_to_image_offset`), cell type annotation (`--cell_annotation_model`, `--tenx_cloud_token_path`, `--disable_cell_annotation`), and intron inclusion (`--include_introns`) (PR #64, PR #70).
 
 ## NEW FUNCTIONALITY
-
-* `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `--loupe-alignment` argument and pass all arguments in workflows (PR #69).
 
