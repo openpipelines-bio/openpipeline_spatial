@@ -2,7 +2,21 @@
 
 ## NEW FUNCTIONALITY
 
+<<<<<<< HEAD
 * `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
+=======
+* `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+
+## MINOR CHANGES
+
+* `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
+
+# openpipeline_spatial 0.7.0
+
+## MINOR CHANGES
+
+* `feature_annotation/xenium_spatial_statistics`: Optimise the density calculation step giving a significant improvement to the runtime of the component. (PR #78)
+>>>>>>> origin/main
 
 # openpipeline_spatial 0.6.0
 
