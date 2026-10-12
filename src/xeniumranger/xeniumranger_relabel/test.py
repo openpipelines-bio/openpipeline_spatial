@@ -53,7 +53,8 @@ def assert_outputs_exists(input_bundle, output):
     input_files = sorted(
         f
         for f in os.listdir(input_bundle)
-        if os.path.isfile(os.path.join(input_bundle, f)) and f not in input_not_in_output
+        if os.path.isfile(os.path.join(input_bundle, f))
+        and f not in input_not_in_output
     )
     output_files = sorted(
         f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
@@ -118,7 +119,10 @@ def modified_panel(panel_path, tmp_path, old_name="A1cf", new_name="A1cf_renamed
 
 def assert_relabeling(input_bundle, output, old_name, new_name):
     original, relabeled = _read_parquet_pair(
-        input_bundle, output, "transcripts.parquet", columns=["transcript_id", "feature_name"]
+        input_bundle,
+        output,
+        "transcripts.parquet",
+        columns=["transcript_id", "feature_name"],
     )
     merged = _assert_same_keys(
         original, relabeled, "transcript_id", "transcripts.parquet"
@@ -140,7 +144,10 @@ def assert_relabeling(input_bundle, output, old_name, new_name):
 def assert_geometry_unchanged(input_bundle, output):
     coord_columns = ["x_location", "y_location", "z_location", "qv"]
     original, relabeled = _read_parquet_pair(
-        input_bundle, output, "transcripts.parquet", columns=["transcript_id"] + coord_columns
+        input_bundle,
+        output,
+        "transcripts.parquet",
+        columns=["transcript_id"] + coord_columns,
     )
     merged = _assert_same_keys(
         original, relabeled, "transcript_id", "transcripts.parquet"
@@ -321,6 +328,7 @@ def test_relative_paths(run_component, tmp_path, monkeypatch):
     )
 
     assert_outputs_exists(work_dir / "bundle", work_dir / "out")
+
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
