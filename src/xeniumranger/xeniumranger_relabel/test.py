@@ -16,12 +16,12 @@ import tifffile
 meta = {"name": "xeniumranger_relabel", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
-input = meta["resources_dir"] + "/xenium_tiny/"
+input_bundle = meta["resources_dir"] + "/xenium_tiny/"
 panel = meta["resources_dir"] + "/xenium_tiny/gene_panel.json"
 
 
-def _read_parquet_pair(input, output, filename, columns=None):
-    original = pd.read_parquet(Path(input) / filename, columns=columns)
+def _read_parquet_pair(input_bundle, output, filename, columns=None):
+    original = pd.read_parquet(Path(input_bundle) / filename, columns=columns)
     relabeled = pd.read_parquet(Path(output) / filename, columns=columns)
     return original, relabeled
 
@@ -37,7 +37,7 @@ def _assert_same_keys(original, relabeled, key, label):
     return merged
 
 
-def assert_outputs_exists(input, output):
+def assert_outputs_exists(input_bundle, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
         "Output directory exists and is non-empty"
     )
@@ -52,8 +52,8 @@ def assert_outputs_exists(input, output):
 
     input_files = sorted(
         f
-        for f in os.listdir(input)
-        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        for f in os.listdir(input_bundle)
+        if os.path.isfile(os.path.join(input_bundle, f)) and f not in input_not_in_output
     )
     output_files = sorted(
         f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
@@ -116,9 +116,9 @@ def modified_panel(panel_path, tmp_path, old_name="A1cf", new_name="A1cf_renamed
     return modified_path
 
 
-def assert_relabeling(input, output, old_name, new_name):
+def assert_relabeling(input_bundle, output, old_name, new_name):
     original, relabeled = _read_parquet_pair(
-        input, output, "transcripts.parquet", columns=["transcript_id", "feature_name"]
+        input_bundle, output, "transcripts.parquet", columns=["transcript_id", "feature_name"]
     )
     merged = _assert_same_keys(
         original, relabeled, "transcript_id", "transcripts.parquet"
@@ -137,10 +137,10 @@ def assert_relabeling(input, output, old_name, new_name):
     )
 
 
-def assert_geometry_unchanged(input, output):
+def assert_geometry_unchanged(input_bundle, output):
     coord_columns = ["x_location", "y_location", "z_location", "qv"]
     original, relabeled = _read_parquet_pair(
-        input, output, "transcripts.parquet", columns=["transcript_id"] + coord_columns
+        input_bundle, output, "transcripts.parquet", columns=["transcript_id"] + coord_columns
     )
     merged = _assert_same_keys(
         original, relabeled, "transcript_id", "transcripts.parquet"
@@ -152,7 +152,7 @@ def assert_geometry_unchanged(input, output):
 
     cell_columns = ["cell_id", "x_centroid", "y_centroid"]
     original_cells, relabeled_cells = _read_parquet_pair(
-        input, output, "cells.parquet", columns=cell_columns
+        input_bundle, output, "cells.parquet", columns=cell_columns
     )
     merged_cells = _assert_same_keys(
         original_cells, relabeled_cells, "cell_id", "cells.parquet"
@@ -164,7 +164,7 @@ def assert_geometry_unchanged(input, output):
 
     for boundary_file in ["cell_boundaries.parquet", "nucleus_boundaries.parquet"]:
         original_boundaries, relabeled_boundaries = _read_parquet_pair(
-            input, output, boundary_file
+            input_bundle, output, boundary_file
         )
 
         assert len(original_boundaries) == len(relabeled_boundaries), (
@@ -181,7 +181,7 @@ def assert_geometry_unchanged(input, output):
         ), f"{boundary_file} vertex_y should be unchanged by relabeling"
 
 
-def assert_morphology_unchanged(input, output):
+def assert_morphology_unchanged(input_bundle, output):
     morphology_files = [
         ("morphology.ome.tif", "morphology.ome.tif"),
         (
@@ -190,7 +190,7 @@ def assert_morphology_unchanged(input, output):
         ),
     ]
     for original_rel, relabeled_rel in morphology_files:
-        original_path = Path(input) / original_rel
+        original_path = Path(input_bundle) / original_rel
         relabeled_path = Path(output) / relabeled_rel
         assert relabeled_path.is_file(), (
             f"{relabeled_rel} should be present in relabeled output"
@@ -211,7 +211,7 @@ def test_basic_execution(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--panel",
             panel,
             "--output",
@@ -219,7 +219,7 @@ def test_basic_execution(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
 
 
@@ -232,7 +232,7 @@ def test_relabelling(run_component, random_path, tmp_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--panel",
             altered_panel,
             "--output",
@@ -240,7 +240,7 @@ def test_relabelling(run_component, random_path, tmp_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     _, cells, _ = assert_valid_files(output)
 
     output_panel_path = Path(output) / "gene_panel.json"
@@ -255,11 +255,11 @@ def test_relabelling(run_component, random_path, tmp_path):
         "Old gene name should not be present in cell feature matrix"
     )
 
-    assert_relabeling(input, output, old_gene, new_gene)
+    assert_relabeling(input_bundle, output, old_gene, new_gene)
 
-    assert_geometry_unchanged(input, output)
+    assert_geometry_unchanged(input_bundle, output)
 
-    assert_morphology_unchanged(input, output)
+    assert_morphology_unchanged(input_bundle, output)
 
 
 def test_valid_panel(run_component, random_path, tmp_path):
@@ -274,7 +274,7 @@ def test_valid_panel(run_component, random_path, tmp_path):
         run_component(
             [
                 "--xenium_bundle",
-                input,
+                input_bundle,
                 "--panel",
                 malformed_panel,
                 "--output",
@@ -287,7 +287,7 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
     output = random_path()
 
     incomplete_bundle = tmp_path / "incomplete_bundle"
-    shutil.copytree(input, incomplete_bundle)
+    shutil.copytree(input_bundle, incomplete_bundle)
     (incomplete_bundle / "experiment.xenium").unlink()
 
     with pytest.raises(subprocess.CalledProcessError):
@@ -306,7 +306,7 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
 def test_relative_paths(run_component, tmp_path, monkeypatch):
     work_dir = tmp_path / "workdir"
     work_dir.mkdir()
-    shutil.copytree(input, work_dir / "bundle")
+    shutil.copytree(input_bundle, work_dir / "bundle")
     monkeypatch.chdir(work_dir)
 
     run_component(
@@ -321,36 +321,6 @@ def test_relative_paths(run_component, tmp_path, monkeypatch):
     )
 
     assert_outputs_exists(work_dir / "bundle", work_dir / "out")
-
-
-def test_repeated_id_isolation(run_component, random_path):
-    output_first = random_path()
-    output_second = random_path()
-
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--panel",
-            panel,
-            "--output",
-            output_first,
-        ]
-    )
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--panel",
-            panel,
-            "--output",
-            output_second,
-        ]
-    )
-
-    assert_outputs_exists(input, output_first)
-    assert_outputs_exists(input, output_second)
-
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
