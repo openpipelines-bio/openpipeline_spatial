@@ -1,0 +1,140 @@
+name: aggregate_neighbors
+namespace: cellcharter
+scope: public
+description: |
+  Aggregates the features of each cell's spatial neighborhood using CellCharter.
+
+  For every cell, the features of the neighbors at increasing distances (hops) in the spatial
+  neighborhood graph are aggregated (e.g. averaged) and concatenated with the cell's own features
+  into a single vector. The resulting matrix can be used as input for clustering into spatial domains
+  (e.g. with `cellcharter/cluster`).
+
+  Wraps [`cellcharter.gr.aggregate_neighbors`](https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.gr.aggregate_neighbors.html).
+  Requires a spatial neighborhood graph in `.obsp`.
+
+links:
+  homepage: https://github.com/CSOgroup/cellcharter
+  documentation: https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.gr.aggregate_neighbors.html
+  repository: https://github.com/CSOgroup/cellcharter
+references:
+  doi: 10.1038/s41588-023-01588-4
+license: BSD-3-Clause
+
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input H5MU file containing a spatial neighborhood graph.
+        example: input.h5mu
+      - name: "--modality"
+        type: string
+        default: "rna"
+        required: false
+        description: Which modality from the input MuData file to process.
+      - name: "--input_obsm_features"
+        type: string
+        required: false
+        example: "X_pca"
+        description: |
+          Key in `.obsm` containing the features to aggregate, typically a dimensionality-reduced
+          representation (e.g. `X_pca`, `X_scvi`). This is the recommended input, since the size of
+          the output scales with the number of input features.
+          Mutually exclusive with `--layer`. If neither is set, `.X` is used.
+      - name: "--layer"
+        type: string
+        required: false
+        example: "log_normalized"
+        description: |
+          Layer containing the features to aggregate. Mutually exclusive with `--input_obsm_features`.
+          If neither is set, `.X` is used.
+          Note that sparse features are converted to a dense matrix, and the aggregated output is dense
+          as well, which can require a large amount of memory for many features.
+      - name: "--input_obsp_spatial_connectivities"
+        type: string
+        default: "spatial_connectivities"
+        description: Key in `.obsp` where the connectivities of the spatial neighborhood graph are stored.
+      - name: "--input_obs_sample_key"
+        type: string
+        required: false
+        example: "sample_id"
+        description: |
+          Key in `.obs` that identifies the sample each observation belongs to.
+          When set, neighbors are aggregated separately per sample, so no features are aggregated across samples.
+          Must be set when the input contains multiple samples whose spatial graphs are not disconnected.
+
+  - name: Neighborhood aggregation
+    arguments:
+      - name: "--n_layers"
+        type: integer
+        multiple: true
+        default: [3]
+        min: 0
+        description: |
+          Which neighborhood layers (hops) to aggregate.
+          If a single value `n` is provided, the output contains the cells' own features and the aggregated
+          features of the neighbors up to `n` hops away: `cell | 1-hop | ... | n-hop`.
+          If multiple values are provided, each value is a hop distance at which the neighbors' features are
+          aggregated and concatenated. In this case `0` (the cells' own features) must be included,
+          e.g. `0;1;3` results in `cell | 1-hop | 3-hop`.
+      - name: "--aggregations"
+        type: string
+        multiple: true
+        choices: ["mean", "var"]
+        default: ["mean"]
+        description: |
+          Which functions to use to aggregate the neighbors' features.
+          When multiple are provided, the aggregated features of every function are concatenated for every layer.
+
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file.
+        example: output.h5mu
+      - name: "--output_obsm_aggregated"
+        type: string
+        default: "X_cellcharter"
+        description: Key in `.obsm` where the aggregated neighborhood features will be stored.
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      # cellcharter depends on torch (via torchgmm) for its clustering module, which is imported
+      # at package import time. Install the CPU-only build to keep the image small.
+      - type: docker
+        run: |
+          pip install --no-cache-dir torch~=2.8.0 --index-url https://download.pytorch.org/whl/cpu
+      - type: python
+        __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
+        packages:
+          - cellcharter~=0.3.7
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+- type: executable
+- type: nextflow
+  directives:
+    label: [lowcpu, midmem, middisk]
