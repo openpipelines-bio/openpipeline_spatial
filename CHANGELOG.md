@@ -18,6 +18,7 @@
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
 
+<<<<<<< HEAD
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
 * `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile (PR #93).
@@ -25,6 +26,9 @@
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+=======
+* `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile, equivalent to `cellcharter.gr.remove_long_links` (PR #95).
+>>>>>>> 5a76ed4 (Update CHANGELOG)
 
 # openpipeline_spatial 0.7.0
 
