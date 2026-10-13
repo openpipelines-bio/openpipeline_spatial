@@ -6,7 +6,7 @@
 
 * `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
 
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #xx).
+* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #94).
 
 ## MINOR CHANGES
 
