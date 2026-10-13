@@ -13,6 +13,7 @@ par = {
     "n_spatial_neighbors": 4,
     "coord_type": "generic",
     "delaunay": False,
+    "percentile": None,
     "output": "foo.h5mu",
 }
 
@@ -39,6 +40,10 @@ if library_key:
         logger.info(f"Converting .obs['{library_key}'] to categorical...")
         adata.obs[library_key] = adata.obs[library_key].astype("category")
 
+## Validate the percentile
+if par["percentile"] is not None and par["coord_type"] != "generic":
+    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
+
 ## Compute spatial neighbor graph
 logger.info("Computing spatial neighbor graph...")
 sq.gr.spatial_neighbors(
@@ -48,6 +53,7 @@ sq.gr.spatial_neighbors(
     library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
+    percentile=par["percentile"],
 )
 
 # Making the connectivity matrix symmetric
