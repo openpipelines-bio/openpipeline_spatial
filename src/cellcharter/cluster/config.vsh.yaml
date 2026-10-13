@@ -1,0 +1,191 @@
+name: cluster
+namespace: cellcharter
+scope: public
+description: |
+  Clusters cells into spatial domains with CellCharter, using a Gaussian Mixture Model on the
+  neighborhood-aggregated features computed by `cellcharter/aggregate_neighbors`.
+
+  Two modes are supported:
+  * **Fixed number of clusters** (`--n_clusters`): wraps [`cellcharter.tl.Cluster`](https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.Cluster.html).
+  * **Automatic selection of the number of clusters** (`--n_clusters_range`): wraps
+    [`cellcharter.tl.ClusterAutoK`](https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.ClusterAutoK.html).
+    The clustering is repeated multiple times for every number of clusters in the range, and the stability
+    of the clustering between adjacent numbers of clusters is computed. By default, the cells are clustered
+    using the number of clusters with the highest stability. The stability results are stored in `.uns`.
+
+  Clustering runs on a GPU when one is available (see `--accelerator`).
+
+links:
+  homepage: https://github.com/CSOgroup/cellcharter
+  documentation: https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.ClusterAutoK.html
+  repository: https://github.com/CSOgroup/cellcharter
+references:
+  doi: 10.1038/s41588-023-01588-4
+license: BSD-3-Clause
+
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input H5MU file containing neighborhood-aggregated features.
+        example: input.h5mu
+      - name: "--modality"
+        type: string
+        default: "rna"
+        required: false
+        description: Which modality from the input MuData file to process.
+      - name: "--input_obsm_features"
+        type: string
+        default: "X_cellcharter"
+        description: |
+          Key in `.obsm` containing the features to cluster, e.g. the output of `cellcharter/aggregate_neighbors`.
+          Must be a dense, low-dimensional representation.
+
+  - name: Number of clusters
+    description: Provide either `--n_clusters`, `--n_clusters_range`, or both.
+    arguments:
+      - name: "--n_clusters"
+        type: integer
+        required: false
+        min: 2
+        example: 6
+        description: |
+          Number of clusters.
+          When `--n_clusters_range` is not set, a single model is fitted with this number of clusters.
+          When `--n_clusters_range` is set, the stability analysis is still performed, but the cells are
+          clustered with this number of clusters instead of the most stable one. Must be within `--n_clusters_range`.
+      - name: "--n_clusters_range"
+        type: integer
+        multiple: true
+        required: false
+        min: 2
+        example: [2, 10]
+        description: |
+          Minimum and maximum number of clusters (both included) to evaluate for the automatic selection
+          of the number of clusters with `cellcharter.tl.ClusterAutoK`.
+      - name: "--max_runs"
+        type: integer
+        default: 10
+        min: 2
+        description: |
+          Maximum number of repetitions of the clustering for every number of clusters in `--n_clusters_range`.
+          Only used when `--n_clusters_range` is set.
+      - name: "--stability_convergence_tolerance"
+        type: double
+        default: 0.01
+        min: 0
+        description: |
+          Convergence tolerance for the clustering stability. If the mean absolute percentage error of the
+          stability between consecutive runs is below this value, no more runs are performed.
+          Only used when `--n_clusters_range` is set.
+
+  - name: Gaussian Mixture Model
+    arguments:
+      - name: "--covariance_type"
+        type: string
+        default: "full"
+        choices: ["full", "tied", "diag", "spherical"]
+        description: The type of covariance to assume for all Gaussian components.
+      - name: "--init_strategy"
+        type: string
+        default: "kmeans"
+        choices: ["kmeans", "kmeans++"]
+        description: The strategy for initializing the means and covariances of the components.
+      - name: "--convergence_tolerance"
+        type: double
+        default: 0.001
+        min: 0
+        description: |
+          The change in the per-datapoint negative log-likelihood which implies that the training has converged.
+      - name: "--covariance_regularization"
+        type: double
+        default: 0.000001
+        min: 0
+        description: |
+          A small value which is added to the diagonal of the covariance matrix to ensure that it is
+          positive semi-definite. It is automatically increased when the fitting fails.
+      - name: "--max_epochs"
+        type: integer
+        default: 100
+        min: 1
+        description: Maximum number of epochs (EM iterations) to fit the model.
+      - name: "--batch_size"
+        type: integer
+        required: false
+        min: 1
+        description: |
+          Batch size used to fit the model. If not set, all cells are used as a single batch.
+          Set this if the data does not fit into (GPU) memory.
+      - name: "--accelerator"
+        type: string
+        default: "auto"
+        choices: ["auto", "cpu", "gpu"]
+        description: |
+          Hardware to fit the model on. `auto` uses a GPU when one is available, and the CPU otherwise.
+      - name: "--random_state"
+        type: integer
+        default: 0
+        description: Random seed for reproducibility.
+
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file.
+        example: output.h5mu
+      - name: "--output_obs_cluster"
+        type: string
+        default: "cellcharter_cluster"
+        description: Key in `.obs` where the cluster labels will be stored.
+      - name: "--output_uns_stability"
+        type: string
+        default: "cellcharter_autok"
+        description: |
+          Key in `.uns` where the results of the stability analysis will be stored, when `--n_clusters_range` is set.
+          Contains the evaluated numbers of clusters (`n_clusters`), the stability values between adjacent numbers
+          of clusters for every run (`stability`), their mean (`stability_mean`), the number of clusters with the
+          highest stability (`best_k`), the peaks of the stability curve (`peaks`) and the number of clusters
+          that was used to cluster the cells (`k`).
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.qc.all_neighbors.pca.h5mu
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      # The default torch build on PyPI bundles CUDA, so the clustering can run on a GPU when one is available.
+      - type: python
+        packages:
+          - torch~=2.8.0
+      - type: python
+        __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
+        packages:
+          - cellcharter~=0.3.7
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+- type: executable
+  # docker_run_args: ["--gpus all"]
+- type: nextflow
+  directives:
+    label: [midcpu, midmem, gpu, middisk]
