@@ -32,6 +32,7 @@
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
 
+<<<<<<< HEAD
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
 * `convert/from_spatialdata_to_h5mu`, `convert/from_h5mu_to_spatialdata`, `dataflow/move_layer_spatialdata`, `dataflow/concatenate_spatialdata`, `convert/from_spaceranger_hd_to_spatialdata`, `convert/from_xenium_to_spatialdata`: Add `--input_table` and/or `--output_table` arguments to set the name of the SpatialData table that is used (default "table") (PR #106).
@@ -43,6 +44,9 @@
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+=======
+* `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile, equivalent to `cellcharter.gr.remove_long_links` (PR #95).
+>>>>>>> 5a76ed4 (Update CHANGELOG)
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--filter_probes` so that it is only passed to Space Ranger when set, which fixes runs without `--probe_set` such as Visium HD 3' (PR #104).
 
