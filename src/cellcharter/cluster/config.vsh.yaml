@@ -171,10 +171,19 @@ engines:
     image: python:3.12-slim
     setup:
       - type: apt
+<<<<<<< HEAD
         packages: [procps, libexpat1]
       - type: docker
         run: |
           pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128
+=======
+        packages:
+          - procps
+      # The default torch build on PyPI bundles CUDA, so the clustering can run on a GPU when one is available.
+      - type: python
+        packages:
+          - torch~=2.8.0
+>>>>>>> 96a589dd (Wrap cellcharter.tl.Cluster and cellcharter.tl.ClusterAutoK in component)
       - type: python
         __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
         packages:
