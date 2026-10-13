@@ -13,7 +13,7 @@ meta = {
 }
 ## VIASH END
 
-input_xenium = f"{meta['resources_dir']}/xenium_tiny.spatial_expression_neighbors.h5mu"
+input_xenium = f"{meta['resources_dir']}/xenium_tiny.qc.all_neighbors.pca.h5mu"
 
 
 def to_dense(x):
