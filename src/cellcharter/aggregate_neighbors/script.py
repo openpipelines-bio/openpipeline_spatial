@@ -7,7 +7,7 @@ import scipy.sparse as sp
 ## VIASH START
 par = {
     # Inputs
-    "input": "resources_test/xenium/xenium_tiny.spatial_expression_neighbors.h5mu",
+    "input": "resources_test/xenium/xenium_tiny.qc.all_neighbors.pca.h5mu",
     "modality": "rna",
     "input_obsm_features": "X_pca",
     "layer": None,
