@@ -122,6 +122,8 @@ engines:
       - type: apt
         packages:
           - procps
+          # required by rasterio, a dependency of cellcharter
+          - libexpat1
       # cellcharter depends on torch (via torchgmm) for its clustering module, which is imported
       # at package import time. Install the CPU-only build to keep the image small.
       - type: docker
