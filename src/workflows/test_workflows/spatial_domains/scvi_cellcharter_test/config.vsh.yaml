@@ -1,0 +1,44 @@
+name: "scvi_cellcharter_test"
+namespace: "test_workflows/spatial_domains"
+scope: "test"
+description: "This component tests the output of the scvi_cellcharter workflow."
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Path to h5mu output.
+        example: foo.h5mu
+      - name: "--input_obs_library_key"
+        type: string
+        default: "sample_id"
+        description: Key in .obs identifying the library of each observation.
+      - name: "--n_dimensions_latent_space"
+        type: integer
+        required: true
+        description: Expected dimensionality of the scVI embedding.
+      - name: "--n_aggregated_blocks"
+        type: integer
+        default: 4
+        description: Expected number of concatenated feature blocks in the aggregated features.
+      - name: "--expected_n_clusters"
+        type: integer
+        required: false
+        description: Expected number of clusters. Only checked when provided.
+      - name: "--expect_stability"
+        type: boolean_true
+        description: Whether the results of the stability analysis are expected in .uns.
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+engines:
+  - type: docker
+    image: python:3.12-slim
+    __merge__: /src/base/requirements/testworkflows_setup.yaml
+runners:
+  - type: executable
+  - type: nextflow
