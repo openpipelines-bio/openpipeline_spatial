@@ -1,0 +1,270 @@
+name: "scvi_cellcharter"
+namespace: "workflows/spatial_domains"
+scope: "public"
+description: |
+  A pipeline to identify spatial domains with CellCharter, following the
+  [CellCharter CosMx tutorial](https://cellcharter.readthedocs.io/en/latest/notebooks/cosmx_human_nsclc.html):
+
+  1. `integrate/scvi`: reduce the dimensionality of the gene expression with scVI, correcting for batch effects.
+  2. `neighbors/spatial_neighborhood_graph`: build a spatial neighborhood graph per library, and prune long links.
+  3. `cellcharter/aggregate_neighbors`: aggregate the scVI embedding of every cell's spatial neighborhood over multiple hops.
+  4. `cellcharter/cluster`: cluster the aggregated features into spatial domains with a Gaussian Mixture Model,
+     either with a fixed number of clusters (`--n_clusters`), or by selecting the number of clusters
+     with a stability analysis (`--n_clusters_range`). At least one of both must be provided.
+
+  The input is an already processed and filtered (multi-sample) H5MU file, e.g. the output of
+  `workflows/multiomics/spatial_process_samples`. Only the modality set with `--modality` is processed;
+  the other modalities are kept as is.
+
+  Required input:
+    .X or .layers[--layer]              -  Raw counts, used to train the scVI model.
+    .obsm[--input_obsm_spatial_coords]  -  Spatial coordinates of the observations. These must be global
+                                           coordinates within each library (e.g. `spatial_fov` for CosMx data).
+    .obs[--input_obs_library_key]       -  The library (e.g. sample) each observation belongs to.
+    .obs[--obs_batch]                   -  The batch each observation belongs to, used by scVI.
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+    roles: [ author, maintainer ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--id"
+        required: true
+        type: string
+        description: ID of the sample.
+        example: foo
+      - name: "--input"
+        alternatives: [-i]
+        description: Path to the processed H5MU file.
+        required: true
+        example: input.h5mu
+        type: file
+      - name: "--modality"
+        description: Which modality to process.
+        type: string
+        default: "rna"
+        required: false
+      - name: "--layer"
+        type: string
+        required: false
+        description: Layer containing the raw counts to train the scVI model on. If not set, `.X` is used.
+      - name: "--input_obsm_spatial_coords"
+        type: string
+        default: "spatial"
+        description: |
+          Key in `.obsm` where the spatial coordinates are stored. These must be global coordinates within
+          each library. For CosMx data, use `spatial_fov`, since `spatial` holds coordinates relative to each FOV.
+      - name: "--input_obs_library_key"
+        type: string
+        default: "sample_id"
+        description: |
+          Key in `.obs` that identifies the library (e.g. sample) each observation belongs to.
+          The spatial neighborhood graph and the neighborhood aggregation are computed separately for
+          each library, so no neighbors are shared between observations of different libraries.
+
+  - name: "scVI"
+    description: Options for the dimensionality reduction with scVI.
+    arguments:
+      - name: "--obs_batch"
+        type: string
+        default: "sample_id"
+        description: Key in `.obs` identifying the batches to correct for with scVI.
+      - name: "--var_input"
+        type: string
+        required: false
+        example: "filter_with_hvg"
+        description: |
+          Key of a boolean column in `.var` selecting the genes to train the scVI model on
+          (e.g. highly variable genes). If not set, all genes are used.
+      - name: "--n_dimensions_latent_space"
+        type: integer
+        default: 10
+        min: 1
+        description: |
+          Dimensionality of the scVI latent space. The number of features to cluster scales with this value
+          and the number of aggregated neighborhood layers, so CellCharter recommends a low value.
+      - name: "--scvi_max_epochs"
+        type: integer
+        required: false
+        min: 1
+        description: |
+          Number of passes through the dataset to train the scVI model.
+          Defaults to (20000 / number of cells) * 400 or 400, whichever is smallest.
+      - name: "--early_stopping"
+        type: boolean
+        required: false
+        description: Whether to perform early stopping with respect to the validation set when training the scVI model.
+      - name: "--obsm_scvi"
+        type: string
+        default: "X_scvi"
+        description: Key in `.obsm` where the scVI embedding will be stored.
+
+  - name: "Spatial Neighbor Graph"
+    description: Options for the calculation of the spatial neighborhood graph.
+    arguments:
+      - name: "--coord_type"
+        type: string
+        default: "generic"
+        choices: ["generic", "grid"]
+        description: |
+          Type of coordinate system. Valid options are:
+          `grid` - grid coordinates. Only relevant for lattice-based layouts (e.g. Visium).
+          `generic` - generic coordinates. Recommended for imaging-based data (e.g. Xenium, CosMx).
+      - name: "--n_spatial_neighbors"
+        type: integer
+        default: 6
+        min: 1
+        description: |
+          Depending on `--coord_type`:
+          `grid` - number of neighboring tiles.
+          `generic` - number of neighbors. Only used when `--delaunay false`.
+      - name: "--delaunay"
+        type: boolean
+        default: true
+        description: |
+          Whether to use Delaunay triangulation to determine the spatial neighborhood graph,
+          as recommended by CellCharter. Only used when `--coord_type generic`.
+      - name: "--percentile"
+        type: double
+        default: 99.0
+        min: 0
+        max: 100
+        description: |
+          Prune edges that are longer than this percentile of all edge distances within a library,
+          to remove the long links created by Delaunay triangulation. Only used when `--coord_type generic`.
+
+  - name: "Neighborhood Aggregation"
+    description: Options for the aggregation of the scVI embedding over the spatial neighborhood of every cell.
+    arguments:
+      - name: "--n_layers"
+        type: integer
+        multiple: true
+        default: [3]
+        min: 0
+        description: |
+          Which neighborhood layers (hops) to aggregate.
+          If a single value `n` is provided, the cells' own features and the aggregated features of the
+          neighbors up to `n` hops away are concatenated: `cell | 1-hop | ... | n-hop`.
+          If multiple values are provided, each value is a hop distance to aggregate, and `0` (the cells'
+          own features) must be included, e.g. `0;1;3`.
+      - name: "--aggregations"
+        type: string
+        multiple: true
+        choices: ["mean", "var"]
+        default: ["mean"]
+        description: Which functions to use to aggregate the neighbors' features.
+      - name: "--obsm_cellcharter"
+        type: string
+        default: "X_cellcharter"
+        description: Key in `.obsm` where the aggregated neighborhood features will be stored.
+
+  - name: "Clustering"
+    description: |
+      Options for the clustering into spatial domains. Provide `--n_clusters`, `--n_clusters_range`, or both.
+    arguments:
+      - name: "--n_clusters"
+        type: integer
+        required: false
+        min: 2
+        example: 6
+        description: |
+          Number of clusters.
+          When `--n_clusters_range` is not set, a single model is fitted with this number of clusters.
+          When `--n_clusters_range` is set, the stability analysis is still performed, but the cells are
+          clustered with this number of clusters instead of the most stable one. Must be within `--n_clusters_range`.
+      - name: "--n_clusters_range"
+        type: integer
+        multiple: true
+        required: false
+        min: 2
+        example: [2, 10]
+        description: |
+          Minimum and maximum number of clusters (both included) to evaluate in the stability analysis
+          for the automatic selection of the number of clusters.
+      - name: "--max_runs"
+        type: integer
+        default: 10
+        min: 2
+        description: |
+          Maximum number of repetitions of the clustering for every number of clusters in `--n_clusters_range`.
+      - name: "--stability_convergence_tolerance"
+        type: double
+        default: 0.01
+        min: 0
+        description: |
+          If the mean absolute percentage error of the stability between consecutive runs is below this
+          value, no more runs are performed.
+      - name: "--covariance_type"
+        type: string
+        default: "full"
+        choices: ["full", "tied", "diag", "spherical"]
+        description: The type of covariance to assume for all Gaussian components.
+      - name: "--cluster_max_epochs"
+        type: integer
+        default: 100
+        min: 1
+        description: Maximum number of epochs (EM iterations) to fit the Gaussian Mixture Model.
+      - name: "--cluster_batch_size"
+        type: integer
+        required: false
+        min: 1
+        description: |
+          Batch size used to fit the Gaussian Mixture Model. If not set, all cells are used as a single batch.
+      - name: "--accelerator"
+        type: string
+        default: "auto"
+        choices: ["auto", "cpu", "gpu"]
+        description: |
+          Hardware to fit the Gaussian Mixture Model on. `auto` uses a GPU when one is available.
+      - name: "--cluster_random_state"
+        type: integer
+        default: 0
+        description: Random seed for the clustering.
+      - name: "--obs_cluster"
+        type: string
+        default: "cellcharter_cluster"
+        description: Key in `.obs` where the spatial domain labels will be stored.
+      - name: "--uns_stability"
+        type: string
+        default: "cellcharter_autok"
+        description: |
+          Key in `.uns` where the results of the stability analysis will be stored, when `--n_clusters_range` is set.
+
+  - name: "Outputs"
+    arguments:
+      - name: "--output"
+        type: file
+        required: true
+        direction: output
+        description: Destination path to the output.
+        example: output.h5mu
+      - name: "--output_scvi_model"
+        type: file
+        required: true
+        direction: output
+        description: Folder where the trained scVI model will be saved to.
+        example: scvi_model/
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+dependencies:
+  - name: integrate/scvi
+    repository: openpipeline
+  - name: neighbors/spatial_neighborhood_graph
+  - name: cellcharter/aggregate_neighbors
+  - name: cellcharter/cluster
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - path: /resources_test/cosmx/Lung5_tiny_processed.h5mu
+  - path: /resources_test/visium/visium_tiny_processed.h5mu
+
+runners:
+  - type: nextflow
