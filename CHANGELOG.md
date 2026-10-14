@@ -8,6 +8,10 @@
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
 
+## BUG FIXES
+
+* `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+
 # openpipeline_spatial 0.7.0
 
 ## MINOR CHANGES
