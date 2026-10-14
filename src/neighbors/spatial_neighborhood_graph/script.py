@@ -15,6 +15,7 @@ par = {
     "delaunay": False,
     "percentile": None,
     "output": "foo.h5mu",
+    "output_compression": None,
 }
 
 meta = {"resources_dir": "src/utils/"}
@@ -22,6 +23,7 @@ meta = {"resources_dir": "src/utils/"}
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from compress_h5mu import write_h5ad_to_h5mu_with_compression
 
 logger = setup_logger()
 
@@ -62,7 +64,9 @@ adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maxi
     adata.obsp["spatial_connectivities"].T
 )
 
-## Save model and data
+## Save data
+# Write the modality back into a copy of the input, so that the other modalities are preserved
 logger.info("Saving output data...")
-mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"], compression=par["output_compression"])
+write_h5ad_to_h5mu_with_compression(
+    par["output"], par["input"], par["modality"], adata, par["output_compression"]
+)
