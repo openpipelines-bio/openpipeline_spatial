@@ -124,7 +124,6 @@ argument_groups:
           the (typically smaller) resized image used internally by the model.
       - name: "--augment"
         type: boolean_true
-        default: false
         description: Whether to tile the image with overlapping tiles and average the predictions.
       - name: "--batch_size"
         type: integer
@@ -193,12 +192,15 @@ engines:
           - procps
       - type: docker
         run: |
-          pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+          pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
       - type: python
         __merge__: [ /src/base/requirements/spatialdata.yaml, . ]
       - type: python
         packages:
           - cellpose~=4.2.0
+          # Required by the DINO-backbone models (`cpdino`, `cpdino-vitb`); not a
+          # cellpose dependency and not published on PyPI, so pinned to a commit.
+          - dinov3 @ https://github.com/facebookresearch/dinov3/archive/6876159a11b4df116f30f667f8c9888617df0751.tar.gz
       - type: docker
         # Cache the built-in models into the image at build time.
         env:
