@@ -6,7 +6,11 @@ from mudata import read_h5mu
 ##VIASH START
 par = {
     "input": "scvi_cellcharter/output.h5mu",
+<<<<<<< HEAD
     "input_obs_batch_key": "sample_id",
+=======
+    "input_obs_library_key": "sample_id",
+>>>>>>> 2fcee38b (Add tests)
     "n_dimensions_latent_space": 10,
     "n_aggregated_blocks": 4,
     "expected_n_clusters": None,
@@ -55,10 +59,17 @@ def test_spatial_graph(adata):
     connectivities = adata.obsp["spatial_connectivities"]
     assert connectivities.nnz > 0, "Expected edges in the spatial neighborhood graph."
 
+<<<<<<< HEAD
     batches = adata.obs[par["input_obs_batch_key"]].to_numpy()
     rows, cols = connectivities.nonzero()
     assert (batches[rows] == batches[cols]).all(), (
         "Expected no spatial edges between observations of different batches."
+=======
+    libraries = adata.obs[par["input_obs_library_key"]].to_numpy()
+    rows, cols = connectivities.nonzero()
+    assert (libraries[rows] == libraries[cols]).all(), (
+        "Expected no spatial edges between observations of different libraries."
+>>>>>>> 2fcee38b (Add tests)
     )
 
 
