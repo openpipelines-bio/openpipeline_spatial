@@ -58,6 +58,18 @@ argument_groups:
         description: |
           Whether to use Delaunay triangulation to determine spatial neighborhood graph.
           Only used when `--coord_type generic`.
+      - name: "--percentile"
+        type: double
+        required: false
+        min: 0
+        max: 100
+        example: 99.0
+        description: |
+          Prune edges that are longer than this percentile of all edge distances, e.g. to remove the
+          long links that Delaunay triangulation creates across empty regions of the tissue.
+          Equivalent to `cellcharter.gr.remove_long_links`. When `--input_obs_library_key` is set, the
+          distance threshold is computed per library. Only supported when `--coord_type generic`.
+          If not set, no edges are pruned.
 
   - name: Outputs
     arguments:
