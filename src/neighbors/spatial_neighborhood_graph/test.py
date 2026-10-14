@@ -1,5 +1,7 @@
 import pytest
+import anndata as ad
 import mudata as mu
+import pandas as pd
 import numpy as np
 import re
 import subprocess
@@ -194,6 +196,29 @@ def test_percentile_grid(run_component, tmp_path):
         r"--percentile is only supported when --coord_type is 'generic'.",
         err.value.stdout.decode("utf-8"),
     )
+
+
+def test_multimodal_input(run_component, tmp_path):
+    # add a second modality, which should be preserved in the output
+    mdata = mu.read_h5mu(input_xenium)
+    rna = mdata.mod["rna"]
+    prot = ad.AnnData(
+        X=np.ones((rna.n_obs, 3), dtype=np.float32),
+        obs=rna.obs[[]],
+        var=pd.DataFrame(index=["prot_a", "prot_b", "prot_c"]),
+    )
+    input_multimodal = tmp_path / "xenium_multimodal.h5mu"
+    mu.MuData({"rna": rna, "prot": prot}).write_h5mu(input_multimodal)
+
+    output = tmp_path / "output.h5mu"
+    run_component(["--input", str(input_multimodal), "--output", str(output)])
+
+    mdata_out = mu.read_h5mu(output)
+    assert set(mdata_out.mod.keys()) == {"rna", "prot"}, (
+        "Expected all modalities to be preserved"
+    )
+    assert "spatial_connectivities" in mdata_out.mod["rna"].obsp
+    np.testing.assert_array_equal(mdata_out.mod["prot"].X, prot.X)
 
 
 if __name__ == "__main__":
