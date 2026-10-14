@@ -173,6 +173,8 @@ engines:
       - type: apt
         packages:
           - procps
+          # required by rasterio, a dependency of cellcharter
+          - libexpat1
       # The default torch build on PyPI bundles CUDA, so the clustering can run on a GPU when one is available.
       - type: python
         packages:
