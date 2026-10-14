@@ -16,6 +16,8 @@
 
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
 
+* `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
@@ -27,6 +29,10 @@
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+
+## BUG FIXES
+
+* `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
 
 # openpipeline_spatial 0.7.0
 
