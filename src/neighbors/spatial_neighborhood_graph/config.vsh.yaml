@@ -24,6 +24,15 @@ argument_groups:
         type: string
         default: "spatial"
         description: "Key in adata.obsm where spatial coordinates are stored"
+      - name: "--input_obs_library_key"
+        type: string
+        required: false
+        example: "sample_id"
+        description: |
+          Key in adata.obs that identifies the library (e.g. sample) each observation belongs to.
+          When set, a spatial neighborhood graph is computed separately for each library, so no
+          spatial edges are created between observations of different libraries. When not set,
+          all observations are treated as a single library.
 
   - name: "Spatial Neighbors Calculation"
     arguments:
