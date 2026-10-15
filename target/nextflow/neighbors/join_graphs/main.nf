@@ -3192,6 +3192,10 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "/src/utils/compress_h5mu.py"
+    },
+    {
+      "type" : "file",
       "path" : "/src/workflows/utils/labels.config",
       "dest" : "nextflow_labels.config"
     }
@@ -3365,7 +3369,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/join_graphs",
     "viash_version" : "0.9.7",
-    "git_commit" : "203d556ac2ed5fecd06bb27ea0c992f9981e48ca",
+    "git_commit" : "a8c36998124e19f995679d5000a55c9d191ae5a7",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3455,6 +3459,7 @@ dep = {
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from compress_h5mu import write_h5ad_to_h5mu_with_compression
 
 logger = setup_logger()
 
@@ -3493,9 +3498,11 @@ adata.uns[out_key] = {
 }
 
 ## Write output
+# Write the modality back into a copy of the input, so that the other modalities are preserved
 logger.info("Saving output data...")
-mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"], compression=par["output_compression"])
+write_h5ad_to_h5mu_with_compression(
+    par["output"], par["input"], par["modality"], adata, par["output_compression"]
+)
 VIASHMAIN
 python -B "$tempscript"
 '''
