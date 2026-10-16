@@ -454,9 +454,9 @@ RUN pip install --upgrade pip && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.description="Companion container for running component feature_annotation spatial_autocorr"
-LABEL org.opencontainers.image.created="2026-10-15T14:06:49Z"
+LABEL org.opencontainers.image.created="2026-10-16T09:27:09Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="a8c36998124e19f995679d5000a55c9d191ae5a7"
+LABEL org.opencontainers.image.revision="38ed13911d1b73f5a67a67042e5f67bc9e17c0ac"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

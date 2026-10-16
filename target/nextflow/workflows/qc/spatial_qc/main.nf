@@ -3480,7 +3480,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/qc/spatial_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "a8c36998124e19f995679d5000a55c9d191ae5a7",
+    "git_commit" : "38ed13911d1b73f5a67a67042e5f67bc9e17c0ac",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

@@ -3044,7 +3044,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "nichecompass_leiden",
-  "namespace" : "workflows/niche",
+  "namespace" : "workflows/spatial_domains",
   "version" : "build_main",
   "authors" : [
     {
@@ -3749,7 +3749,7 @@ meta = [
     "test_dependencies" : [
       {
         "name" : "nichecompass_leiden_test",
-        "namespace" : "test_workflows/niche"
+        "namespace" : "test_workflows/spatial_domains"
       }
     ]
   },
@@ -3887,12 +3887,12 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/src/workflows/niche/nichecompass_leiden/config.vsh.yaml",
+    "config" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/src/workflows/spatial_domains/nichecompass_leiden/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "native",
-    "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/niche/nichecompass_leiden",
+    "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/spatial_domains/nichecompass_leiden",
     "viash_version" : "0.9.7",
-    "git_commit" : "a8c36998124e19f995679d5000a55c9d191ae5a7",
+    "git_commit" : "38ed13911d1b73f5a67a67042e5f67bc9e17c0ac",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
