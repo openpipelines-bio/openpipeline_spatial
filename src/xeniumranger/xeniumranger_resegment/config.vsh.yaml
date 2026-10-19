@@ -18,28 +18,26 @@ argument_groups:
     description: |
       File path to directory containing all required Xenium Onboard Analysis output files.
     example: "/path/to/xenium_output_bundle"
-  - name: "--id"
-    type: string
-    required: true
-    description: |
-      Unique string to specify the name of the relabel output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
-    example: "sample_relabel"
 - name: Staining arguments
   arguments:
   - name: "--boundary_stain"
     type: string
     required: false
     description: |
-      Specify the name of the boundary stain to use or disable. Supported for cell segmentation staining workflow output bundles.
-    choices: ["ATP1A1/CD45/E-Cadherin", "18S", "alphaSMA/Vimentin", "disable"]
-    default: "ATP1A1/CD45/E-Cadherin"
+      Name of the boundary stain to use for cell segmentation, or "disable" to not use boundary
+      stain segmentation. Possible values are a cell segmentation stain ("ATP1A1/CD45/E-Cadherin",
+      "18S", "alphaSMA/Vimentin"), a protein stain if present in the bundle, or "disable".
+      If not set, Xenium Ranger's own default is used.
+    example: "ATP1A1/CD45/E-Cadherin"
   - name: "--interior_stain"
     type: string
     required: false
     description: |
-      Specify the name of the interior stain to use or disable.
-    choices: ["ATP1A1/CD45/E-Cadherin", "18S", "alphaSMA/Vimentin", "disable"]
-    default: "18S"
+      Name of the interior stain to use for cell segmentation, or "disable" to not use interior
+      stain segmentation. Possible values are a cell segmentation stain ("18S",
+      "ATP1A1/CD45/E-Cadherin", "alphaSMA/Vimentin"), a protein stain if present in the bundle,
+      or "disable". If not set, Xenium Ranger's own default is used.
+    example: "18S"
 - name: Image arguments
   arguments:
   - name: "--segment_large_cells"
@@ -47,26 +45,24 @@ argument_groups:
     description: |
       Run boundary stain-based large cell segmentation.
   - name: "--expansion_distance"
-    type: integer
+    type: double
     required: false
     description: |
-      Nuclei boundary expansion distance in µm. (Min: 0, Max: 15 if either --boundary_stain
+      Nuclei boundary expansion distance in micrometers. (Min: 0, Max: 15 if either --boundary_stain
       or --interior_stain are enabled and 100 if nucleus-expansion only).
-    default: 0
+    min: 0 
+    max: 100
+    default: 5.0
   - name: "--dapi_filter"
-    type: integer
+    type: double
     required: false
     description: |
       Minimum intensity in photoelectrons (pe) to filter nuclei. Specifies the threshold for the 2D
       DAPI image; if the 2D image is deconvolved, XR v4.0 automatically multiplies this by 7 for the
       DAPI Z-stack. If left unset, xeniumranger uses its own default: 15 pe for deconvolved DAPI,
       100 pe for non-deconvolved DAPI.
-  - name: "--resegment_nuclei"
-    type: boolean_true
-    description: |
-      Boolean to specify whether to rerun the latest Xenium Onboard Analysis nucleus segmentation algorithm
-      or to use existing nucleus segmentation masks in the cells.zarr file. This parameter is deprecated and
-      will be removed in a future release.
+    min: 0
+    default: 15.0
 - name: Outputs
   arguments:
   - name: "--output"
@@ -74,7 +70,7 @@ argument_groups:
     required: true
     direction: output
     description: |
-      The folder to store the relabeled Xenium Ranger output bundle.
+      The folder to store the resegmented Xenium Ranger output bundle.
     example: "/path/to/output"
 resources:
   - type: bash_script
@@ -82,8 +78,7 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_tiny
-  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny_cropped
 engines:
   - type: docker
     image: quay.io/nf-core/xeniumranger:4.0
@@ -112,9 +107,6 @@ engines:
           - anndata==0.10.8
           - viashpy==0.9.0
         __merge__: /src/base/requirements/openpipeline_testutils.yaml
-      - type: python
-        packages:
-          - tifffile==2023.7.10
 runners:
   - type: executable
   - type: nextflow
