@@ -1,5 +1,5 @@
 name: "nichecompass_leiden"
-namespace: "workflows/niche"
+namespace: "workflows/spatial_domains"
 scope: "public"
 description: "A pipeline to compute the spatial neighborhood graph, perform nichecompass embedding followed by Leiden clustering."
 authors:
@@ -8,7 +8,7 @@ authors:
 info:
   test_dependencies:
     - name: nichecompass_leiden_test
-      namespace: test_workflows/niche
+      namespace: test_workflows/spatial_domains
 argument_groups:
   - name: Inputs
     arguments:

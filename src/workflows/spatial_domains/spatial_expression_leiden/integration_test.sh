@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 # get the root of the directory
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
@@ -8,9 +10,8 @@ cd "$REPO_ROOT"
 
 nextflow \
   run . \
-  -main-script src/workflows/niche/nichecompass_leiden/test.nf \
+  -main-script src/workflows/spatial_domains/spatial_expression_leiden/test.nf \
   -entry test_wf \
-  -resume \
   -profile docker,no_publish \
   -c src/workflows/utils/labels_ci.config \
   -c src/workflows/utils/integration_tests.config

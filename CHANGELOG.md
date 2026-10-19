@@ -1,3 +1,21 @@
+# openpipeline_spatial x.x.x
+
+## BREAKING CHANGES
+
+* `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR #87).
+
+## NEW FUNCTIONALITY
+
+* `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+
+## MINOR CHANGES
+
+* `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
+
+## BUG FIXES
+
+* `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+
 # openpipeline_spatial 0.7.0
 
 ## MINOR CHANGES
