@@ -47,8 +47,9 @@ argument_groups:
           2` to use channels 0 and 2 (in that order). At most three channels
           can be used; if not provided, all channels are used as-is, and if
           more than three are present only the first three are used (with a
-          warning), matching Cellpose-SAM's own default behavior. Ignored for
-          single-channel images.
+          warning), matching Cellpose-SAM's own default behavior. Indices
+          must be within the range of the image's channels (i.e. only `0` is
+          valid for a single-channel image).
 
   - name: "Parameters"
     arguments:
@@ -62,6 +63,11 @@ argument_groups:
           both using a SAM backbone; `cpdino` and `cpdino-vitb` use a
           DINO-based backbone instead. Ignored if `--pretrained_model_file`
           is set.
+
+          Note that the DINO-based models are subject to the
+          [DINOv3 License](https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md),
+          which among other things requires acknowledging the use of DINO
+          Materials in publications of research results obtained with them.
       - name: "--pretrained_model_file"
         type: file
         required: false
@@ -201,6 +207,24 @@ engines:
           # Required by the DINO-backbone models (`cpdino`, `cpdino-vitb`); not a
           # cellpose dependency and not published on PyPI, so pinned to a commit.
           - dinov3 @ https://github.com/facebookresearch/dinov3/archive/6876159a11b4df116f30f667f8c9888617df0751.tar.gz
+      - type: docker
+        # The DINOv3 License requires a copy of the agreement to be shipped
+        # alongside any distributed DINO Materials (the `dinov3` package and
+        # the cached `cpdino`/`cpdino-vitb` weights).
+        run:
+          - |
+            mkdir -p /licenses && \
+            python3 -c "import urllib.request; urllib.request.urlretrieve('https://raw.githubusercontent.com/facebookresearch/dinov3/6876159a11b4df116f30f667f8c9888617df0751/LICENSE.md', '/licenses/DINOv3_LICENSE.md')" && \
+            cat > /NOTICE <<'EOF'
+            This image contains DINO Materials provided by Meta Platforms, Inc.
+            (the `dinov3` package and the DINO-based Cellpose models `cpdino`
+            and `cpdino-vitb`), which are licensed under the DINOv3 License:
+            https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md
+            A copy of this license is included at /licenses/DINOv3_LICENSE.md.
+
+            The source code for this project is licensed under MIT:
+            https://github.com/openpipelines-bio/openpipeline_spatial
+            EOF
       - type: docker
         # Cache the built-in models into the image at build time.
         env:
