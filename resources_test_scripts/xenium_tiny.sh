@@ -54,7 +54,7 @@ EOF
 
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r 2.1.0 \
+  -r v4.2.0 \
   -main-script target/nextflow/workflows/qc/qc/main.nf \
   -profile docker \
   -params-file /tmp/qc.yaml \
@@ -76,7 +76,7 @@ EOF
 
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r v4.0.3 \
+  -r v4.2.0 \
   -main-script target/nextflow/dimred/pca/main.nf \
   -profile docker \
   -params-file /tmp/pca.yaml \
@@ -94,7 +94,7 @@ EOF
 
 nextflow run openpipelines-bio/openpipeline \
   -latest \
-  -r v4.0.3 \
+  -r v4.2.0 \
   -main-script target/nextflow/neighbors/find_neighbors/main.nf \
   -profile docker \
   -params-file /tmp/find_neighbors.yaml \

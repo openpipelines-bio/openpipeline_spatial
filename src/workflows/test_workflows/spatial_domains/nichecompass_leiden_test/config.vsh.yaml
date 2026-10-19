@@ -1,5 +1,5 @@
 name: "nichecompass_leiden_test"
-namespace: "test_workflows/niche"
+namespace: "test_workflows/spatial_domains"
 scope: "test"
 description: "This component tests the output of nichecompass leiden workflow."
 authors:
