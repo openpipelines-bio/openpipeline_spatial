@@ -78,6 +78,17 @@ image_arr = np.asarray(image_element.data)
 if image_arr.ndim == 3:
     channels = [par["cytoplasm_channel"], par["nuclear_channel"]]
     channel_axis = 0
+    # Cellpose itself either fails with an IndexError that is offset by one
+    # from the user-facing 1-based numbering, or (for a single-channel image)
+    # silently segments the grayscale image instead of the requested channel.
+    n_channels = image_arr.shape[channel_axis]
+    for arg_name, channel in zip(["cytoplasm_channel", "nuclear_channel"], channels):
+        if channel > n_channels:
+            raise ValueError(
+                f"'--{arg_name}' ({channel}) is out of range for image "
+                f"'{image_key}' with {n_channels} channel(s); valid values are "
+                f"0 to {n_channels} (1-based, 0 = none/grayscale)."
+            )
 else:
     # A 2D image has no channel axis to select from, so a non-zero
     # '--cytoplasm_channel'/'--nuclear_channel' would otherwise be silently

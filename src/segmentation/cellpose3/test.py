@@ -151,6 +151,34 @@ def test_fail_missing_image_key(run_component, tmp_path):
     )
 
 
+@pytest.mark.parametrize(
+    "arg_name,channel_args",
+    [
+        ("cytoplasm_channel", ["--cytoplasm_channel", "5"]),
+        ("nuclear_channel", ["--cytoplasm_channel", "1", "--nuclear_channel", "5"]),
+    ],
+)
+def test_fail_channel_out_of_range(run_component, tmp_path, arg_name, channel_args):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                *channel_args,
+            ]
+        )
+    assert re.search(
+        rf"'--{arg_name}' \(5\) is out of range for image 'morphology_focus' "
+        r"with 4 channel\(s\)",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
+
+
 def test_fail_invalid_normalize_percentiles(run_component, tmp_path):
     output = tmp_path / "should_not_exist.zarr"
 

@@ -119,8 +119,7 @@ argument_groups:
           Whether to run dynamics on the full-resolution image rather than on
           the (typically smaller) resized image used internally by the model.
       - name: "--augment"
-        type: boolean
-        default: false
+        type: boolean_true
         description: Whether to tile the image with overlapping tiles and average the predictions.
       - name: "--batch_size"
         type: integer
