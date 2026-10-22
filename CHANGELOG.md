@@ -10,6 +10,8 @@
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
+* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
