@@ -454,9 +454,9 @@ RUN pip install --upgrade pip && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.description="Companion container for running component feature_annotation xenium_spatial_statistics"
-LABEL org.opencontainers.image.created="2026-10-16T09:27:09Z"
+LABEL org.opencontainers.image.created="2026-10-22T08:11:52Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="38ed13911d1b73f5a67a67042e5f67bc9e17c0ac"
+LABEL org.opencontainers.image.revision="d9e10d65afff16135620ae534a88143b6d1314cc"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -1,0 +1,460 @@
+name: "cellpose_sam"
+namespace: "segmentation"
+version: "build_main"
+authors:
+- name: "Mirte De Temmerman"
+  roles:
+  - "author"
+  info:
+    links:
+      github: "mimi-DT"
+      linkedin: "mirtedt"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "Input SpatialData Zarr store containing the image to segment."
+    info: null
+    example:
+    - "input.zarr"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_image"
+    description: "Key in `sdata.images` of the image element to segment.\n"
+    info: null
+    default:
+    - "morphology_focus"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--channels"
+    description: "Indices (within the image's channel axis), in the desired order,\n\
+      of the channels to feed to the model, e.g. `--channels 0 --channels\n2` to use\
+      \ channels 0 and 2 (in that order). At most three channels\ncan be used; if\
+      \ not provided, all channels are used as-is, and if\nmore than three are present\
+      \ only the first three are used (with a\nwarning), matching Cellpose-SAM's own\
+      \ default behavior. Indices\nmust be within the range of the image's channels\
+      \ (i.e. only `0` is\nvalid for a single-channel image).\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Parameters"
+  arguments:
+  - type: "string"
+    name: "--pretrained_model_name"
+    description: "Built-in Cellpose model to use. `cpsam_v2` is the current default\n\
+      generalist model and `cpsam` is the original Cellpose-SAM release,\nboth using\
+      \ a SAM backbone; `cpdino` and `cpdino-vitb` use a\nDINO-based backbone instead.\
+      \ Ignored if `--pretrained_model_file`\nis set.\n\nNote that the DINO-based\
+      \ models are subject to the\n[DINOv3 License](https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md),\n\
+      which among other things requires acknowledging the use of DINO\nMaterials in\
+      \ publications of research results obtained with them.\n"
+    info: null
+    default:
+    - "cpsam_v2"
+    required: false
+    choices:
+    - "cpsam_v2"
+    - "cpsam"
+    - "cpdino"
+    - "cpdino-vitb"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--pretrained_model_file"
+    description: "Path to a custom pretrained Cellpose-SAM model. If provided, this\n\
+      is used instead of `--pretrained_model_name`.\n"
+    info: null
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--diameter"
+    description: "Expected diameter of objects in pixels; the image is rescaled so\n\
+      that objects are approximately 30 pixels wide before segmentation.\nUnlike Cellpose3,\
+      \ Cellpose-SAM does not automatically estimate the\ndiameter when this is left\
+      \ unset (no rescaling is applied, i.e. a\nrescale factor of 1.0); the model\
+      \ was trained to be relatively\nsize-invariant, so leaving this unset is a reasonable\
+      \ default.\n"
+    info: null
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--flow_threshold"
+    description: "Maximum allowed error of the flows for each mask. Increase this\n\
+      threshold if Cellpose is not returning enough masks; decrease it if\nCellpose\
+      \ is returning too many ill-shaped masks.\n"
+    info: null
+    default:
+    - 0.4
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--cellprob_threshold"
+    description: "Pixels with cell probability above this threshold are used to run\n\
+      dynamics and determine masks. Decrease this threshold if Cellpose is\nnot returning\
+      \ as many masks as expected.\n"
+    info: null
+    default:
+    - 0.0
+    required: false
+    min: -6.0
+    max: 6.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--min_size"
+    description: "Minimum number of pixels per mask; masks smaller than this are discarded."
+    info: null
+    default:
+    - 15
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--max_size_fraction"
+    description: "Masks larger than this fraction of the total image size are\ndiscarded.\n"
+    info: null
+    default:
+    - 0.4
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--niter"
+    description: "Number of iterations of the dynamics simulation used to derive\n\
+      masks. If not provided, this is determined automatically based on\nthe object\
+      \ diameter.\n"
+    info: null
+    required: false
+    min: 0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--resample"
+    description: "Whether to run dynamics on the full-resolution image rather than\
+      \ on\nthe (typically smaller) resized image used internally by the model.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--augment"
+    description: "Whether to tile the image with overlapping tiles and average the\
+      \ predictions."
+    info: null
+    direction: "input"
+  - type: "integer"
+    name: "--batch_size"
+    description: "Number of 256x256 image tiles to run simultaneously on the GPU or\
+      \ CPU."
+    info: null
+    default:
+    - 8
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--device_type"
+    description: "Device to run the model on. `gpu` requires a CUDA- or MPS-capable\n\
+      device. If none is available the component logs a warning and falls\nback to\
+      \ CPU.\n"
+    info: null
+    default:
+    - "cpu"
+    required: false
+    choices:
+    - "cpu"
+    - "gpu"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--normalize_percentile_low"
+    description: "Lower percentile used to rescale pixel intensities before running\n\
+      the model.\n"
+    info: null
+    default:
+    - 1.0
+    required: false
+    min: 0.0
+    max: 100.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--normalize_percentile_high"
+    description: "Upper percentile used to rescale pixel intensities before running\n\
+      the model. Fluorescence images such as spatial transcriptomics DAPI\nscans are\
+      \ mostly background, so Cellpose's own default of 99 can\nland on a still-zero\
+      \ pixel and degenerate the normalization; 99.9\nis a safer default for this\
+      \ kind of sparse image.\n"
+    info: null
+    default:
+    - 99.9
+    required: false
+    min: 0.0
+    max: 100.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "Output SpatialData Zarr store."
+    info: null
+    example:
+    - "output.zarr"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_labels"
+    description: "Key under which to store the resulting segmentation mask in\n`sdata.labels`.\n"
+    info: null
+    default:
+    - "cellpose_sam_labels"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+- type: "file"
+  path: "setup_logger.py"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Segment cells or nuclei from a spatial image using Cellpose-SAM.\n\n\
+  Reads an image element from a SpatialData Zarr store and runs Cellpose-SAM\n(Cellpose's\
+  \ SAM-based generalist segmentation model, the successor to\nCellpose3) on it, producing\
+  \ an instance segmentation mask. The resulting\nmask is written back into the SpatialData\
+  \ object as a new labels element,\naligned to the input image's coordinate transformations.\n\
+  \nUnlike Cellpose3, Cellpose-SAM is a single generalist model: it does not\nneed\
+  \ a cytoplasm/nuclear channel split (`channels`/`model_type` are gone)\nand works\
+  \ directly on images with an arbitrary number of channels, using\nat most the first\
+  \ three unless a specific subset is selected with\n`--channels`.\n"
+test_resources:
+- type: "python_script"
+  path: "test.py"
+  is_executable: true
+- type: "file"
+  path: "xenium_multicellseg_tiny_cropped.zarr"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+references:
+  doi:
+  - "10.1101/2025.04.28.651001"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  docker_registry: "ghcr.io"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "midcpu"
+    - "highmem"
+    - "highdisk"
+    - "gpu"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "python:3.12-slim"
+  namespace_separator: "/"
+  setup:
+  - type: "apt"
+    packages:
+    - "procps"
+    interactive: false
+  - type: "docker"
+    run:
+    - "pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124\n"
+  - type: "python"
+    user: false
+    packages:
+    - "anndata~=0.12.16"
+    - "awkward"
+    - "scipy~=1.17.1"
+    - "spatialdata~=0.8.0"
+    - "pyarrow~=18.0.0"
+    - "ome-zarr~=0.18.0"
+    upgrade: true
+  - type: "python"
+    user: false
+    packages:
+    - "cellpose~=4.2.0"
+    - "dinov3 @ https://github.com/facebookresearch/dinov3/archive/6876159a11b4df116f30f667f8c9888617df0751.tar.gz"
+    upgrade: true
+  - type: "docker"
+    run:
+    - "mkdir -p /licenses && \\\npython3 -c \"import urllib.request; urllib.request.urlretrieve('https://raw.githubusercontent.com/facebookresearch/dinov3/6876159a11b4df116f30f667f8c9888617df0751/LICENSE.md',\
+      \ '/licenses/DINOv3_LICENSE.md')\" && \\\ncat > /NOTICE <<'EOF'\nThis image\
+      \ contains DINO Materials provided by Meta Platforms, Inc.\n(the `dinov3` package\
+      \ and the DINO-based Cellpose models `cpdino`\nand `cpdino-vitb`), which are\
+      \ licensed under the DINOv3 License:\nhttps://github.com/facebookresearch/dinov3/blob/main/LICENSE.md\n\
+      A copy of this license is included at /licenses/DINOv3_LICENSE.md.\n\nThe source\
+      \ code for this project is licensed under MIT:\nhttps://github.com/openpipelines-bio/openpipeline_spatial\n\
+      EOF\n"
+  - type: "docker"
+    run:
+    - "for model in cpsam_v2 cpsam cpdino cpdino-vitb; do \\\n  python3 -c \"from\
+      \ cellpose.models import CellposeModel; CellposeModel(gpu=False, pretrained_model='$model')\"\
+      \ || exit 1; \\\ndone && \\\nchmod -R a+rwX /opt/cellpose_models\n"
+    env:
+    - "CELLPOSE_LOCAL_MODELS_PATH=/opt/cellpose_models"
+  test_setup:
+  - type: "apt"
+    packages:
+    - "git"
+    interactive: false
+  - type: "python"
+    user: false
+    packages:
+    - "viashpy==0.10.0"
+    github:
+    - "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+build_info:
+  config: "src/segmentation/cellpose_sam/config.vsh.yaml"
+  runner: "executable"
+  engine: "docker"
+  output: "target/executable/segmentation/cellpose_sam"
+  executable: "target/executable/segmentation/cellpose_sam/cellpose_sam"
+  viash_version: "0.9.7"
+  git_commit: "d9e10d65afff16135620ae534a88143b6d1314cc"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"
