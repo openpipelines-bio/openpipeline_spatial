@@ -3134,7 +3134,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--input_obs_batch_key",
-          "description" : "Key of the adata.obs field that contains the batch information.",
+          "description" : "Key of the adata.obs field that contains the batch (e.g. sample) information.\nThe spatial neighborhood graph is computed separately for each batch, so no spatial\nedges are created between observations of different batches.\n",
           "default" : [
             "sample_id"
           ],
@@ -3760,14 +3760,6 @@ meta = [
   },
   "dependencies" : [
     {
-      "name" : "dataflow/concatenate_h5mu",
-      "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.1.0"
-      }
-    },
-    {
       "name" : "neighbors/spatial_neighborhood_graph",
       "repository" : {
         "type" : "local"
@@ -3777,14 +3769,6 @@ meta = [
       "name" : "nichecompass/nichecompass",
       "repository" : {
         "type" : "local"
-      }
-    },
-    {
-      "name" : "dataflow/split_h5mu",
-      "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.1.0"
       }
     },
     {
@@ -3892,7 +3876,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/spatial_domains/nichecompass_leiden",
     "viash_version" : "0.9.7",
-    "git_commit" : "d9e10d65afff16135620ae534a88143b6d1314cc",
+    "git_commit" : "b3a437633dc6c855d1ed435597201687db586f9e",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3932,10 +3916,8 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { concatenate_h5mu } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/dataflow/concatenate_h5mu/main.nf"
 include { spatial_neighborhood_graph } from "${meta.resources_dir}/../../../../nextflow/neighbors/spatial_neighborhood_graph/main.nf"
 include { nichecompass } from "${meta.resources_dir}/../../../../nextflow/nichecompass/nichecompass/main.nf"
-include { split_h5mu } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/dataflow/split_h5mu/main.nf"
 include { neighbors_leiden_umap } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/multiomics/neighbors_leiden_umap/main.nf"
 
 // inner workflow
@@ -3949,104 +3931,21 @@ workflow run_wf {
 
     | map { id, state ->
       [id, state + [
-        workflow_output: state.output,
-        _meta: [join_id: id]
+        workflow_output: state.output
       ]]
     }
-    // Split h5mu by sample
-    | split_h5mu.run(
-      fromState: {id, state -> [
-        "id": id,
-        "input": state.input,
-        "modality": state.modality,
-        "obs_feature": state.input_obs_batch_key,
-      ]},
-      args: [
-        "drop_obs_nan": true,
-        "ensure_unique_filenames": true
-      ],
-      toState: ["output": "output", "output_files": "output_files"]
-    )
-    
-    | flatMap {id, state ->
-      def outputDir = state.output
-
-      def csv = state.output_files.splitCsv(strip: true, sep: ",").findAll{!it[0].startsWith("#")}
-      def header = csv.head()
-      def files = csv.tail().collect { row ->
-          [header, row].transpose().collectEntries()
-      }
-      
-      files.collect{ dat ->
-        def new_id = dat.name // unique sample ids
-        def new_data = outputDir.resolve(dat.filename)
-        [ new_id, state + ["input": new_data ] ]
-      }
-    }
-    // remove keys from split files
-    | map {id, state -> 
-      def keysToRemove = ["output_files"]
-      def newState = state.findAll{it.key !in keysToRemove}
-      [id, newState]
-    }
-
+    // Compute the spatial neighborhood graph per sample
     | spatial_neighborhood_graph.run(
-      fromState: {id, state -> [
-        "input": state.input,
-        "modality": state.modality,
-        "input_obsm_spatial_coords": state.input_obsm_spatial_coords,
-        "coord_type": state.coord_type,
-        "n_spatial_neighbors": state.n_spatial_neighbors,
-        "delaunay": state.delaunay
-      ]},
-      toState: {id, output, state -> 
-          def keysToRemove = ["input_obsm_spatial_coords", "coord_type", "n_spatial_neighbors", "delaunay"]
-          def newState = state.findAll{it.key !in keysToRemove}
-          newState + ["input": output.output]
-        }
-    )
-
-    | joinStates { ids, states ->
-      def newId = states[0]._meta.join_id
-      // gather keys with unique values across states that should be combined
-      def new_state_non_unique_values = [
-        input: states.collect{it.input},
-        input_id: ids
-      ]
-      // gather keys from different states
-      def all_state_keys = states.inject([].toSet()){ current_keys, state ->
-          def new_keys = current_keys + state.keySet()
-          return new_keys
-      }.minus(["output", "id", "input", "_meta"])
-      // Create the new state from the keys, values should be the same across samples
-      def new_state = all_state_keys.inject([:]){ old_state, argument_name ->
-          argument_values = states.collect{it.get(argument_name)}.unique()
-          assert argument_values.size() == 1, "Arguments should be the same across samples. Argument name: $argument_name, \
-                                                argument value: $argument_values"
-          // take the unique value from the set (there is only one)
-          def argument_value
-          argument_values.each { argument_value = it }
-          def current_state = old_state + [(argument_name): argument_value]
-          return current_state
-      }
-      def data_state = new_state_non_unique_values + new_state
-      [ newId, data_state ]
-    }
-
-    | concatenate_h5mu.run(
-      fromState: { id, state -> [
-        "input": state.input,
-        "modality": state.modality,
-        "input_id": state.input_id
-      ]},
-      args: [
-        "obsp_keys": ["spatial_connectivities", "spatial_distances"]
+      fromState: [
+        "input": "input",
+        "modality": "modality",
+        "input_obsm_spatial_coords": "input_obsm_spatial_coords",
+        "input_obs_library_key": "input_obs_batch_key",
+        "coord_type": "coord_type",
+        "n_spatial_neighbors": "n_spatial_neighbors",
+        "delaunay": "delaunay"
       ],
-      toState: {id, output, state -> 
-          def keysToRemove = ["input_id"]
-          def newState = state.findAll{it.key !in keysToRemove}
-          newState + ["input": output.output]
-        }
+      toState: ["input": "output"]
     )
 
     | nichecompass.run(
