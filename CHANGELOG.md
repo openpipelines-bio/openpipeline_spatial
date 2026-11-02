@@ -1,6 +1,12 @@
-# openpipeline_spatial (unreleased)
+# openpipeline_spatial x.x.x
+
+## BREAKING CHANGES
+
+* `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR #87).
 
 ## NEW FUNCTIONALITY
+
+* `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
