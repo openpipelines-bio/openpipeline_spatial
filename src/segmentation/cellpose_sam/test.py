@@ -75,6 +75,46 @@ def test_default_execution(run_component, tmp_path):
     )
 
 
+def test_tiled_segmentation_matches_untiled(run_component, tmp_path):
+    # The test image is 732 x 742 pixels: the default tile size (4096)
+    # segments it in a single pass, a tile size of 384 splits it into 2 x 2
+    # tiles.
+    n_objects = {}
+    for mode, tile_size, expected_n_tiles in [
+        ("untiled", "4096", 1),
+        ("tiled", "384", 4),
+    ]:
+        output = tmp_path / f"segmented_{mode}.zarr"
+        stdout = run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--tile_size",
+                tile_size,
+            ]
+        ).decode("utf-8")
+        assert f"on {expected_n_tiles} tile(s)" in stdout
+
+        sdata = sd.read_zarr(output)
+        labels_arr = np.asarray(sdata.labels["cellpose_sam_labels"].data)
+        image_arr = _get_image_array(sdata.images["morphology_focus"])
+        assert labels_arr.shape == image_arr.shape[-2:], (
+            "Labels shape should match the (y, x) shape of the input image."
+        )
+        n_objects[mode] = len(np.unique(labels_arr)) - 1
+
+    assert n_objects["untiled"] > 0
+    # Tiling may change the result slightly (cells on tile borders,
+    # whole-image instead of per-image normalization), but cells should be
+    # neither lost nor counted twice.
+    assert n_objects["tiled"] == pytest.approx(n_objects["untiled"], rel=0.05), (
+        f"Tiled segmentation found {n_objects['tiled']} objects, untiled "
+        f"segmentation found {n_objects['untiled']}."
+    )
+
+
 def test_custom_output_labels_and_channels(run_component, tmp_path):
     # Combined into a single run (rather than separate tests per option) to
     # avoid paying for Cellpose-SAM's (comparatively heavy, transformer-based)
