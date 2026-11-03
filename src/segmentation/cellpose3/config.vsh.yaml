@@ -13,19 +13,9 @@ description: |
   **Whole-slide images.** The image is segmented in overlapping square
   tiles (`--tile_size`, `--tile_overlap`), so only one tile is loaded and
   segmented at a time. The overlap gives cells on a tile border their full
-  context; each cell is kept only by the one tile whose core (the tile
-  without its overlap margin) contains the centre of the cell's bounding
-  box, so cells are neither cut in half nor counted twice. Images that fit
-  in a single tile are segmented in one pass, exactly as without tiling.
-  Note that the full-size output mask is still held in memory (4 bytes per
-  pixel, e.g. ~5 GB for a 40k x 30k pixel Xenium image).
-
-  **Normalization.** Cellpose rescales pixel intensities using the
-  `--normalize_percentile_low`/`--normalize_percentile_high` percentiles.
-  When the image is split into multiple tiles, these percentiles are
-  computed once on (a subsample of) the whole image and the same intensity
-  range is applied to every tile, so tiles that are mostly background are
-  not rescaled differently from tiles full of cells.
+  context. Images that fit in a single tile are segmented in one pass, exactly 
+  as without tiling. Note that the full-size output mask is still held in 
+  memory (4 bytes per pixel, e.g. ~5 GB for a 40k x 30k pixel Xenium image).
 
 references:
   doi:
