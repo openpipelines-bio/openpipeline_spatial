@@ -10,11 +10,23 @@ description: |
   back into the SpatialData object as a new labels element, aligned to the
   input image's coordinate transformations.
 
-  **Memory.** The full-resolution image is loaded into memory and segmented
-  in a single pass, so whole-slide images (e.g. a full Xenium
-  `morphology_focus`) need tens of GB of RAM. Crop large images into regions
-  first, e.g. with `spatialdata.bounding_box_query` or run the component with large memory allocation.
-  
+  **Whole-slide images.** The image is segmented in overlapping square
+  tiles (`--tile_size`, `--tile_overlap`), so only one tile is loaded and
+  segmented at a time. The overlap gives cells on a tile border their full
+  context; each cell is kept only by the one tile whose core (the tile
+  without its overlap margin) contains the centre of the cell's bounding
+  box, so cells are neither cut in half nor counted twice. Images that fit
+  in a single tile are segmented in one pass, exactly as without tiling.
+  Note that the full-size output mask is still held in memory (4 bytes per
+  pixel, e.g. ~5 GB for a 40k x 30k pixel Xenium image).
+
+  **Normalization.** Cellpose rescales pixel intensities using the
+  `--normalize_percentile_low`/`--normalize_percentile_high` percentiles.
+  When the image is split into multiple tiles, these percentiles are
+  computed once on (a subsample of) the whole image and the same intensity
+  range is applied to every tile, so tiles that are mostly background are
+  not rescaled differently from tiles full of cells.
+
 references:
   doi:
     - "10.1038/s41592-020-01018-x" # Cellpose: a generalist algorithm for cellular segmentation
@@ -156,6 +168,25 @@ argument_groups:
           scans are mostly background, so Cellpose's own default of 99 can
           land on a still-zero pixel and degenerate the normalization; 99.9
           is a safer default for this kind of sparse image.
+      - name: "--tile_size"
+        type: integer
+        default: 4096
+        min: 1
+        description: |
+          Size (in pixels) of the square tiles the image is split into for
+          segmentation. Each tile is segmented separately, which keeps the
+          memory use bounded for whole-slide images. An image that is
+          smaller than one tile is segmented in a single pass. Larger tiles
+          need more memory (and GPU memory) but have fewer tile borders.
+      - name: "--tile_overlap"
+        type: integer
+        default: 128
+        min: 0
+        description: |
+          Number of pixels each tile is extended by on every side, so that
+          cells on a tile border are seen in full. Must be larger than the
+          largest expected cell diameter (in pixels); cells larger than this
+          may be cut off at tile borders.
 
   - name: Outputs
     arguments:
