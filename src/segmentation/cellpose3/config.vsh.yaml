@@ -10,6 +10,11 @@ description: |
   back into the SpatialData object as a new labels element, aligned to the
   input image's coordinate transformations.
 
+  **Memory.** The full-resolution image is loaded into memory and segmented
+  in a single pass, so whole-slide images (e.g. a full Xenium
+  `morphology_focus`) need tens of GB of RAM. Crop large images into regions
+  first, e.g. with `spatialdata.bounding_box_query` or run the component with large memory allocation.
+  
 references:
   doi:
     - "10.1038/s41592-020-01018-x" # Cellpose: a generalist algorithm for cellular segmentation
@@ -206,4 +211,4 @@ runners:
     # docker_run_args: ["--gpus all"]
   - type: nextflow
     directives:
-      label: [midcpu, midmem, middisk, gpu]
+      label: [highcpu, veryhighmem, veryhighdisk, gpu]
