@@ -211,7 +211,10 @@ argument_groups:
       - name: --nucleus_segmentation
         type: boolean
         required: false
-        description: Enable or disable nucleus/cell segmentation (on by default when an H&E image is given).
+        description: |
+          Enable or disable nucleus and cell segmentation. If set, requires an
+          H&E --image. When unset, Space Ranger segments if an H&E image is
+          provided, and skips segmentation otherwise.
       - name: --cell_annotation_model
         type: string
         required: false

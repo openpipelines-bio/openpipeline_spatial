@@ -200,8 +200,10 @@ argument_groups:
         name: --nucleus_segmentation
         required: false
         description: |
-          Enable or disable nucleus and cell segmentation for Visium HD / HD 3' H&E samples.
-          When unset, Space Ranger runs segmentation by default if an H&E image is provided.
+          Enable or disable nucleus and cell segmentation. Visium HD only. If
+          set, requires an H&E --image. When unset, Space Ranger segments if the
+          slide is Visium HD and an H&E image is provided, and skips
+          segmentation otherwise. Setting this for Visium slides gives an error.
 
       - type: file
         name: --custom_segmentation_file
