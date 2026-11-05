@@ -243,7 +243,11 @@ argument_groups:
       - name: --nucleus_expansion_distance_micron
         type: double
         required: false
-        description: Distance in microns to expand each nucleus to approximate the cell boundary.
+        description: |
+          Maximum distance in microns from a segmented nucleus at which a
+          barcode is assigned to that nucleus, to approximate the cell boundary.
+          Required with --custom_segmentation_file (set to 0 if the file is a
+          cell mask). When unset, Space Ranger applies its default (8).
       - name: --max_nucleus_diameter_px
         type: integer
         required: false
