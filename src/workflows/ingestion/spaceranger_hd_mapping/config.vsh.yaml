@@ -175,7 +175,7 @@ argument_groups:
     arguments:
       - name: --create_bam
         type: boolean
-        default: false
+        default: true
         description: Enable or disable BAM file generation.
       - name: --nosecondary
         type: boolean_true
