@@ -207,8 +207,8 @@ argument_groups:
         type: boolean
         required: false
         description: |
-          Include intronic reads in the count. When unset, Space Ranger applies its own default
-          (true for Visium HD 3' and Visium v1, false otherwise).
+          Include intronic reads in the count. When unset, Space Ranger applies
+          its default (true).
 
   - name: Segmentation Options
     arguments:
