@@ -7,10 +7,14 @@ from mudata import read_h5mu
 par = {
     "input": "scvi_cellcharter/output.h5mu",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "input_obs_batch_key": "sample_id",
 =======
     "input_obs_library_key": "sample_id",
 >>>>>>> 2fcee38b (Add tests)
+=======
+    "input_obs_batch_key": "sample_id",
+>>>>>>> 5e874b8d (Apply suggested changes)
     "n_dimensions_latent_space": 10,
     "n_aggregated_blocks": 4,
     "expected_n_clusters": None,
@@ -60,6 +64,7 @@ def test_spatial_graph(adata):
     assert connectivities.nnz > 0, "Expected edges in the spatial neighborhood graph."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     batches = adata.obs[par["input_obs_batch_key"]].to_numpy()
     rows, cols = connectivities.nonzero()
     assert (batches[rows] == batches[cols]).all(), (
@@ -70,6 +75,12 @@ def test_spatial_graph(adata):
     assert (libraries[rows] == libraries[cols]).all(), (
         "Expected no spatial edges between observations of different libraries."
 >>>>>>> 2fcee38b (Add tests)
+=======
+    batches = adata.obs[par["input_obs_batch_key"]].to_numpy()
+    rows, cols = connectivities.nonzero()
+    assert (batches[rows] == batches[cols]).all(), (
+        "Expected no spatial edges between observations of different batches."
+>>>>>>> 5e874b8d (Apply suggested changes)
     )
 
 

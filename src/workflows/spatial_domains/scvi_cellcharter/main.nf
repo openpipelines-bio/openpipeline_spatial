@@ -13,13 +13,19 @@ workflow run_wf {
         assert !state.n_clusters_range || state.n_clusters_range.size() == 2 :
           "--n_clusters_range must contain exactly two values: the minimum and maximum number of clusters."
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5e874b8d (Apply suggested changes)
         assert !state.n_clusters_range || state.n_clusters_range[0] < state.n_clusters_range[1] :
           "The first value of --n_clusters_range must be smaller than the second value."
         assert state.n_clusters == null || !state.n_clusters_range ||
           (state.n_clusters >= state.n_clusters_range[0] && state.n_clusters <= state.n_clusters_range[1]) :
           "--n_clusters must be within the range specified by --n_clusters_range."
+<<<<<<< HEAD
 =======
 >>>>>>> ee9e6f8b (Initial cellcharter workflow implementation)
+=======
+>>>>>>> 5e874b8d (Apply suggested changes)
       }
       [id, state + [workflow_output: state.output]]
     }
