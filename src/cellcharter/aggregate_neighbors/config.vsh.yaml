@@ -40,19 +40,29 @@ argument_groups:
       - name: "--input_obsm_features"
         type: string
         required: false
-        example: "X_pca"
+        example: "X_scvi_integrated"
         description: |
           Key in `.obsm` containing the features to aggregate, typically a dimensionality-reduced
-          representation (e.g. `X_pca`, `X_scvi`). This is the recommended input, since the size of
-          the output scales with the number of input features.
-          Mutually exclusive with `--layer`. If neither is set, `.X` is used.
+          representation. This is the recommended input, since the size of
+          the output scales with the number of input features. CellCharter recommends a batch-corrected
+          latent space, such as an scVI embedding (e.g. `X_scvi_integrated`) for transcriptomics data,
+          especially when multiple samples are analyzed. `X_pca` is a suitable alternative for a single
+          sample or data with negligible batch effects.
+          Ignored when `--layer` or `--use_x` is set. If none of these is set, `.X` is used.
       - name: "--layer"
         type: string
         required: false
         example: "log_normalized"
         description: |
-          Layer containing the features to aggregate. Mutually exclusive with `--input_obsm_features`.
-          If neither is set, `.X` is used.
+          Layer containing the features to aggregate, instead of `--input_obsm_features`.
+          Mutually exclusive with `--use_x`.
+          Note that sparse features are converted to a dense matrix, and the aggregated output is dense
+          as well, which can require a large amount of memory for many features.
+      - name: "--use_x"
+        type: boolean_true
+        description: |
+          Aggregate the features in `.X`, instead of `--input_obsm_features`.
+          Mutually exclusive with `--layer`.
           Note that sparse features are converted to a dense matrix, and the aggregated output is dense
           as well, which can require a large amount of memory for many features.
       - name: "--input_obsp_spatial_connectivities"
