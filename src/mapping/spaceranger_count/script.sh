@@ -120,7 +120,7 @@ spaceranger count \
   ${par_disable_cell_annotation:+--disable-cell-annotation} \
   ${par_project:+--project="$par_project"} \
   ${par_sample:+--sample="$par_sample"} \
-  ${par_lanes:+--lanes="$par_lanes"} \
+  ${par_lanes:+--lanes="${par_lanes//;/,}"} \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 
