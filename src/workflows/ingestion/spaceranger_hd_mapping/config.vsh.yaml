@@ -190,8 +190,10 @@ argument_groups:
         min: 1
       - name: --filter_probes
         type: boolean
-        default: true
-        description: Whether to filter the probe set using the "included" column
+        required: false
+        description: |
+          Whether to filter the probe set using the "included" column. Requires
+          --probe_set. When unset, Space Ranger applies its default (true).
       - name: --custom_bin_size
         type: integer
         description: Bin Visium HD data to an additional custom size in microns (4-100, even).
