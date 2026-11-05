@@ -12,10 +12,10 @@ argument_groups:
         required: true
         description: Path to h5mu output.
         example: foo.h5mu
-      - name: "--input_obs_library_key"
+      - name: "--input_obs_batch_key"
         type: string
         default: "sample_id"
-        description: Key in .obs identifying the library of each observation.
+        description: Key in .obs identifying the batch of each observation.
       - name: "--n_dimensions_latent_space"
         type: integer
         required: true

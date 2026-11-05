@@ -2,26 +2,21 @@ name: "scvi_cellcharter"
 namespace: "workflows/spatial_domains"
 scope: "public"
 description: |
-  A pipeline to identify spatial domains with CellCharter, following the
-  [CellCharter CosMx tutorial](https://cellcharter.readthedocs.io/en/latest/notebooks/cosmx_human_nsclc.html):
+  A pipeline to identify spatial domains with CellCharter, performing the following steps:
 
   1. `integrate/scvi`: reduce the dimensionality of the gene expression with scVI, correcting for batch effects.
-  2. `neighbors/spatial_neighborhood_graph`: build a spatial neighborhood graph per library, and prune long links.
+  2. `neighbors/spatial_neighborhood_graph`: build a spatial neighborhood graph per batch, and prune long links.
   3. `cellcharter/aggregate_neighbors`: aggregate the scVI embedding of every cell's spatial neighborhood over multiple hops.
   4. `cellcharter/cluster`: cluster the aggregated features into spatial domains with a Gaussian Mixture Model,
      either with a fixed number of clusters (`--n_clusters`), or by selecting the number of clusters
      with a stability analysis (`--n_clusters_range`). At least one of both must be provided.
 
   The input is an already processed and filtered (multi-sample) H5MU file, e.g. the output of
-  `workflows/multiomics/spatial_process_samples`. Only the modality set with `--modality` is processed;
-  the other modalities are kept as is.
+  `workflows/multiomics/spatial_process_samples`. 
+  
+  Note: spatial domains are currently computed form a single gene expression modality, modelled wiht scVI.
+  Joint modelling of RNA and protein (e.g. with totalVI for CITE-seq-like data) is not yet supported.
 
-  Required input:
-    .X or .layers[--layer]              -  Raw counts, used to train the scVI model.
-    .obsm[--input_obsm_spatial_coords]  -  Spatial coordinates of the observations. These must be global
-                                           coordinates within each library (e.g. `spatial_fov` for CosMx data).
-    .obs[--input_obs_library_key]       -  The library (e.g. sample) each observation belongs to.
-    .obs[--obs_batch]                   -  The batch each observation belongs to, used by scVI.
 authors:
   - __merge__: /src/authors/mirte_detemmerman.yaml
     roles: [ author, maintainer ]
@@ -54,14 +49,14 @@ argument_groups:
         default: "spatial"
         description: |
           Key in `.obsm` where the spatial coordinates are stored. These must be global coordinates within
-          each library. For CosMx data, use `spatial_fov`, since `spatial` holds coordinates relative to each FOV.
-      - name: "--input_obs_library_key"
+          each batch. For CosMx data, use `spatial_fov`, since `spatial` holds coordinates relative to each FOV.
+      - name: "--input_obs_batch_key"
         type: string
         default: "sample_id"
         description: |
-          Key in `.obs` that identifies the library (e.g. sample) each observation belongs to.
+          Key in `.obs` that identifies the batch (e.g. sample) each observation belongs to.
           The spatial neighborhood graph and the neighborhood aggregation are computed separately for
-          each library, so no neighbors are shared between observations of different libraries.
+          each batch, so no neighbors are shared between observations of different batches.
 
   - name: "scVI"
     description: Options for the dimensionality reduction with scVI.
@@ -131,7 +126,7 @@ argument_groups:
         min: 0
         max: 100
         description: |
-          Prune edges that are longer than this percentile of all edge distances within a library,
+          Prune edges that are longer than this percentile of all edge distances within a batch,
           to remove the long links created by Delaunay triangulation. Only used when `--coord_type generic`.
 
   - name: "Neighborhood Aggregation"
