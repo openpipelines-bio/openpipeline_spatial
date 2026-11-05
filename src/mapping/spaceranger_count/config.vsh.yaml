@@ -208,8 +208,12 @@ argument_groups:
         name: --custom_segmentation_file
         required: false
         description: |
-          Custom nucleus segmentation mask to use instead of the built-in algorithm.
-          Requires --nucleus_expansion_distance_micron.
+          Custom nucleus or cell segmentation to use instead of the built-in
+          algorithm. Accepts a TIFF image (16- or 32-bit grayscale), an NPY file
+          (uint32 matrix), a GeoJSON or a CSV file. TIFF, NPY and GeoJSON
+          coordinates must match the microscope image (--image). Requires
+          --nucleus_expansion_distance_micron (set to 0 for a cell mask). Cannot
+          be used with --max_nucleus_diameter_px.
         example: "nucleus_segmentation.geojson"
 
       - type: double
