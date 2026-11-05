@@ -56,6 +56,7 @@ sq.gr.spatial_neighbors(
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
     percentile=par["percentile"],
+    key_added="spatial",
 )
 
 # Making the connectivity matrix symmetric
