@@ -8,9 +8,10 @@ par_panel='resources_test/xenium/xenium_tiny/gene_panel.json'
 par_output='xeniumranger_relabel_test'
 ## VIASH END
 
-par_xenium_bundle=`realpath $par_xenium_bundle`
-par_panel=`realpath $par_panel`
-par_output=`realpath $par_output`
+# Resolve paths before changing directory so relative inputs keep working
+par_xenium_bundle=$(realpath "$par_xenium_bundle")
+par_panel=$(realpath "$par_panel")
+par_output=$(realpath -m "$par_output")
 
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
 function clean_up {

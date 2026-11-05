@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -277,7 +278,7 @@ def test_valid_panel(run_component, random_path, tmp_path):
     with open(malformed_panel, "w") as file:
         json.dump(malformed_data, file)
 
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -288,6 +289,12 @@ def test_valid_panel(run_component, random_path, tmp_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(
+        r"Unable to load gene panel JSON file provided with --panel",
+        stdout,
+        re.IGNORECASE,
+    ), "Xenium Ranger should report the malformed gene panel"
 
 
 def test_incomplete_bundle(run_component, random_path, tmp_path):
@@ -297,7 +304,7 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
     shutil.copytree(input_bundle, incomplete_bundle)
     (incomplete_bundle / "experiment.xenium").unlink()
 
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
@@ -308,6 +315,12 @@ def test_incomplete_bundle(run_component, random_path, tmp_path):
                 output,
             ]
         )
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(
+        r"No such file or directory: .*experiment\.xenium",
+        stdout,
+        re.IGNORECASE,
+    ), "Xenium Ranger should report the missing experiment.xenium file"
 
 
 def test_relative_paths(run_component, tmp_path, monkeypatch):
