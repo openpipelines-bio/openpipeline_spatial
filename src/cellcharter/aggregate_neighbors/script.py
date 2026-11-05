@@ -11,6 +11,7 @@ par = {
     "modality": "rna",
     "input_obsm_features": "X_pca",
     "layer": None,
+    "use_x": False,
     "input_obsp_spatial_connectivities": "spatial_connectivities",
     "input_obs_sample_key": None,
     # Neighborhood aggregation
@@ -39,25 +40,32 @@ if par["modality"] not in mdata.mod:
 adata = mdata.mod[par["modality"]]
 
 ## Select the features to aggregate
-if par["input_obsm_features"] and par["layer"]:
-    raise ValueError("Only one of --input_obsm_features and --layer can be provided.")
-if par["input_obsm_features"]:
-    if par["input_obsm_features"] not in adata.obsm:
-        raise ValueError(
-            f"--input_obsm_features '{par['input_obsm_features']}' not found in .obsm of modality '{par['modality']}'."
-        )
-    logger.info("Using .obsm['%s'] as features.", par["input_obsm_features"])
-    features = adata.obsm[par["input_obsm_features"]]
-elif par["layer"]:
+if par["layer"] and par["use_x"]:
+    raise ValueError("--layer and --use_x are mutually exclusive.")
+if par["input_obsm_features"] and (par["layer"] or par["use_x"]):
+    logger.warning(
+        "--input_obsm_features '%s' is ignored because %s is set.",
+        par["input_obsm_features"],
+        "--layer" if par["layer"] else "--use_x",
+    )
+
+if par["layer"]:
     if par["layer"] not in adata.layers:
         raise ValueError(
             f"--layer '{par['layer']}' not found in .layers of modality '{par['modality']}'."
         )
     logger.info("Using .layers['%s'] as features.", par["layer"])
     features = adata.layers[par["layer"]]
-else:
+elif par["use_x"] or not par["input_obsm_features"]:
     logger.info("Using .X as features.")
     features = adata.X
+else:
+    if par["input_obsm_features"] not in adata.obsm:
+        raise ValueError(
+            f"--input_obsm_features '{par['input_obsm_features']}' not found in .obsm of modality '{par['modality']}'."
+        )
+    logger.info("Using .obsm['%s'] as features.", par["input_obsm_features"])
+    features = adata.obsm[par["input_obsm_features"]]
 
 # cellcharter does not support sparse features in combination with a sample key or the 'var' aggregation.
 # Densify the input.

@@ -179,22 +179,99 @@ def test_missing_sample_key(run_component, tmp_path):
     )
 
 
-def test_obsm_and_layer_mutually_exclusive(run_component, tmp_path):
+def test_layer_and_use_x_mutually_exclusive(run_component, tmp_path):
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_xenium,
+                "--layer",
+                "log_normalized",
+                "--use_x",
+                "--output",
+                str(tmp_path / "output.h5mu"),
+            ]
+        )
+    assert re.search(
+        r"--layer and --use_x are mutually exclusive",
+        err.value.stdout.decode("utf-8"),
+    )
+
+
+def test_layer_overrides_obsm_features(run_component, tmp_path, input_multi_sample):
+    output = tmp_path / "output.h5mu"
+
+    stdout = run_component(
+        [
+            "--input",
+            str(input_multi_sample),
+            "--input_obsm_features",
+            "X_pca",
+            "--layer",
+            "log_normalized",
+            "--n_layers",
+            "1",
+            "--output",
+            str(output),
+        ]
+    ).decode("utf-8")
+
+    assert re.search(
+        r"--input_obsm_features 'X_pca' is ignored because --layer is set", stdout
+    )
+    adata = mu.read_h5mu(output).mod["rna"]
+    aggregated = to_dense(adata.obsm["X_cellcharter"])
+    assert aggregated.shape == (adata.n_obs, adata.n_vars * 2)
+    np.testing.assert_allclose(
+        aggregated[:, : adata.n_vars],
+        to_dense(adata.layers["log_normalized"]),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+
+
+def test_use_x_overrides_obsm_features(run_component, tmp_path):
+    output = tmp_path / "output.h5mu"
+
+    stdout = run_component(
+        [
+            "--input",
+            input_xenium,
+            "--input_obsm_features",
+            "X_pca",
+            "--use_x",
+            "--n_layers",
+            "1",
+            "--output",
+            str(output),
+        ]
+    ).decode("utf-8")
+
+    assert re.search(
+        r"--input_obsm_features 'X_pca' is ignored because --use_x is set", stdout
+    )
+    adata = mu.read_h5mu(output).mod["rna"]
+    aggregated = to_dense(adata.obsm["X_cellcharter"])
+    assert aggregated.shape == (adata.n_obs, adata.n_vars * 2)
+    np.testing.assert_allclose(
+        aggregated[:, : adata.n_vars], to_dense(adata.X), rtol=1e-5, atol=1e-5
+    )
+
+
+def test_missing_obsm_features(run_component, tmp_path):
     with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--input",
                 input_xenium,
                 "--input_obsm_features",
-                "X_pca",
-                "--layer",
-                "log_normalized",
+                "does_not_exist",
                 "--output",
                 str(tmp_path / "output.h5mu"),
             ]
         )
     assert re.search(
-        r"Only one of --input_obsm_features and --layer can be provided",
+        r"--input_obsm_features 'does_not_exist' not found in .obsm of modality 'rna'",
         err.value.stdout.decode("utf-8"),
     )
 
