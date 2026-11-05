@@ -1,5 +1,5 @@
 name: "nichecompass_leiden"
-namespace: "workflows/niche"
+namespace: "workflows/spatial_domains"
 scope: "public"
 description: "A pipeline to compute the spatial neighborhood graph, perform nichecompass embedding followed by Leiden clustering."
 authors:
@@ -8,7 +8,7 @@ authors:
 info:
   test_dependencies:
     - name: nichecompass_leiden_test
-      namespace: test_workflows/niche
+      namespace: test_workflows/spatial_domains
 argument_groups:
   - name: Inputs
     arguments:
@@ -44,7 +44,10 @@ argument_groups:
         required: false
       - name: "--input_obs_batch_key"
         type: string
-        description: "Key of the adata.obs field that contains the batch information."
+        description: |
+          Key of the adata.obs field that contains the batch (e.g. sample) information.
+          The spatial neighborhood graph is computed separately for each batch, so no spatial
+          edges are created between observations of different batches.
         default: sample_id
       - name: "--input_obs_covariates"
         type: string
@@ -328,12 +331,8 @@ argument_groups:
           Key of the obsm field where the latent / gene program representation of active gene programs will be stored after NicheCompass model training.
 
 dependencies:
-  - name: dataflow/concatenate_h5mu
-    repository: openpipeline
   - name: neighbors/spatial_neighborhood_graph
   - name: nichecompass/nichecompass
-  - name: dataflow/split_h5mu
-    repository: openpipeline
   - name: workflows/multiomics/neighbors_leiden_umap
     repository: openpipeline
 
