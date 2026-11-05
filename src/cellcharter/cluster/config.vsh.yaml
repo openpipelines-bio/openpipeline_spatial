@@ -168,7 +168,7 @@ test_resources:
 
 engines:
   - type: docker
-    image: python:3.12-slim
+    image: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
     setup:
       - type: apt
 <<<<<<< HEAD
@@ -181,11 +181,14 @@ engines:
           - procps
           # required by rasterio, a dependency of cellcharter
           - libexpat1
+<<<<<<< HEAD
       # The default torch build on PyPI bundles CUDA, so the clustering can run on a GPU when one is available.
       - type: python
         packages:
           - torch~=2.8.0
 >>>>>>> 96a589dd (Wrap cellcharter.tl.Cluster and cellcharter.tl.ClusterAutoK in component)
+=======
+>>>>>>> e888a951 (Apply requested changes)
       - type: python
         __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
         packages:

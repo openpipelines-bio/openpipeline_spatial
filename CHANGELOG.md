@@ -18,6 +18,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
 
 * `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
@@ -27,11 +28,15 @@
 =======
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #94).
 >>>>>>> b356134b (Update CHANGELOG)
+=======
+* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
+>>>>>>> e888a951 (Apply requested changes)
 
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
@@ -47,6 +52,9 @@
 =======
 * `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile, equivalent to `cellcharter.gr.remove_long_links` (PR #95).
 >>>>>>> 5a76ed4 (Update CHANGELOG)
+=======
+* `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile, equivalent to `cellcharter.gr.remove_long_links` (PR #93).
+>>>>>>> 451408d (Apply requested changes)
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--filter_probes` so that it is only passed to Space Ranger when set, which fixes runs without `--probe_set` such as Visium HD 3' (PR #104).
 
