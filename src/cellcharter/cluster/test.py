@@ -99,15 +99,22 @@ def test_autok(run_component, tmp_path, input_blobs):
     np.testing.assert_allclose(
         stability["stability_mean"], stability["stability"].mean(axis=1)
     )
-    assert stability["best_k"] == N_BLOBS, "Expected the most stable K to be 3"
-    assert stability["k"] == N_BLOBS
+    # Which K is the most stable is determined by cellcharter and is not guaranteed to be
+    # the number of blobs, so only check that the component reports and uses it consistently.
+    best_k = stability["best_k"]
+    assert best_k in stability["n_clusters"], (
+        "Expected best_k to be within --n_clusters_range"
+    )
+    assert stability["k"] == best_k, (
+        "Expected the most stable K to be used when --n_clusters is not set"
+    )
 
     labels = adata.obs["domains"]
-    assert labels.nunique() == N_BLOBS
-    assert adjusted_rand_score(adata.obs["truth"], labels) > 0.99
+    assert labels.nunique() == best_k
 
 
-def test_autok_with_n_clusters(run_component, tmp_path, input_blobs):
+@pytest.mark.parametrize("n_clusters", [N_BLOBS, N_BLOBS + 1])
+def test_autok_with_n_clusters(run_component, tmp_path, input_blobs, n_clusters):
     output = tmp_path / "output.h5mu"
 
     run_component(
@@ -117,7 +124,7 @@ def test_autok_with_n_clusters(run_component, tmp_path, input_blobs):
             "--n_clusters_range",
             "2;5",
             "--n_clusters",
-            "4",
+            str(n_clusters),
             "--max_runs",
             "2",
             "--covariance_type",
@@ -129,13 +136,13 @@ def test_autok_with_n_clusters(run_component, tmp_path, input_blobs):
 
     adata = mu.read_h5mu(output).mod["rna"]
     stability = adata.uns["cellcharter_autok"]
-    assert stability["k"] == 4, "Expected the provided --n_clusters to be used"
-    assert list(adata.obs["cellcharter_cluster"].cat.categories) == [
-        "0",
-        "1",
-        "2",
-        "3",
-    ]
+    assert stability["k"] == n_clusters, "Expected the provided --n_clusters to be used"
+    labels = adata.obs["cellcharter_cluster"]
+    assert list(labels.cat.categories) == [str(i) for i in range(n_clusters)]
+    if n_clusters == N_BLOBS:
+        assert adjusted_rand_score(adata.obs["truth"], labels) > 0.99, (
+            "Expected the clusters to recover the blobs"
+        )
 
 
 def test_reproducibility(run_component, tmp_path):
