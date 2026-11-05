@@ -92,7 +92,7 @@ argument_groups:
           instrument and the correct values are unknown. Not compatible with --slide, --area, or
           --slide-file options
         required: false
-        choices: [visium-1, visium-2, visium-2-large, visium-hd]
+        choices: [visium-1, visium-2, visium-2-large, visium-hd, visium-hd-large]
 
       - type: file
         name: --slidefile
