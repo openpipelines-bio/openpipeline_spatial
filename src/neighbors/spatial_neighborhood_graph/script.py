@@ -25,6 +25,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+## Validate the percentile
+if par["percentile"] is not None and par["coord_type"] != "generic":
+    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
+
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
@@ -39,10 +43,6 @@ if library_key:
     if adata.obs[library_key].dtype.name != "category":
         logger.info(f"Converting .obs['{library_key}'] to categorical...")
         adata.obs[library_key] = adata.obs[library_key].astype("category")
-
-## Validate the percentile
-if par["percentile"] is not None and par["coord_type"] != "generic":
-    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
 
 ## Compute spatial neighbor graph
 logger.info("Computing spatial neighbor graph...")
