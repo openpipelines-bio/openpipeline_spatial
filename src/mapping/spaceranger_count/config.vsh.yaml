@@ -154,7 +154,6 @@ argument_groups:
     arguments:
       - type: boolean
         name: --create_bam
-        required: true
         description: Enable or disable BAM file generation
         default: true
 
