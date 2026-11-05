@@ -152,7 +152,7 @@ else:
     model.fit(adata_features, use_rep="features")
     labels = model.predict(adata_features, use_rep="features")
 
-adata.obs[par["output_obs_cluster"]] = labels
+adata.obs[par["output_obs_cluster"]] = pd.Categorical(labels)
 logger.info(
     "Cluster sizes: %s", adata.obs[par["output_obs_cluster"]].value_counts().to_dict()
 )
