@@ -129,8 +129,11 @@ argument_groups:
         max: 10
       - name: --reorient_images
         type: boolean
-        default: true
-        description: Whether to rotate and mirror image to align fiducial pattern
+        required: false
+        description: |
+          Whether to rotate and mirror the image to align the fiducial pattern.
+          Cannot be used with --loupe_alignment. When unset, Space Ranger
+          applies its default (true).
       - name: --loupe_alignment
         type: file
         description: |
