@@ -8,7 +8,9 @@ import spatialdata as sd
 par = {
     "input": "./resources_test/xenium/xenium_tiny.h5mu",
     "input_spatialdata": "./resources_test/xenium/xenium_tiny.zarr",
+    "input_table": "table",
     "output": "./resources_test/xenium/xenium_tiny_from_h5mu.zarr",
+    "output_table": "table",
     "modality": "rna",
 }
 meta = {"resources_dir": "src/utils"}
@@ -35,12 +37,21 @@ if par.get("input_spatialdata", None) is not None:
     sdata_existing = sd.read_zarr(par["input_spatialdata"])
     logger.setLevel(logging.INFO)
 
-    logger.info("Checking modality matches existing SpatialData table...")
-    if not mod.n_obs == sdata_existing["table"].n_obs:
+    input_table = par["input_table"]
+    if input_table not in sdata_existing.tables:
+        raise ValueError(
+            f"Table '{input_table}' not found in existing SpatialData. "
+            f"Available tables: {list(sdata_existing.tables.keys())}"
+        )
+
+    logger.info(
+        f"Checking modality matches existing SpatialData table '{input_table}'..."
+    )
+    if not mod.n_obs == sdata_existing[input_table].n_obs:
         raise ValueError(
             "The number of observations in the selected modality does not match the existing SpatialData table."
         )
-    if not mod.obs_names.equals(sdata_existing["table"].obs_names):
+    if not mod.obs_names.equals(sdata_existing[input_table].obs_names):
         raise ValueError(
             "The observation names in the selected modality do not match the existing SpatialData table."
         )
@@ -62,10 +73,16 @@ if par.get("input_spatialdata", None) is not None:
         overwrite_metadata=True,
     )
 
-    sdata["table"] = mod
+    # The input table is kept unless the modality is stored under the same name
+    output_table = par["output_table"]
+    if output_table != input_table and output_table in sdata.tables:
+        logger.warning(
+            f"Output table '{output_table}' already exists and will be overwritten"
+        )
+    sdata[output_table] = mod
 else:
     logger.info("Creating new SpatialData...")
-    sdata = sd.SpatialData(tables={"table": mod})
+    sdata = sd.SpatialData(tables={par["output_table"]: mod})
 
 logger.info(f"Writing output SpatialData Zarr store to {par['output']}...")
 sdata.write(par["output"], overwrite=True)

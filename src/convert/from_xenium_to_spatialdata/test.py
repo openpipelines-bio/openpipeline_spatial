@@ -49,6 +49,8 @@ def test_compressed_input(run_component, tmp_path):
             zipped_input,
             "--output",
             output_sd_path,
+            "--output_table",
+            "cells",
         ]
     )
 
@@ -67,6 +69,7 @@ def test_compressed_input(run_component, tmp_path):
     assert (output_sd_path / "zarr.json").is_file(), (
         "zarr metadata file was not created"
     )
+    assert list(sdata.tables) == ["cells"], f"got tables {list(sdata.tables)}"
 
 
 if __name__ == "__main__":

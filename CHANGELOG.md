@@ -16,6 +16,8 @@
 
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
+* `convert/from_spatialdata_to_h5mu`, `convert/from_h5mu_to_spatialdata`, `dataflow/move_layer_spatialdata`, `dataflow/concatenate_spatialdata`, `convert/from_spaceranger_hd_to_spatialdata`, `convert/from_xenium_to_spatialdata`: Add `--input_table` and/or `--output_table` arguments to set the name of the SpatialData table that is used (default "table") (PR #106).
+
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
