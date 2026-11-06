@@ -7,7 +7,9 @@ import spatialdata as sd
 ## VIASH START
 par = {
     "inputs": ["input1.zarr", "input2.zarr"],
+    "input_table": None,
     "output": "output.zarr",
+    "output_table": "table",
     "attrs_merge": None,
     "anndata_join": "inner",
     "anndata_merge": None,
@@ -42,6 +44,15 @@ def get_unique_names_from_inputs(inputs):
     return names
 
 
+def check_table(sdata, table_name, input_path):
+    """Raise an error if a table is not in a SpatialData object."""
+    if table_name not in sdata.tables:
+        raise ValueError(
+            f"Table '{table_name}' not found in '{input_path}'. "
+            f"Available tables: {list(sdata.tables.keys())}"
+        )
+
+
 def _find_renamed_region(original_region, sample_key, concatenated):
     all_elements = (
         set(concatenated.shapes) | set(concatenated.labels) | set(concatenated.points)
@@ -61,6 +72,15 @@ def main(par):
     logger = setup_logger()
     logger.info("Concatenate SpatialData (spatialdata v%s)", sd.__version__)
 
+    if not par["input_table"]:
+        par["input_table"] = ["table"] * len(par["inputs"])
+    elif len(par["input_table"]) != len(par["inputs"]):
+        raise ValueError(
+            f"Got {len(par['input_table'])} values for --input_table and "
+            f"{len(par['inputs'])} values for --inputs. Give one table name "
+            "for each input, or do not set --input_table."
+        )
+
     if len(par["inputs"]) == 1:
         logger.warning(
             "Only one input provided – writing to output without concatenation."
@@ -68,11 +88,12 @@ def main(par):
         logger.info("Reading single input '%s'", par["inputs"][0])
         name = get_unique_names_from_inputs(par["inputs"])[0]
         sdata = sd.read_zarr(par["inputs"][0])
+        check_table(sdata, par["input_table"][0], par["inputs"][0])
 
         logger.info("Applying table merge settings via anndata.concat…")
-        original_attrs = sdata["table"].uns.get("spatialdata_attrs")
-        sdata["table"] = ad.concat(
-            {name: sdata["table"]},
+        original_attrs = sdata[par["input_table"][0]].uns.get("spatialdata_attrs")
+        sdata[par["output_table"]] = ad.concat(
+            {name: sdata[par["input_table"][0]]},
             join=par["anndata_join"],
             merge=par["anndata_merge"],
             uns_merge=par["anndata_uns_merge"],
@@ -81,7 +102,7 @@ def main(par):
             pairwise=par["anndata_pairwise"],
         )
         if original_attrs is not None:
-            sdata["table"].uns["spatialdata_attrs"] = original_attrs
+            sdata[par["output_table"]].uns["spatialdata_attrs"] = original_attrs
 
         logger.info("Writing SpatialData to '%s'", par["output"])
         sdata.write(par["output"])
@@ -91,9 +112,10 @@ def main(par):
     logger.info("Reading %d SpatialData objects…", len(par["inputs"]))
     names = get_unique_names_from_inputs(par["inputs"])
     sdatas = {}
-    for name, input_path in zip(names, par["inputs"]):
-        logger.info("  %s  ←  %s", name, input_path)
+    for name, input_path, input_table in zip(names, par["inputs"], par["input_table"]):
+        logger.info("  %s  ←  %s (table '%s')", name, input_path, input_table)
         sdatas[name] = sd.read_zarr(input_path)
+        check_table(sdatas[name], input_table, input_path)
 
     logger.info("Concatenating SpatialData objects…")
     concatenated = sd.concatenate(
@@ -108,8 +130,8 @@ def main(par):
     all_new_regions = []
     updated_tables = {}
 
-    for name, sdata_item in sdatas.items():
-        table = sdata_item["table"]
+    for (name, sdata_item), input_table in zip(sdatas.items(), par["input_table"]):
+        table = sdata_item[input_table]
         attrs = table.uns.get("spatialdata_attrs")
 
         if attrs is None:
@@ -140,7 +162,7 @@ def main(par):
             )
         updated_tables[name] = table
 
-    concatenated["table"] = ad.concat(
+    concatenated[par["output_table"]] = ad.concat(
         updated_tables,
         join=par["anndata_join"],
         merge=par["anndata_merge"],
@@ -151,7 +173,7 @@ def main(par):
     )
 
     if region_key and instance_key and all_new_regions:
-        concatenated["table"].uns["spatialdata_attrs"] = {
+        concatenated[par["output_table"]].uns["spatialdata_attrs"] = {
             "region": all_new_regions,
             "region_key": region_key,
             "instance_key": instance_key,
