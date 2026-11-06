@@ -29,6 +29,12 @@ arguments:
     description: Zarr directory where the SpatialData object will be stored
     example: "xenium_data.zarr"
     direction: output
+  - name: "--output_table"
+    type: string
+    default: table
+    description: |
+      Name of the main table in the output SpatialData object.
+      Only used when `--cells_table` is true.
   - name: "--cells_boundaries"
     type: boolean
     default: True
