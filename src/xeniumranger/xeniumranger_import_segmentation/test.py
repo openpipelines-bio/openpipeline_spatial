@@ -60,7 +60,7 @@ output_not_in_input_ne = [
     "cell_id_map.csv.gz",
 ]
 
-# xenium_multicellseg_tiny_raw is a full raw XOA bundle, same shape as xenium_tiny
+# xenium_multichannel/xenium_multicellseg_tiny is a full raw XOA bundle, same shape as xenium_tiny
 changed_files_mm = [
     "cells.csv.gz",
     "cells.parquet",

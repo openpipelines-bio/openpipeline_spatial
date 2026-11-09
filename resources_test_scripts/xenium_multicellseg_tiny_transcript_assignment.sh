@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Derive a Baysor-style transcript assignment (segmentation.csv) and viz polygons
-# (segmentation_polygons_2d.json) from the XOA segmentation in xenium_multicellseg_tiny_raw,
+# (segmentation_polygons_2d.json) from the XOA segmentation in xenium_multichannel/xenium_multicellseg_tiny,
 # for testing xeniumranger import-segmentation --transcript-assignment / --viz-polygons.
 #
 # Requires a python3 with pandas and pyarrow (override with PYTHON=/path/to/python).
@@ -13,7 +13,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # Define absolute directory paths
 DIR="$REPO_ROOT/resources_test/xenium"
-SRC="$DIR/xenium_multicellseg_tiny_raw"
+SRC="$REPO_ROOT/resources_test/xenium_multichannel/xenium_multicellseg_tiny"
 ID="xenium_multicellseg_tiny_transcript_assignment"
 OUT="$DIR/$ID"
 PYTHON="${PYTHON:-python3}"
