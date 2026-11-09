@@ -1,5 +1,7 @@
 import pytest
 import mudata as mu
+import numpy as np
+import anndata as ad
 import sys
 
 ## VIASH START
@@ -97,6 +99,39 @@ def test_alpha_one_equals_spatial(run_component, tmp_path):
     # Should equal spatial graph exactly
     spatial = adata.obsp["spatial_connectivities"]
     assert abs(fused.sum() - spatial.sum()) < 1e-6
+
+
+def test_other_modalities_are_preserved(run_component, tmp_path):
+    # Add an extra modality to the input to check it is not dropped
+    rna = mu.read_h5ad(input_file, mod="rna")
+    extra = ad.AnnData(X=np.ones((rna.n_obs, 3), dtype=np.float32))
+    extra.obs_names = rna.obs_names
+    extra.var_names = [f"prot_{i}" for i in range(3)]
+    with mu.set_options(pull_on_update=False):
+        input_mdata = mu.MuData({"rna": rna, "prot": extra})
+    input_with_prot = tmp_path / "input_with_prot.h5mu"
+    input_mdata.write_h5mu(input_with_prot)
+
+    output = tmp_path / "preserved.h5mu"
+    run_component(
+        [
+            "--input",
+            str(input_with_prot),
+            "--output",
+            str(output),
+            "--output_obsp_graph",
+            "fused_conn",
+            "--output_compression",
+            "gzip",
+        ]
+    )
+
+    mdata = mu.read_h5mu(output)
+    assert set(mdata.mod.keys()) == {"rna", "prot"}, (
+        "Expected all input modalities to be preserved in the output."
+    )
+    assert mdata.mod["prot"].shape == extra.shape
+    assert "fused_conn" in mdata.mod["rna"].obsp.keys()
 
 
 if __name__ == "__main__":

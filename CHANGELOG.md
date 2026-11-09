@@ -1,8 +1,32 @@
-# openpipeline_spatial (unreleased)
+# openpipeline_spatial x.x.x
+
+## BREAKING CHANGES
+
+* `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR #87).
 
 ## NEW FUNCTIONALITY
 
+* `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
+
+* `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+  
 * `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
+
+## MINOR CHANGES
+
+* `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
+
+* `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
+
+## BUG FIXES
+
+* `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+
+# openpipeline_spatial 0.7.0
+
+## MINOR CHANGES
+
+* `feature_annotation/xenium_spatial_statistics`: Optimise the density calculation step giving a significant improvement to the runtime of the component. (PR #78)
 
 # openpipeline_spatial 0.6.0
 
