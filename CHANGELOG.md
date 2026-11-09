@@ -10,6 +10,8 @@
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
+* `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
