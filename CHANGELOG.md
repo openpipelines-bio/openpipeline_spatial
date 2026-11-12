@@ -6,9 +6,13 @@
 
 ## NEW FUNCTIONALITY
 
+* `segmentation/cellpose3`: Component to segment cells or nuclei from an image in a SpatialData Zarr store (e.g. Xenium `morphology_focus`) using Cellpose3, writing the resulting instance segmentation mask back as a labels element (PR #77).
+
 * `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
+
+* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
 
 ## MINOR CHANGES
 
@@ -17,6 +21,8 @@
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
 * `dataflow/move_layer_spatialdata`: Reduce memory usage by copying the input store and rewriting only the table, instead of loading and writing the full SpatialData object (PR #103).
+
+* `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile (PR #93).
 
 ## BUG FIXES
 
