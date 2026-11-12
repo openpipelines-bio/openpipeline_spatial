@@ -12,6 +12,8 @@
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
+* `xeniumranger/xeniumranger_import_segmentation`: Component to import nucleus and/or cell segmentation results (label masks, GeoJSON polygons or `cells.zarr.zip`) or third-party transcript assignments (Baysor-style CSV + GeoJSON viz polygons) and recalculate all segmentation-dependent Xenium Onboard Analysis outputs via Xenium Ranger 4.0. Adds `resources_test_scripts/xenium_multicellseg_tiny_transcript_assignment.sh` to generate the transcript assignment test resources (PR #85).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
