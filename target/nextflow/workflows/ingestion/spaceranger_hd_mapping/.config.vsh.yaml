@@ -205,6 +205,7 @@ argument_groups:
     - "visium-2"
     - "visium-2-large"
     - "visium-hd"
+    - "visium-hd-large"
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -278,10 +279,10 @@ argument_groups:
     multiple_sep: ";"
   - type: "boolean"
     name: "--reorient_images"
-    description: "Whether to rotate and mirror image to align fiducial pattern"
+    description: "Whether to rotate and mirror the image to align the fiducial pattern.\n\
+      Cannot be used with --loupe_alignment. When unset, Space Ranger\napplies its\
+      \ default (true).\n"
     info: null
-    default:
-    - true
     required: false
     direction: "input"
     multiple: false
@@ -307,7 +308,7 @@ argument_groups:
     description: "Enable or disable BAM file generation."
     info: null
     default:
-    - false
+    - true
     required: false
     direction: "input"
     multiple: false
@@ -337,10 +338,9 @@ argument_groups:
     multiple_sep: ";"
   - type: "boolean"
     name: "--filter_probes"
-    description: "Whether to filter the probe set using the \"included\" column"
+    description: "Whether to filter the probe set using the \"included\" column. Requires\n\
+      --probe_set. When unset, Space Ranger applies its default (true).\n"
     info: null
-    default:
-    - true
     required: false
     direction: "input"
     multiple: false
@@ -358,8 +358,8 @@ argument_groups:
     multiple_sep: ";"
   - type: "boolean"
     name: "--include_introns"
-    description: "Include intronic reads in the count. When unset, Space Ranger applies\
-      \ its own default\n(true for Visium HD 3' and Visium v1, false otherwise).\n"
+    description: "Include intronic reads in the count. When unset, Space Ranger applies\n\
+      its default (true).\n"
     info: null
     required: false
     direction: "input"
@@ -367,8 +367,9 @@ argument_groups:
     multiple_sep: ";"
   - type: "boolean"
     name: "--nucleus_segmentation"
-    description: "Enable or disable nucleus/cell segmentation (on by default when\
-      \ an H&E image is given)."
+    description: "Enable or disable nucleus and cell segmentation. If set, requires\
+      \ an\nH&E --image. When unset, Space Ranger segments if an H&E image is\nprovided,\
+      \ and skips segmentation otherwise.\n"
     info: null
     required: false
     direction: "input"
@@ -409,8 +410,11 @@ argument_groups:
   arguments:
   - type: "file"
     name: "--custom_segmentation_file"
-    description: "Custom nucleus segmentation mask to use instead of the built-in\
-      \ algorithm.\nRequires --nucleus_expansion_distance_micron.\n"
+    description: "Custom nucleus or cell segmentation to use instead of the built-in\n\
+      algorithm. Accepts a TIFF image (16- or 32-bit grayscale), an NPY file\n(uint32\
+      \ matrix), a GeoJSON or a CSV file. TIFF, NPY and GeoJSON\ncoordinates must\
+      \ match the microscope image (--image). Requires\n--nucleus_expansion_distance_micron\
+      \ (set to 0 for a cell mask). Cannot\nbe used with --max_nucleus_diameter_px.\n"
     info: null
     example:
     - "nucleus_segmentation.geojson"
@@ -422,8 +426,10 @@ argument_groups:
     multiple_sep: ";"
   - type: "double"
     name: "--nucleus_expansion_distance_micron"
-    description: "Distance in microns to expand each nucleus to approximate the cell\
-      \ boundary."
+    description: "Maximum distance in microns from a segmented nucleus at which a\n\
+      barcode is assigned to that nucleus, to approximate the cell boundary.\nRequired\
+      \ with --custom_segmentation_file (set to 0 if the file is a\ncell mask). When\
+      \ unset, Space Ranger applies its default (8).\n"
     info: null
     required: false
     direction: "input"
@@ -431,11 +437,14 @@ argument_groups:
     multiple_sep: ";"
   - type: "integer"
     name: "--max_nucleus_diameter_px"
-    description: "Maximum nucleus diameter in pixels, for samples with exceptionally\
-      \ large cells."
+    description: "Maximum nucleus diameter in pixels of the tissue image. Likely only\n\
+      needs to be set for samples with exceptionally large cells. Cannot be\nused\
+      \ with --custom_segmentation_file. When unset, Space Ranger applies\nits default\
+      \ (256).\n"
     info: null
     required: false
     min: 1
+    max: 1024
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -575,7 +584,7 @@ build_info:
   output: "target/nextflow/workflows/ingestion/spaceranger_hd_mapping"
   executable: "target/nextflow/workflows/ingestion/spaceranger_hd_mapping/main.nf"
   viash_version: "0.9.7"
-  git_commit: "ac3edd4b0a3486ff5c22d821b0f469e036d419df"
+  git_commit: "6bbfe1d430745868420db02777832894f1bd0bbb"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
   dependencies:
   - "target/nextflow/mapping/spaceranger_count"

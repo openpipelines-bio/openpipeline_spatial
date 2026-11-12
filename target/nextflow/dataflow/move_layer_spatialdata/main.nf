@@ -3334,7 +3334,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/dataflow/move_layer_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "ac3edd4b0a3486ff5c22d821b0f469e036d419df",
+    "git_commit" : "6bbfe1d430745868420db02777832894f1bd0bbb",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3381,6 +3381,8 @@ def innerWorkflowFactory(args) {
   def rawScript = '''set -e
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
+import os
+import shutil
 import sys
 import spatialdata as sd
 
@@ -3446,8 +3448,16 @@ def move_layer(sdata, input_layer, output_layer, delete_input):
 
 logger.info(f"Move layer (spatialdata v{sd.__version__})")
 
-logger.info(f"Loading SpatialData from '{par['input']}'...")
-sdata = sd.read_zarr(par["input"])
+# Copy the store and then load and rewrite only the table. This avoids loading
+# the other elements into memory
+if os.path.exists(par["output"]):
+    logger.info(f"Removing existing output '{par['output']}'...")
+    shutil.rmtree(par["output"])
+logger.info(f"Copying SpatialData from '{par['input']}' to '{par['output']}'...")
+shutil.copytree(par["input"], par["output"])
+
+logger.info(f"Loading table from '{par['output']}'...")
+sdata = sd.read_zarr(par["output"], selection=("tables",))
 logger.info(f"SpatialData: {sdata}")
 logger.info(f"Table: {sdata['table']}")
 
@@ -3474,8 +3484,12 @@ move_layer(sdata, par["input_layer"], par["output_layer"], par["delete_input_lay
 logger.info(f"SpatialData: {sdata}")
 logger.info(f"Table: {sdata['table']}")
 
-logger.info(f"Writing output to '{par['output']}'...")
-sdata.write(par["output"], overwrite=True)
+logger.info(f"Writing table to '{par['output']}'...")
+# The store can't be overwritten because it is in use so we manually delete and
+# write the table
+sdata.delete_element_from_disk("table")
+sdata.write_element("table")
+sdata.write_consolidated_metadata()
 
 logger.info("Done!")
 VIASHMAIN

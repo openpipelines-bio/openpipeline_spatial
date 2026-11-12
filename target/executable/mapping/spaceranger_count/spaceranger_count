@@ -453,9 +453,9 @@ apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component mapping spaceranger_count"
-LABEL org.opencontainers.image.created="2026-11-12T15:02:51Z"
+LABEL org.opencontainers.image.created="2026-11-12T16:52:16Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="ac3edd4b0a3486ff5c22d821b0f469e036d419df"
+LABEL org.opencontainers.image.revision="6bbfe1d430745868420db02777832894f1bd0bbb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -638,7 +638,8 @@ function ViashHelp {
   echo ""
   echo "    --unknown_slide"
   echo "        type: string"
-  echo "        choices: [ visium-1, visium-2, visium-2-large, visium-hd ]"
+  echo "        choices: [ visium-1, visium-2, visium-2-large, visium-hd,"
+  echo "visium-hd-large ]"
   echo "        Use this option if the slide serial number and area were entered"
   echo "        incorrectly on the CytAssist"
   echo "        instrument and the correct values are unknown. Not compatible with"
@@ -681,8 +682,9 @@ function ViashHelp {
   echo ""
   echo "    --reorient_images"
   echo "        type: boolean"
-  echo "        default: true"
-  echo "        Whether to rotate and mirror image to align fiducial pattern"
+  echo "        Whether to rotate and mirror the image to align the fiducial pattern."
+  echo "        Cannot be used with --loupe_alignment. When unset, Space Ranger"
+  echo "        applies its default (true)."
   echo ""
   echo "    --loupe_alignment"
   echo "        type: file, file must exist"
@@ -693,7 +695,7 @@ function ViashHelp {
   echo ""
   echo "Processing Options:"
   echo "    --create_bam"
-  echo "        type: boolean, required parameter"
+  echo "        type: boolean"
   echo "        default: true"
   echo "        Enable or disable BAM file generation"
   echo ""
@@ -713,8 +715,8 @@ function ViashHelp {
   echo ""
   echo "    --filter_probes"
   echo "        type: boolean"
-  echo "        default: true"
-  echo "        Whether to filter the probe set using the \"included\" column"
+  echo "        Whether to filter the probe set using the \"included\" column. Requires"
+  echo "        --probe_set. When unset, Space Ranger applies its default (true)."
   echo ""
   echo "    --custom_bin_size"
   echo "        type: integer"
@@ -726,34 +728,41 @@ function ViashHelp {
   echo "    --include_introns"
   echo "        type: boolean"
   echo "        Include intronic reads in the count. When unset, Space Ranger applies"
-  echo "        its own default"
-  echo "        (true for Visium HD 3' and Visium v1, false otherwise)."
+  echo "        its default (true)."
   echo ""
   echo "Segmentation Options:"
   echo "    --nucleus_segmentation"
   echo "        type: boolean"
-  echo "        Enable or disable nucleus and cell segmentation for Visium HD / HD 3'"
-  echo "        H&E samples."
-  echo "        When unset, Space Ranger runs segmentation by default if an H&E image is"
-  echo "        provided."
+  echo "        Enable or disable nucleus and cell segmentation. Visium HD only. If"
+  echo "        set, requires an H&E --image. When unset, Space Ranger segments if the"
+  echo "        slide is Visium HD and an H&E image is provided, and skips"
+  echo "        segmentation otherwise. Setting this for Visium slides gives an error."
   echo ""
   echo "    --custom_segmentation_file"
   echo "        type: file, file must exist"
   echo "        example: nucleus_segmentation.geojson"
-  echo "        Custom nucleus segmentation mask to use instead of the built-in"
-  echo "        algorithm."
-  echo "        Requires --nucleus_expansion_distance_micron."
+  echo "        Custom nucleus or cell segmentation to use instead of the built-in"
+  echo "        algorithm. Accepts a TIFF image (16- or 32-bit grayscale), an NPY file"
+  echo "        (uint32 matrix), a GeoJSON or a CSV file. TIFF, NPY and GeoJSON"
+  echo "        coordinates must match the microscope image (--image). Requires"
+  echo "        --nucleus_expansion_distance_micron (set to 0 for a cell mask). Cannot"
+  echo "        be used with --max_nucleus_diameter_px."
   echo ""
   echo "    --nucleus_expansion_distance_micron"
   echo "        type: double"
-  echo "        Distance in microns to expand each nucleus to approximate the cell"
-  echo "        boundary."
+  echo "        Maximum distance in microns from a segmented nucleus at which a"
+  echo "        barcode is assigned to that nucleus, to approximate the cell boundary."
+  echo "        Required with --custom_segmentation_file (set to 0 if the file is a"
+  echo "        cell mask). When unset, Space Ranger applies its default (8)."
   echo ""
   echo "    --max_nucleus_diameter_px"
   echo "        type: integer"
   echo "        min: 1"
-  echo "        Maximum nucleus diameter in pixels, for samples with exceptionally large"
-  echo "        cells."
+  echo "        max: 1024"
+  echo "        Maximum nucleus diameter in pixels of the tissue image. Likely only"
+  echo "        needs to be set for samples with exceptionally large cells. Cannot be"
+  echo "        used with --custom_segmentation_file. When unset, Space Ranger applies"
+  echo "        its default (256)."
   echo ""
   echo "    --umi_registration"
   echo "        type: boolean"
@@ -1425,10 +1434,6 @@ if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
   ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_CREATE_BAM+x} ]; then
-  ViashError '--create_bam' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
 if [ -z ${VIASH_META_NAME+x} ]; then
   ViashError 'name' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
@@ -1458,14 +1463,11 @@ fi
 if [ -z ${VIASH_PAR_OVERRIDE_ID+x} ]; then
   VIASH_PAR_OVERRIDE_ID="false"
 fi
-if [ -z ${VIASH_PAR_REORIENT_IMAGES+x} ]; then
-  VIASH_PAR_REORIENT_IMAGES="true"
+if [ -z ${VIASH_PAR_CREATE_BAM+x} ]; then
+  VIASH_PAR_CREATE_BAM="true"
 fi
 if [ -z ${VIASH_PAR_NOSECONDARY+x} ]; then
   VIASH_PAR_NOSECONDARY="false"
-fi
-if [ -z ${VIASH_PAR_FILTER_PROBES+x} ]; then
-  VIASH_PAR_FILTER_PROBES="true"
 fi
 if [ -z ${VIASH_PAR_DISABLE_CELL_ANNOTATION+x} ]; then
   VIASH_PAR_DISABLE_CELL_ANNOTATION="false"
@@ -1659,6 +1661,10 @@ if [[ -n "$VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX" ]]; then
     ViashError '--max_nucleus_diameter_px' has be more than or equal to 1. Use "--help" to get more information on the parameters.
     exit 1
   fi
+  if [[ $VIASH_PAR_MAX_NUCLEUS_DIAMETER_PX -gt 1024 ]]; then
+    ViashError '--max_nucleus_diameter_px' has be less than or equal to 1024. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
 fi
 if [[ -n "$VIASH_PAR_UMI_REGISTRATION" ]]; then
   if ! [[ "$VIASH_PAR_UMI_REGISTRATION" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
@@ -1760,7 +1766,7 @@ fi
 
 # check whether value is belongs to a set of choices
 if [ ! -z "$VIASH_PAR_UNKNOWN_SLIDE" ]; then
-  VIASH_PAR_UNKNOWN_SLIDE_CHOICES=("visium-1;visium-2;visium-2-large;visium-hd")
+  VIASH_PAR_UNKNOWN_SLIDE_CHOICES=("visium-1;visium-2;visium-2-large;visium-hd;visium-hd-large")
   IFS=';'
   set -f
   if ! [[ ";${VIASH_PAR_UNKNOWN_SLIDE_CHOICES[*]};" =~ ";$VIASH_PAR_UNKNOWN_SLIDE;" ]]; then
@@ -1988,6 +1994,12 @@ for par in \${unset_if_false[@]}; do
     [[ "\$test_val" == "false" ]] && unset \$par
 done
 
+# Space Ranger errors when using --reorient-images with --loupe-alignment
+if [[ -n "\${par_reorient_images:-}" && -n "\${par_loupe_alignment:-}" ]]; then
+    echo "ERROR: --reorient_images cannot be used with --loupe_alignment. Remove --reorient_images." >&2
+    exit 1
+fi
+
 # Make sure paths are absolute, since we cd into a tempdir before running spaceranger
 par_gex_reference=\`realpath \$par_gex_reference\`
 par_output=\`realpath \$par_output\`
@@ -2078,7 +2090,7 @@ spaceranger count \\
   \${par_disable_cell_annotation:+--disable-cell-annotation} \\
   \${par_project:+--project="\$par_project"} \\
   \${par_sample:+--sample="\$par_sample"} \\
-  \${par_lanes:+--lanes="\$par_lanes"} \\
+  \${par_lanes:+--lanes="\${par_lanes//;/,}"} \\
   \${meta_cpus:+--localcores="\$meta_cpus"} \\
   \${meta_memory_gb:+--localmem=\$((\$meta_memory_gb-2))}
 

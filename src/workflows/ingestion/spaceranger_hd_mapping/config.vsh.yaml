@@ -120,7 +120,7 @@ argument_groups:
         type: string
         description: Use if the slide serial number and area are unknown.
         required: false
-        choices: [visium-1, visium-2, visium-2-large, visium-hd]
+        choices: [visium-1, visium-2, visium-2-large, visium-hd, visium-hd-large]
       - name: --slidefile
         type: file
         description: Slide design file for offline use
@@ -157,8 +157,11 @@ argument_groups:
         max: 10
       - name: --reorient_images
         type: boolean
-        default: true
-        description: Whether to rotate and mirror image to align fiducial pattern
+        required: false
+        description: |
+          Whether to rotate and mirror the image to align the fiducial pattern.
+          Cannot be used with --loupe_alignment. When unset, Space Ranger
+          applies its default (true).
       - name: --loupe_alignment
         type: file
         description: |
@@ -172,8 +175,7 @@ argument_groups:
     arguments:
       - name: --create_bam
         type: boolean
-        required: false
-        default: false
+        default: true
         description: Enable or disable BAM file generation.
       - name: --nosecondary
         type: boolean_true
@@ -190,8 +192,10 @@ argument_groups:
         min: 1
       - name: --filter_probes
         type: boolean
-        default: true
-        description: Whether to filter the probe set using the "included" column
+        required: false
+        description: |
+          Whether to filter the probe set using the "included" column. Requires
+          --probe_set. When unset, Space Ranger applies its default (true).
       - name: --custom_bin_size
         type: integer
         description: Bin Visium HD data to an additional custom size in microns (4-100, even).
@@ -201,12 +205,15 @@ argument_groups:
         type: boolean
         required: false
         description: |
-          Include intronic reads in the count. When unset, Space Ranger applies its own default
-          (true for Visium HD 3' and Visium v1, false otherwise).
+          Include intronic reads in the count. When unset, Space Ranger applies
+          its default (true).
       - name: --nucleus_segmentation
         type: boolean
         required: false
-        description: Enable or disable nucleus/cell segmentation (on by default when an H&E image is given).
+        description: |
+          Enable or disable nucleus and cell segmentation. If set, requires an
+          H&E --image. When unset, Space Ranger segments if an H&E image is
+          provided, and skips segmentation otherwise.
       - name: --cell_annotation_model
         type: string
         required: false
@@ -230,18 +237,31 @@ argument_groups:
         type: file
         required: false
         description: |
-          Custom nucleus segmentation mask to use instead of the built-in algorithm.
-          Requires --nucleus_expansion_distance_micron.
+          Custom nucleus or cell segmentation to use instead of the built-in
+          algorithm. Accepts a TIFF image (16- or 32-bit grayscale), an NPY file
+          (uint32 matrix), a GeoJSON or a CSV file. TIFF, NPY and GeoJSON
+          coordinates must match the microscope image (--image). Requires
+          --nucleus_expansion_distance_micron (set to 0 for a cell mask). Cannot
+          be used with --max_nucleus_diameter_px.
         example: "nucleus_segmentation.geojson"
       - name: --nucleus_expansion_distance_micron
         type: double
         required: false
-        description: Distance in microns to expand each nucleus to approximate the cell boundary.
+        description: |
+          Maximum distance in microns from a segmented nucleus at which a
+          barcode is assigned to that nucleus, to approximate the cell boundary.
+          Required with --custom_segmentation_file (set to 0 if the file is a
+          cell mask). When unset, Space Ranger applies its default (8).
       - name: --max_nucleus_diameter_px
         type: integer
         required: false
-        description: Maximum nucleus diameter in pixels, for samples with exceptionally large cells.
+        description: |
+          Maximum nucleus diameter in pixels of the tissue image. Likely only
+          needs to be set for samples with exceptionally large cells. Cannot be
+          used with --custom_segmentation_file. When unset, Space Ranger applies
+          its default (256).
         min: 1
+        max: 1024
       - name: --umi_registration
         type: boolean
         required: false
