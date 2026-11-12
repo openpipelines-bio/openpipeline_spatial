@@ -3156,6 +3156,20 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--percentile",
+          "description" : "Prune edges that are longer than this percentile of all edge distances, e.g. to remove the\nlong links that Delaunay triangulation creates across empty regions of the tissue.\nEquivalent to `cellcharter.gr.remove_long_links`. When `--input_obs_library_key` is set, the\ndistance threshold is computed per library. Only supported when `--coord_type generic`.\nIf not set, no edges are pruned.\n",
+          "example" : [
+            99.0
+          ],
+          "required" : false,
+          "min" : 0.0,
+          "max" : 100.0,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3381,7 +3395,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/spatial_neighborhood_graph",
     "viash_version" : "0.9.7",
-    "git_commit" : "94a2b87129e85e76625d1865130b0a097db2584c",
+    "git_commit" : "ac3edd4b0a3486ff5c22d821b0f469e036d419df",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3442,6 +3456,7 @@ par = {
   'coord_type': $( if [ ! -z ${VIASH_PAR_COORD_TYPE+x} ]; then echo "r'${VIASH_PAR_COORD_TYPE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'n_spatial_neighbors': $( if [ ! -z ${VIASH_PAR_N_SPATIAL_NEIGHBORS+x} ]; then echo "int(r'${VIASH_PAR_N_SPATIAL_NEIGHBORS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'delaunay': $( if [ ! -z ${VIASH_PAR_DELAUNAY+x} ]; then echo "r'${VIASH_PAR_DELAUNAY//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
+  'percentile': $( if [ ! -z ${VIASH_PAR_PERCENTILE+x} ]; then echo "float(r'${VIASH_PAR_PERCENTILE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output_compression': $( if [ ! -z ${VIASH_PAR_OUTPUT_COMPRESSION+x} ]; then echo "r'${VIASH_PAR_OUTPUT_COMPRESSION//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
@@ -3476,6 +3491,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+## Validate the percentile
+if par["percentile"] is not None and par["coord_type"] != "generic":
+    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
+
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
@@ -3500,6 +3519,7 @@ sq.gr.spatial_neighbors(
     library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
+    percentile=par["percentile"],
 )
 
 # Making the connectivity matrix symmetric

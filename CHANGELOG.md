@@ -20,6 +20,8 @@
 
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
+* `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile (PR #93).
+
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).

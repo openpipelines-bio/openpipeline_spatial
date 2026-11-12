@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component neighbors spatial_neighborhood_graph"
-LABEL org.opencontainers.image.created="2026-11-12T12:53:29Z"
+LABEL org.opencontainers.image.created="2026-11-12T15:02:51Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="94a2b87129e85e76625d1865130b0a097db2584c"
+LABEL org.opencontainers.image.revision="ac3edd4b0a3486ff5c22d821b0f469e036d419df"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -639,6 +639,21 @@ function ViashHelp {
   echo "        graph."
   echo "        Only used when \`--coord_type generic\`."
   echo ""
+  echo "    --percentile"
+  echo "        type: double"
+  echo "        example: 99.0"
+  echo "        min: 0.0"
+  echo "        max: 100.0"
+  echo "        Prune edges that are longer than this percentile of all edge distances,"
+  echo "        e.g. to remove the"
+  echo "        long links that Delaunay triangulation creates across empty regions of"
+  echo "        the tissue."
+  echo "        Equivalent to \`cellcharter.gr.remove_long_links\`. When"
+  echo "        \`--input_obs_library_key\` is set, the"
+  echo "        distance threshold is computed per library. Only supported when"
+  echo "        \`--coord_type generic\`."
+  echo "        If not set, no edges are pruned."
+  echo ""
   echo "Outputs:"
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
@@ -777,6 +792,17 @@ while [[ $# -gt 0 ]]; do
         --delaunay=*)
             [ -n "$VIASH_PAR_DELAUNAY" ] && ViashError Bad arguments for option \'--delaunay=*\': \'$VIASH_PAR_DELAUNAY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_DELAUNAY=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --percentile)
+            [ -n "$VIASH_PAR_PERCENTILE" ] && ViashError Bad arguments for option \'--percentile\': \'$VIASH_PAR_PERCENTILE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PERCENTILE="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --percentile. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --percentile=*)
+            [ -n "$VIASH_PAR_PERCENTILE" ] && ViashError Bad arguments for option \'--percentile=*\': \'$VIASH_PAR_PERCENTILE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PERCENTILE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --output)
@@ -1044,6 +1070,38 @@ if [[ -n "$VIASH_PAR_DELAUNAY" ]]; then
     exit 1
   fi
 fi
+if [[ -n "$VIASH_PAR_PERCENTILE" ]]; then
+  if ! [[ "$VIASH_PAR_PERCENTILE" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--percentile' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+  if command -v bc &> /dev/null; then
+    if ! [[ `echo $VIASH_PAR_PERCENTILE '>=' 0.0 | bc` -eq 1 ]]; then
+      ViashError '--percentile' has be more than or equal to 0.0. Use "--help" to get more information on the parameters.
+      exit 1
+    fi
+  elif command -v awk &> /dev/null; then
+    if ! [[ `awk -v n1=$VIASH_PAR_PERCENTILE -v n2=0.0 'BEGIN { print (n1 >= n2) ? "1" : "0" }'` -eq 1 ]]; then
+      ViashError '--percentile' has be more than or equal to 0.0. Use "--help" to get more information on the parameters.
+      exit 1
+    fi
+  else
+    ViashWarning '--percentile' specifies a minimum value but the value was not verified as neither \'bc\' or \`awk\` are present on the system.
+  fi
+  if command -v bc &> /dev/null; then
+    if ! [[ `echo $VIASH_PAR_PERCENTILE '<=' 100.0 | bc` -eq 1 ]]; then
+      ViashError '--percentile' has to be less than or equal to 100.0. Use "--help" to get more information on the parameters.
+      exit 1
+    fi
+  elif command -v awk &> /dev/null; then
+    if ! [[ `awk -v n1=$VIASH_PAR_PERCENTILE -v n2=100.0 'BEGIN { print (n1 <= n2) ? "1" : "0" }'` -eq 1 ]]; then
+      ViashError '--percentile' has be less than or equal to 100.0. Use "--help" to get more information on the parameters.
+      exit 1
+    fi
+  else
+    ViashWarning '--percentile' specifies a maximum value but the value was not verified as neither \'bc\' or \'awk\' are present on the system.
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1240,6 +1298,7 @@ par = {
   'coord_type': $( if [ ! -z ${VIASH_PAR_COORD_TYPE+x} ]; then echo "r'${VIASH_PAR_COORD_TYPE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'n_spatial_neighbors': $( if [ ! -z ${VIASH_PAR_N_SPATIAL_NEIGHBORS+x} ]; then echo "int(r'${VIASH_PAR_N_SPATIAL_NEIGHBORS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'delaunay': $( if [ ! -z ${VIASH_PAR_DELAUNAY+x} ]; then echo "r'${VIASH_PAR_DELAUNAY//\'/\'\"\'\"r\'}'.lower() == 'true'"; else echo None; fi ),
+  'percentile': $( if [ ! -z ${VIASH_PAR_PERCENTILE+x} ]; then echo "float(r'${VIASH_PAR_PERCENTILE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'output_compression': $( if [ ! -z ${VIASH_PAR_OUTPUT_COMPRESSION+x} ]; then echo "r'${VIASH_PAR_OUTPUT_COMPRESSION//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
@@ -1274,6 +1333,10 @@ from setup_logger import setup_logger
 
 logger = setup_logger()
 
+## Validate the percentile
+if par["percentile"] is not None and par["coord_type"] != "generic":
+    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
+
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
 
@@ -1298,6 +1361,7 @@ sq.gr.spatial_neighbors(
     library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
+    percentile=par["percentile"],
 )
 
 # Making the connectivity matrix symmetric
