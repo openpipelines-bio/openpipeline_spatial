@@ -3372,7 +3372,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/feature_annotation/spatial_autocorr",
     "viash_version" : "0.9.7",
-    "git_commit" : "3506d8220af4dbd4c540ae4b8b76707ac430f354",
+    "git_commit" : "94a2b87129e85e76625d1865130b0a097db2584c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
