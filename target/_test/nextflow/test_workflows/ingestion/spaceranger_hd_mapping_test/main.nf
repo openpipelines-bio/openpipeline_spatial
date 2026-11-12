@@ -3241,7 +3241,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_test/nextflow/test_workflows/ingestion/spaceranger_hd_mapping_test",
     "viash_version" : "0.9.7",
-    "git_commit" : "b3a437633dc6c855d1ed435597201687db586f9e",
+    "git_commit" : "3506d8220af4dbd4c540ae4b8b76707ac430f354",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
