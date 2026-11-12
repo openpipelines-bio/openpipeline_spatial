@@ -20,6 +20,8 @@
 
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
+* `dataflow/move_layer_spatialdata`: Reduce memory usage by copying the input store and rewriting only the table, instead of loading and writing the full SpatialData object (PR #103).
+
 * `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile (PR #93).
 
 ## BUG FIXES
