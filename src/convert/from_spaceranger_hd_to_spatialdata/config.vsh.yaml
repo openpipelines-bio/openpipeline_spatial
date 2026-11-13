@@ -9,7 +9,7 @@ description: |
   boundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set
   `--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)
   at the bin size given by `--bin_size`. In both cases the loaded table is
-  renamed to "table" so that downstream components stay technology-agnostic.
+  renamed to the value of `--output_table`.
 keywords: [spaceranger, visium_hd, segmentation, spatialdata]
 links:
   documentation: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/outputs/segmented-outputs
@@ -35,6 +35,10 @@ arguments:
     example: "visium_hd_data.zarr"
     direction: output
     required: true
+  - name: "--output_table"
+    type: string
+    default: table
+    description: Name of the main table in the output SpatialData object.
   - name: "--mode"
     type: string
     description: |

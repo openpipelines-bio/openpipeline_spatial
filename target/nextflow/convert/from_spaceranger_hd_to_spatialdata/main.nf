@@ -3100,6 +3100,18 @@ meta = [
         },
         {
           "type" : "string",
+          "name" : "--output_table",
+          "description" : "Name of the main table in the output SpatialData object.",
+          "default" : [
+            "table"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
           "name" : "--mode",
           "description" : "Which output to load into the table: `segmented_cells` (per-cell counts\nand cell boundary polygons from `segmented_outputs/`) or `bins` (binned\ncounts from `binned_outputs/square_<bin_size>um/`).\n",
           "default" : [
@@ -3184,7 +3196,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Converts the output from 10X Genomics Space Ranger for Visium HD into a\nSpatialData object.\n\nBy default it reads the segmented cells (per-cell count matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set\n`--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)\nat the bin size given by `--bin_size`. In both cases the loaded table is\nrenamed to \\"table\\" so that downstream components stay technology-agnostic.\n",
+  "description" : "Converts the output from 10X Genomics Space Ranger for Visium HD into a\nSpatialData object.\n\nBy default it reads the segmented cells (per-cell count matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set\n`--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)\nat the bin size given by `--bin_size`. In both cases the loaded table is\nrenamed to the value of `--output_table`.\n",
   "test_resources" : [
     {
       "type" : "python_script",
@@ -3358,7 +3370,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spaceranger_hd_to_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "6bbfe1d430745868420db02777832894f1bd0bbb",
+    "git_commit" : "2b69ca94bc0b12abd40165463ca27b9f7d4a8c7d",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3416,6 +3428,7 @@ import spatialdata_io
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_table': $( if [ ! -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TABLE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'mode': $( if [ ! -z ${VIASH_PAR_MODE+x} ]; then echo "r'${VIASH_PAR_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'bin_size': $( if [ ! -z ${VIASH_PAR_BIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BIN_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'output_type': $( if [ ! -z ${VIASH_PAR_OUTPUT_TYPE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TYPE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3511,20 +3524,23 @@ def main(par):
         # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
         table_key = "cell_segmentations"
 
-    # Rename the loaded table to "table" so downstream components stay
-    # technology-agnostic (the shapes and images keep their dataset-id names).
-    sdata["table"] = sdata[table_key]
-    del sdata[table_key]
+    # Rename the loaded table to the output table name
+    if table_key != par["output_table"]:
+        logger.info("Renaming table '%s' to '%s'", table_key, par["output_table"])
+        sdata[par["output_table"]] = sdata[table_key]
+        del sdata[table_key]
 
     # Cell-type annotations are per-cell, so only for the segmented-cell table.
     if par["mode"] != "bins":
-        add_cell_type_annotations(input_path, sdata["table"])
+        add_cell_type_annotations(input_path, sdata[par["output_table"]])
 
     logger.info("SpatialData object:\\\\n%s", sdata)
 
     if par["output_layer"]:
         logger.info("Storing counts as layer '%s'", par["output_layer"])
-        sdata["table"].layers[par["output_layer"]] = sdata["table"].X.copy()
+        sdata[par["output_table"]].layers[par["output_layer"]] = sdata[
+            par["output_table"]
+        ].X.copy()
 
     logger.info("Writing SpatialData to '%s'", par["output"])
     sdata.write(par["output"], overwrite=True)

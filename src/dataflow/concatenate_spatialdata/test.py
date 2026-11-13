@@ -162,5 +162,36 @@ def test_single_input_anndata_label(run_component, tmp_path):
     )
 
 
+def test_table_names(run_component, tmp_path):
+    """Each input can have a different table name."""
+    zarr_path = meta["resources_dir"] + "/xenium_tiny.zarr"
+    sdata = sd.read_zarr(zarr_path)
+    sdata["cells"] = sdata["table"]
+    del sdata["table"]
+    renamed_path = tmp_path / "renamed.zarr"
+    sdata.write(renamed_path)
+    output = tmp_path / "output.zarr"
+
+    run_component(
+        [
+            "--inputs",
+            zarr_path,
+            "--inputs",
+            str(renamed_path),
+            "--input_table",
+            "table",
+            "--input_table",
+            "cells",
+            "--output",
+            str(output),
+            "--output_table",
+            "combined",
+        ]
+    )
+
+    result = sd.read_zarr(output)
+    assert result["combined"].n_obs == sdata["cells"].n_obs * 2
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))

@@ -459,9 +459,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Dorien Roosen, Luke Zappia"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_spatialdata"
-LABEL org.opencontainers.image.created="2026-11-12T16:52:17Z"
+LABEL org.opencontainers.image.created="2026-11-13T09:27:49Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="6bbfe1d430745868420db02777832894f1bd0bbb"
+LABEL org.opencontainers.image.revision="2b69ca94bc0b12abd40165463ca27b9f7d4a8c7d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -582,7 +582,7 @@ function ViashHelp {
   echo "from_h5mu_to_spatialdata build_main"
   echo ""
   echo "Reads in an H5MU file and saves it as a SpatialData Zarr store. The selected"
-  echo "modality in the MuData is stored as the main table in the SpatialData object."
+  echo "modality in the MuData is stored as a table in the SpatialData object."
   echo "If a matching existing SpatialData is provided, it will be used to fill the"
   echo "remaining SpatialData slots."
   echo ""
@@ -592,22 +592,36 @@ function ViashHelp {
   echo "        example: input.h5mu"
   echo "        Input H5MU file."
   echo ""
-  echo "    --input_spatialdata"
-  echo "        type: file, file must exist"
-  echo "        example: existing.zarr"
-  echo "        An optional existing SpatialData Zarr store to fill remaining slots"
-  echo "        from."
-  echo ""
   echo "    --modality"
   echo "        type: string"
   echo "        default: rna"
   echo "        The modality in the MuData to be used as the main table in the"
   echo "        SpatialData object."
   echo ""
+  echo "    --input_spatialdata"
+  echo "        type: file, file must exist"
+  echo "        example: existing.zarr"
+  echo "        An optional existing SpatialData Zarr store to fill remaining slots"
+  echo "        from."
+  echo ""
+  echo "    --input_table"
+  echo "        type: string"
+  echo "        default: table"
+  echo "        Name of the table in \`--input_spatialdata\` to check against the selected"
+  echo "        modality. Only used when \`--input_spatialdata\` is provided."
+  echo ""
   echo "    -o, --output"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example: output.zarr"
   echo "        The path to the output SpatialData Zarr store."
+  echo ""
+  echo "    --output_table"
+  echo "        type: string"
+  echo "        default: table"
+  echo "        Name of the table in the output SpatialData object that stores the"
+  echo "        selected modality. If this is the same as \`--input_table\`, the input"
+  echo "        table is replaced. If it is different, the input table is kept and the"
+  echo "        modality is added as a new table."
   echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
@@ -676,6 +690,17 @@ while [[ $# -gt 0 ]]; do
             [ $# -lt 2 ] && ViashError Not enough arguments passed to -i. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
+        --modality)
+            [ -n "$VIASH_PAR_MODALITY" ] && ViashError Bad arguments for option \'--modality\': \'$VIASH_PAR_MODALITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MODALITY="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --modality. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --modality=*)
+            [ -n "$VIASH_PAR_MODALITY" ] && ViashError Bad arguments for option \'--modality=*\': \'$VIASH_PAR_MODALITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MODALITY=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
         --input_spatialdata)
             [ -n "$VIASH_PAR_INPUT_SPATIALDATA" ] && ViashError Bad arguments for option \'--input_spatialdata\': \'$VIASH_PAR_INPUT_SPATIALDATA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_INPUT_SPATIALDATA="$2"
@@ -687,15 +712,15 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT_SPATIALDATA=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --modality)
-            [ -n "$VIASH_PAR_MODALITY" ] && ViashError Bad arguments for option \'--modality\': \'$VIASH_PAR_MODALITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_MODALITY="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --modality. Use "--help" to get more information on the parameters. && exit 1
+        --input_table)
+            [ -n "$VIASH_PAR_INPUT_TABLE" ] && ViashError Bad arguments for option \'--input_table\': \'$VIASH_PAR_INPUT_TABLE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_TABLE="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --input_table. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --modality=*)
-            [ -n "$VIASH_PAR_MODALITY" ] && ViashError Bad arguments for option \'--modality=*\': \'$VIASH_PAR_MODALITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_MODALITY=$(ViashRemoveFlags "$1")
+        --input_table=*)
+            [ -n "$VIASH_PAR_INPUT_TABLE" ] && ViashError Bad arguments for option \'--input_table=*\': \'$VIASH_PAR_INPUT_TABLE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_TABLE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --output)
@@ -714,6 +739,17 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_OUTPUT="$2"
             [ $# -lt 2 ] && ViashError Not enough arguments passed to -o. Use "--help" to get more information on the parameters. && exit 1
             shift 2
+            ;;
+        --output_table)
+            [ -n "$VIASH_PAR_OUTPUT_TABLE" ] && ViashError Bad arguments for option \'--output_table\': \'$VIASH_PAR_OUTPUT_TABLE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_TABLE="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_table. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --output_table=*)
+            [ -n "$VIASH_PAR_OUTPUT_TABLE" ] && ViashError Bad arguments for option \'--output_table=*\': \'$VIASH_PAR_OUTPUT_TABLE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_TABLE=$(ViashRemoveFlags "$1")
+            shift 1
             ;;
         ---engine)
             VIASH_ENGINE_ID="$2"
@@ -922,6 +958,12 @@ fi
 if [ -z ${VIASH_PAR_MODALITY+x} ]; then
   VIASH_PAR_MODALITY="rna"
 fi
+if [ -z ${VIASH_PAR_INPUT_TABLE+x} ]; then
+  VIASH_PAR_INPUT_TABLE="table"
+fi
+if [ -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then
+  VIASH_PAR_OUTPUT_TABLE="table"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
@@ -1105,9 +1147,11 @@ import spatialdata as sd
 # The following code has been auto-generated by Viash.
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'input_spatialdata': $( if [ ! -z ${VIASH_PAR_INPUT_SPATIALDATA+x} ]; then echo "r'${VIASH_PAR_INPUT_SPATIALDATA//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'modality': $( if [ ! -z ${VIASH_PAR_MODALITY+x} ]; then echo "r'${VIASH_PAR_MODALITY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'input_spatialdata': $( if [ ! -z ${VIASH_PAR_INPUT_SPATIALDATA+x} ]; then echo "r'${VIASH_PAR_INPUT_SPATIALDATA//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'input_table': $( if [ ! -z ${VIASH_PAR_INPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_INPUT_TABLE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'output_table': $( if [ ! -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TABLE//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1156,12 +1200,21 @@ if par.get("input_spatialdata", None) is not None:
     sdata_existing = sd.read_zarr(par["input_spatialdata"])
     logger.setLevel(logging.INFO)
 
-    logger.info("Checking modality matches existing SpatialData table...")
-    if not mod.n_obs == sdata_existing["table"].n_obs:
+    input_table = par["input_table"]
+    if input_table not in sdata_existing.tables:
+        raise ValueError(
+            f"Table '{input_table}' not found in existing SpatialData. "
+            f"Available tables: {list(sdata_existing.tables.keys())}"
+        )
+
+    logger.info(
+        f"Checking modality matches existing SpatialData table '{input_table}'..."
+    )
+    if not mod.n_obs == sdata_existing[input_table].n_obs:
         raise ValueError(
             "The number of observations in the selected modality does not match the existing SpatialData table."
         )
-    if not mod.obs_names.equals(sdata_existing["table"].obs_names):
+    if not mod.obs_names.equals(sdata_existing[input_table].obs_names):
         raise ValueError(
             "The observation names in the selected modality do not match the existing SpatialData table."
         )
@@ -1183,10 +1236,16 @@ if par.get("input_spatialdata", None) is not None:
         overwrite_metadata=True,
     )
 
-    sdata["table"] = mod
+    # The input table is kept unless the modality is stored under the same name
+    output_table = par["output_table"]
+    if output_table != input_table and output_table in sdata.tables:
+        logger.warning(
+            f"Output table '{output_table}' already exists and will be overwritten"
+        )
+    sdata[output_table] = mod
 else:
     logger.info("Creating new SpatialData...")
-    sdata = sd.SpatialData(tables={"table": mod})
+    sdata = sd.SpatialData(tables={par["output_table"]: mod})
 
 logger.info(f"Writing output SpatialData Zarr store to {par['output']}...")
 sdata.write(par["output"], overwrite=True)

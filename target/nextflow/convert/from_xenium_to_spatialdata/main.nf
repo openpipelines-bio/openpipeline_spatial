@@ -3099,6 +3099,18 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "string",
+          "name" : "--output_table",
+          "description" : "Name of the main table in the output SpatialData object.\nOnly used when `--cells_table` is true.\n",
+          "default" : [
+            "table"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "boolean",
           "name" : "--cells_boundaries",
           "description" : "Whether to read cell boundaries (polygons).",
@@ -3424,7 +3436,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_xenium_to_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "6bbfe1d430745868420db02777832894f1bd0bbb",
+    "git_commit" : "2b69ca94bc0b12abd40165463ca27b9f7d4a8c7d",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3481,6 +3493,7 @@ from pathlib import Path
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_table': $( if [ ! -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TABLE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'cells_boundaries': $( if [ ! -z ${VIASH_PAR_CELLS_BOUNDARIES+x} ]; then echo "r'${VIASH_PAR_CELLS_BOUNDARIES//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
   'nucleus_boundaries': $( if [ ! -z ${VIASH_PAR_NUCLEUS_BOUNDARIES+x} ]; then echo "r'${VIASH_PAR_NUCLEUS_BOUNDARIES//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
   'cells_as_circles': $( if [ ! -z ${VIASH_PAR_CELLS_AS_CIRCLES+x} ]; then echo "r'${VIASH_PAR_CELLS_AS_CIRCLES//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
@@ -3557,6 +3570,11 @@ sdata = xenium(
     n_jobs=par["n_jobs"],
 )
 
+# spatialdata_io.xenium() stores the cell table as "table"
+if par["cells_table"] and par["output_table"] != "table":
+    logger.info(f"Renaming table 'table' to '{par['output_table']}'...")
+    sdata[par["output_table"]] = sdata["table"]
+    del sdata["table"]
 
 logger.info("Writing out SpatialData object to Zarr...")
 sdata.write(par["output"], overwrite=True)

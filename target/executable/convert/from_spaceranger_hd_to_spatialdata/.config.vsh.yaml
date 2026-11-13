@@ -43,6 +43,16 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
   - type: "string"
+    name: "--output_table"
+    description: "Name of the main table in the output SpatialData object."
+    info: null
+    default:
+    - "table"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
     name: "--mode"
     description: "Which output to load into the table: `segmented_cells` (per-cell\
       \ counts\nand cell boundary polygons from `segmented_outputs/`) or `bins` (binned\n\
@@ -119,7 +129,7 @@ description: "Converts the output from 10X Genomics Space Ranger for Visium HD i
   \ matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`.\
   \ Set\n`--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)\n\
   at the bin size given by `--bin_size`. In both cases the loaded table is\nrenamed\
-  \ to \"table\" so that downstream components stay technology-agnostic.\n"
+  \ to the value of `--output_table`.\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
@@ -257,7 +267,7 @@ build_info:
   output: "target/executable/convert/from_spaceranger_hd_to_spatialdata"
   executable: "target/executable/convert/from_spaceranger_hd_to_spatialdata/from_spaceranger_hd_to_spatialdata"
   viash_version: "0.9.7"
-  git_commit: "6bbfe1d430745868420db02777832894f1bd0bbb"
+  git_commit: "2b69ca94bc0b12abd40165463ca27b9f7d4a8c7d"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"
