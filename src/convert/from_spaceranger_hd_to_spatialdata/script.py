@@ -8,6 +8,7 @@ import spatialdata_io
 par = {
     "input": "resources_test/visium_hd/Visium_HD_Mouse_Brain_tiny_spaceranger",
     "output": "output.zarr",
+    "output_table": "table",
     "mode": "segmented_cells",
     "bin_size": 8,
     "output_type": "filtered",
@@ -80,20 +81,23 @@ def main(par):
         # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
         table_key = "cell_segmentations"
 
-    # Rename the loaded table to "table" so downstream components stay
-    # technology-agnostic (the shapes and images keep their dataset-id names).
-    sdata["table"] = sdata[table_key]
-    del sdata[table_key]
+    # Rename the loaded table to the output table name
+    if table_key != par["output_table"]:
+        logger.info("Renaming table '%s' to '%s'", table_key, par["output_table"])
+        sdata[par["output_table"]] = sdata[table_key]
+        del sdata[table_key]
 
     # Cell-type annotations are per-cell, so only for the segmented-cell table.
     if par["mode"] != "bins":
-        add_cell_type_annotations(input_path, sdata["table"])
+        add_cell_type_annotations(input_path, sdata[par["output_table"]])
 
     logger.info("SpatialData object:\n%s", sdata)
 
     if par["output_layer"]:
         logger.info("Storing counts as layer '%s'", par["output_layer"])
-        sdata["table"].layers[par["output_layer"]] = sdata["table"].X.copy()
+        sdata[par["output_table"]].layers[par["output_layer"]] = sdata[
+            par["output_table"]
+        ].X.copy()
 
     logger.info("Writing SpatialData to '%s'", par["output"])
     sdata.write(par["output"], overwrite=True)

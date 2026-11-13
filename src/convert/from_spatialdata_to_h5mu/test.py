@@ -1,6 +1,7 @@
 import pytest
 import sys
 import mudata as mu
+import spatialdata as sd
 
 
 def test_simple_execution(run_component, tmp_path):
@@ -46,6 +47,20 @@ def test_simple_execution(run_component, tmp_path):
 
     assert all(adata.var["feature_types"] == "Gene Expression")
     assert adata.obsm["spatial"].dtype == "float"
+
+
+def test_input_table(run_component, tmp_path):
+    sdata = sd.read_zarr(meta["resources_dir"] + "/xenium_tiny.zarr")
+    sdata["cells"] = sdata["table"]
+    del sdata["table"]
+    input = tmp_path / "input.zarr"
+    sdata.write(input)
+    output = tmp_path / "output.h5mu"
+
+    run_component(["--input", input, "--input_table", "cells", "--output", output])
+
+    mdata = mu.read_h5mu(output)
+    assert mdata.mod["rna"].n_obs == sdata["cells"].n_obs
 
 
 if __name__ == "__main__":

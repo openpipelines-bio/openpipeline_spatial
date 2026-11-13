@@ -16,6 +16,11 @@ argument_groups:
         description: Path to the input SpatialData Zarr store
         example: input.zarr
         required: true
+      - name: --input_table
+        type: string
+        label: Input table name
+        default: table
+        description: Name of the table in the input SpatialData object that contains the layer to move.
       - name: --input_layer
         type: string
         label: Input layer name
