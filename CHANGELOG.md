@@ -50,6 +50,7 @@
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--filter_probes` so that it is only passed to Space Ranger when set, which fixes runs without `--probe_set` such as Visium HD 3' (PR #104).
@@ -63,6 +64,8 @@
 =======
 >>>>>>> 6518d56c (Update CHANGELOG)
 ## BUG FIXES
+=======
+>>>>>>> a57f0a41 (Apply suggested changes)
 
 * `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
 

@@ -33,7 +33,7 @@ description: |
 >>>>>>> 5e874b8d (Apply suggested changes)
   `workflows/multiomics/spatial_process_samples`. 
   
-  Note: spatial domains are currently computed form a single gene expression modality, modelled wiht scVI.
+  Note: spatial domains are currently computed from a single gene expression modality, modelled wiht scVI.
   Joint modelling of RNA and protein (e.g. with totalVI for CITE-seq-like data) is not yet supported.
 <<<<<<< HEAD
 
