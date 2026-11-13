@@ -168,13 +168,13 @@ test_resources:
 
 engines:
   - type: docker
-    image: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+    image: python:3.12-slim
     setup:
       - type: apt
-        packages:
-          - procps
-          # required by rasterio, a dependency of cellcharter
-          - libexpat1
+        packages: [procps, libexpat1]
+      - type: docker
+        run: |
+          pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128
       - type: python
         __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
         packages:
