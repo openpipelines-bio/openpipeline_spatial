@@ -89,8 +89,8 @@ logger.info(f"Table '{par['input_table']}': {table}")
 logger.info(f"Writing table to '{par['output']}'...")
 # The store can't be overwritten because it is in use so we manually delete and
 # write the table
-sdata.delete_element_from_disk("table")
-sdata.write_element("table")
+sdata.delete_element_from_disk(par["input_table"])
+sdata.write_element(par["input_table"])
 sdata.write_consolidated_metadata()
 
 logger.info("Done!")
