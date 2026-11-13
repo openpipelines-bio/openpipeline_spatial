@@ -1,0 +1,42 @@
+diff --git a/src/nichecompass/utils/gene_programs.py b/src/nichecompass/utils/gene_programs.py
+index 7056cfe..a4c29e0 100644
+--- a/src/nichecompass/utils/gene_programs.py
++++ b/src/nichecompass/utils/gene_programs.py
+@@ -503,9 +503,9 @@ def extract_gp_dict_from_nichenet_lrt_interactions(
+     all_target_gene_scores_sorted = np.flip(all_target_gene_scores)
+     all_gps_score_keep_threshold = all_target_gene_scores_sorted[int(
+         (len(all_target_gene_scores_sorted) - 1) * keep_target_genes_ratio)]
++    # An element-wise comparison; DataFrame.applymap was removed in pandas 3.
+     ligand_target_all_gps_score_keep_threshold_mask_df = (
+-        ligand_target_matrix_df.applymap(
+-        lambda x: x > all_gps_score_keep_threshold))
++        ligand_target_matrix_df > all_gps_score_keep_threshold)
+     ligand_target_per_gp_score_keep_threshold_mask_df = (
+         ligand_target_matrix_df.apply(
+         lambda col: col > per_gp_score_keep_threshold[col.name], axis=0))
+@@ -683,6 +683,16 @@ def extract_gp_dict_from_omnipath_lr_interactions(
+     lr_interaction_df = lr_interaction_df[
+         lr_interaction_df["curation_effort"] >= min_curation_effort]
+ 
++    # A missing gene symbol arrives as None or NaN depending on the pandas
++    # version; such interactions can not be matched to a measured gene.
++    missing_symbol = (lr_interaction_df["genesymbol_intercell_source"].isna()
++                      | lr_interaction_df["genesymbol_intercell_target"].isna())
++    if missing_symbol.any():
++        print(f"Dropped {int(missing_symbol.sum())} OmniPath ligand-receptor "
++              "interactions in which the ligand or the receptor has no gene "
++              "symbol.")
++        lr_interaction_df = lr_interaction_df[~missing_symbol]
++
+     # Group receptors by ligands
+     grouped_lr_interaction_df = lr_interaction_df.groupby(
+         "genesymbol_intercell_source")["genesymbol_intercell_target"].agg(
+@@ -693,7 +703,7 @@ def extract_gp_dict_from_omnipath_lr_interactions(
+         return [func(item) for item in lst]
+ 
+     def resolve_protein_complexes(x):
+-        if x:
++        if isinstance(x, str) and x:
+             if "COMPLEX:" not in x:
+                 return [x]
+             else:
