@@ -4145,7 +4145,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/nichecompass",
     "viash_version" : "0.9.7",
-    "git_commit" : "2b69ca94bc0b12abd40165463ca27b9f7d4a8c7d",
+    "git_commit" : "5407bdb8f0db9791a1acafd7021d24770857ed88",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

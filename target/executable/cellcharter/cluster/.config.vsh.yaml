@@ -1,0 +1,453 @@
+name: "cluster"
+namespace: "cellcharter"
+version: "build_main"
+authors:
+- name: "Mirte De Temmerman"
+  roles:
+  - "author"
+  info:
+    links:
+      github: "mimi-DT"
+      linkedin: "mirtedt"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "Input H5MU file containing neighborhood-aggregated features."
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Which modality from the input MuData file to process."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obsm_features"
+    description: "Key in `.obsm` containing the features to cluster, e.g. the output\
+      \ of `cellcharter/aggregate_neighbors`.\nMust be a dense, low-dimensional representation.\n"
+    info: null
+    default:
+    - "X_cellcharter"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Number of clusters"
+  description: "Provide either `--n_clusters`, `--n_clusters_range`, or both."
+  arguments:
+  - type: "integer"
+    name: "--n_clusters"
+    description: "Number of clusters.\nWhen `--n_clusters_range` is not set, a single\
+      \ model is fitted with this number of clusters.\nWhen `--n_clusters_range` is\
+      \ set, the stability analysis is still performed, but the cells are\nclustered\
+      \ with this number of clusters instead of the most stable one. Must be within\
+      \ `--n_clusters_range`.\n"
+    info: null
+    example:
+    - 6
+    required: false
+    min: 2
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_clusters_range"
+    description: "Minimum and maximum number of clusters (both included) to evaluate\
+      \ for the automatic selection\nof the number of clusters with `cellcharter.tl.ClusterAutoK`.\n"
+    info: null
+    example:
+    - 2
+    - 10
+    required: false
+    min: 2
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_runs"
+    description: "Maximum number of repetitions of the clustering for every number\
+      \ of clusters in `--n_clusters_range`.\nOnly used when `--n_clusters_range`\
+      \ is set.\n"
+    info: null
+    default:
+    - 10
+    required: false
+    min: 2
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--stability_convergence_tolerance"
+    description: "Convergence tolerance for the clustering stability. If the mean\
+      \ absolute percentage error of the\nstability between consecutive runs is below\
+      \ this value, no more runs are performed.\nOnly used when `--n_clusters_range`\
+      \ is set.\n"
+    info: null
+    default:
+    - 0.01
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Gaussian Mixture Model"
+  arguments:
+  - type: "string"
+    name: "--covariance_type"
+    description: "The type of covariance to assume for all Gaussian components."
+    info: null
+    default:
+    - "full"
+    required: false
+    choices:
+    - "full"
+    - "tied"
+    - "diag"
+    - "spherical"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--init_strategy"
+    description: "The strategy for initializing the means and covariances of the components."
+    info: null
+    default:
+    - "kmeans"
+    required: false
+    choices:
+    - "kmeans"
+    - "kmeans++"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--convergence_tolerance"
+    description: "The change in the per-datapoint negative log-likelihood which implies\
+      \ that the training has converged.\n"
+    info: null
+    default:
+    - 0.001
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--covariance_regularization"
+    description: "A small value which is added to the diagonal of the covariance matrix\
+      \ to ensure that it is\npositive semi-definite. It is automatically increased\
+      \ when the fitting fails.\n"
+    info: null
+    default:
+    - 1.0E-6
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_epochs"
+    description: "Maximum number of epochs (EM iterations) to fit the model."
+    info: null
+    default:
+    - 100
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--batch_size"
+    description: "Batch size used to fit the model. If not set, all cells are used\
+      \ as a single batch.\nSet this if the data does not fit into (GPU) memory.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--accelerator"
+    description: "Hardware to fit the model on. `auto` uses a GPU when one is available,\
+      \ and the CPU otherwise.\n"
+    info: null
+    default:
+    - "auto"
+    required: false
+    choices:
+    - "auto"
+    - "cpu"
+    - "gpu"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--random_state"
+    description: "Random seed for reproducibility."
+    info: null
+    default:
+    - 0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "Output H5MU file."
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_obs_cluster"
+    description: "Key in `.obs` where the cluster labels will be stored."
+    info: null
+    default:
+    - "cellcharter_cluster"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_uns_stability"
+    description: "Key in `.uns` where the results of the stability analysis will be\
+      \ stored, when `--n_clusters_range` is set.\nContains the evaluated numbers\
+      \ of clusters (`n_clusters`), the stability values between adjacent numbers\n\
+      of clusters for every run (`stability`), their mean (`stability_mean`), the\
+      \ number of clusters with the\nhighest stability (`best_k`), the peaks of the\
+      \ stability curve (`peaks`) and the number of clusters\nthat was used to cluster\
+      \ the cells (`k`).\n"
+    info: null
+    default:
+    - "cellcharter_autok"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_compression"
+    description: "Compression format to use for the output AnnData and/or Mudata objects.\n\
+      By default no compression is applied.\n"
+    info: null
+    example:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+- type: "file"
+  path: "setup_logger.py"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Clusters cells into spatial domains with CellCharter, using a Gaussian\
+  \ Mixture Model on the\nneighborhood-aggregated features computed by `cellcharter/aggregate_neighbors`.\n\
+  \nTwo modes are supported:\n* **Fixed number of clusters** (`--n_clusters`): wraps\
+  \ [`cellcharter.tl.Cluster`](https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.Cluster.html).\n\
+  * **Automatic selection of the number of clusters** (`--n_clusters_range`): wraps\n\
+  \  [`cellcharter.tl.ClusterAutoK`](https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.ClusterAutoK.html).\n\
+  \  The clustering is repeated multiple times for every number of clusters in the\
+  \ range, and the stability\n  of the clustering between adjacent numbers of clusters\
+  \ is computed. By default, the cells are clustered\n  using the number of clusters\
+  \ with the highest stability. The stability results are stored in `.uns`.\n\nClustering\
+  \ runs on a GPU when one is available (see `--accelerator`).\n"
+test_resources:
+- type: "python_script"
+  path: "test.py"
+  is_executable: true
+- type: "file"
+  path: "xenium_tiny.qc.all_neighbors.pca.h5mu"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+license: "BSD-3-Clause"
+references:
+  doi:
+  - "10.1038/s41588-023-01588-4"
+links:
+  repository: "https://github.com/CSOgroup/cellcharter"
+  docker_registry: "ghcr.io"
+  homepage: "https://github.com/CSOgroup/cellcharter"
+  documentation: "https://cellcharter.readthedocs.io/en/latest/generated/cellcharter.tl.ClusterAutoK.html"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "midcpu"
+    - "midmem"
+    - "gpu"
+    - "middisk"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "python:3.12-slim"
+  namespace_separator: "/"
+  setup:
+  - type: "apt"
+    packages:
+    - "procps"
+    - "libexpat1"
+    interactive: false
+  - type: "docker"
+    run:
+    - "pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128\n"
+  - type: "python"
+    user: false
+    packages:
+    - "scanpy~=1.11.4"
+    - "squidpy~=1.8.1"
+    - "anndata~=0.12.16"
+    - "awkward"
+    - "scipy~=1.17.1"
+    - "mudata~=0.3.8"
+    - "cellcharter~=0.3.7"
+    script:
+    - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
+      \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
+      ).partition(\\\".\\\")[0]) > 2\")"
+    upgrade: true
+  test_setup:
+  - type: "apt"
+    packages:
+    - "git"
+    interactive: false
+  - type: "python"
+    user: false
+    packages:
+    - "viashpy==0.10.0"
+    github:
+    - "openpipelines-bio/core#subdirectory=packages/python/openpipeline_testutils"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+build_info:
+  config: "src/cellcharter/cluster/config.vsh.yaml"
+  runner: "executable"
+  engine: "docker"
+  output: "target/executable/cellcharter/cluster"
+  executable: "target/executable/cellcharter/cluster/cluster"
+  viash_version: "0.9.7"
+  git_commit: "5407bdb8f0db9791a1acafd7021d24770857ed88"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"
