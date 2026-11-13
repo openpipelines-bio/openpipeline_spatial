@@ -138,7 +138,8 @@ def test_extended_parameters(run_component, tmp_path):
     assert list(mdata.mod.keys()) == ["mod1"]
     adata = mdata.mod["mod1"]
 
-    assert list(adata.layers) == ["nuclear_counts"]
+    # Since anndata 0.13, X is also available as layers[None]
+    assert [key for key in adata.layers if key is not None] == ["nuclear_counts"]
     assert adata.layers["nuclear_counts"].dtype.kind == "f"
 
     expected_obsm_keys = [

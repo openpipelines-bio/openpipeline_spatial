@@ -72,7 +72,7 @@ if input_layer_name == output_layer_name:
 
 if par["input_layer"] and input_layer_name not in table.layers:
     raise ValueError(
-        f"Input layer '{input_layer_name}' not found in table '{par['input_table']}'. Available layers: {list(table.layers.keys())}"
+        f"Input layer '{input_layer_name}' not found in table '{par['input_table']}'. Available layers: {[key for key in table.layers.keys() if key is not None]}"
     )
 
 if par["output_layer"] and output_layer_name in table.layers:

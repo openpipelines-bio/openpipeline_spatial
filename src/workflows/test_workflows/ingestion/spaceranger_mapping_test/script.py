@@ -16,9 +16,8 @@ def test_run():
     assert list(input_mudata.mod.keys()) == ["rna"], (
         "Input should contain rna modality."
     )
-    assert list(input_mudata.var.columns) == expected_var_columns, (
-        f"Input var columns should be: {expected_var_columns}."
-    )
+    # mudata >= 0.4 does not pull modality columns into the global .var,
+    # so the annotation is only checked at the modality level.
     assert list(input_mudata.mod["rna"].var.columns) == expected_var_columns, (
         f"Input mod['rna'] var columns should be: {expected_var_columns}."
     )
