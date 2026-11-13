@@ -16,6 +16,13 @@ description: |
   at most the first three unless a specific subset is selected with
   `--channels`.
 
+  **Whole-slide images.** The image is segmented in overlapping square
+  tiles (`--tile_size`, `--tile_overlap`), so only one tile is loaded and
+  segmented at a time. The overlap gives cells on a tile border their full
+  context. Images that fit in a single tile are segmented in one pass, exactly
+  as without tiling. Note that the full-size output mask is still held in memory
+  (4 bytes per pixel, e.g. ~5 GB for a 40k x 30k pixel Xenium image).
+
 references:
   doi:
     - "10.1101/2025.04.28.651001" # Cellpose-SAM: superhuman generalization for cellular segmentation
@@ -112,8 +119,10 @@ argument_groups:
         min: 0.0
         max: 1.0
         description: |
-          Masks larger than this fraction of the total image size are
-          discarded.
+          Masks larger than this fraction of the image size are discarded.
+          When the image is split into tiles (see `--tile_size`), this is a
+          fraction of the tile size (including its overlap margin) rather
+          than of the whole image.
       - name: "--niter"
         type: integer
         required: false
@@ -163,6 +172,25 @@ argument_groups:
           scans are mostly background, so Cellpose's own default of 99 can
           land on a still-zero pixel and degenerate the normalization; 99.9
           is a safer default for this kind of sparse image.
+      - name: "--tile_size"
+        type: integer
+        default: 4096
+        min: 1
+        description: |
+          Size (in pixels) of the square tiles the image is split into for
+          segmentation. Each tile is segmented separately, which keeps the
+          memory use bounded for whole-slide images. An image that is
+          smaller than one tile is segmented in a single pass. Larger tiles
+          need more memory (and GPU memory) but have fewer tile borders.
+      - name: "--tile_overlap"
+        type: integer
+        default: 128
+        min: 0
+        description: |
+          Number of pixels each tile is extended by on every side, so that
+          cells on a tile border are seen in full. Must be larger than the
+          largest expected cell diameter (in pixels); cells larger than this
+          may be cut off at tile borders.
 
   - name: Outputs
     arguments:
@@ -241,4 +269,4 @@ runners:
     # docker_run_args: ["--gpus all"]
   - type: nextflow
     directives:
-      label: [midcpu, highmem, highdisk, gpu]
+      label: [highcpu, veryhighmem, veryhighdisk, gpu]
