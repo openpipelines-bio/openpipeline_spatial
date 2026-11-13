@@ -4,7 +4,11 @@
 
 * `workflows/spatial_domains/nichecompass_leiden`: moved from the `workflows/niche` namespace (PR #87).
 
+* `workflows/ingestion/spaceranger_hd_mapping`: Change the default of `--create_bam` from `false` to `true` to match other workflows and the Space Ranger recommendations. Set `--create_bam false` to keep the previous behaviour (PR #104).
+
 ## NEW FUNCTIONALITY
+
+* `segmentation/cellpose3`: Component to segment cells or nuclei from an image in a SpatialData Zarr store (e.g. Xenium `morphology_focus`) using Cellpose3, writing the resulting instance segmentation mask back as a labels element (PR #77).
 
 * `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
 
@@ -20,11 +24,21 @@
 
 * `workflows/niche/nichecompass_leiden`: Compute the spatial neighborhood graph per sample with `--input_obs_library_key` of `neighbors/spatial_neighborhood_graph` (PR #98).
 
+* `dataflow/move_layer_spatialdata`: Reduce memory usage by copying the input store and rewriting only the table, instead of loading and writing the full SpatialData object (PR #103).
+
 * `neighbors/spatial_neighborhood_graph`: Add `--percentile` argument to prune edges longer than the given distance percentile (PR #93).
 
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
+
+* `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--filter_probes` so that it is only passed to Space Ranger when set, which fixes runs without `--probe_set` such as Visium HD 3' (PR #104).
+
+* `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--reorient_images` so that it is only passed to Space Ranger when set, which fixes runs with `--loupe_alignment` (PR #104).
+
+* `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `visium-hd-large` to the choices of `--unknown_slide`, matching Space Ranger 4.1.0 (PR #104).
+
+* `mapping/spaceranger_count`: Pass multiple `--lanes` values to Space Ranger as a comma-separated list, which fixes runs with more than one lane (PR #104).
 
 # openpipeline_spatial 0.7.0
 
