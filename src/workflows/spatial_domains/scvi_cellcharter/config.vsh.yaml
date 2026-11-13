@@ -14,7 +14,7 @@ description: |
   The input is an already processed and filtered (multi-sample) H5MU file, e.g. the output of
   `workflows/multiomics/spatial_process_samples`. 
   
-  Note: spatial domains are currently computed form a single gene expression modality, modelled wiht scVI.
+  Note: spatial domains are currently computed from a single gene expression modality, modelled wiht scVI.
   Joint modelling of RNA and protein (e.g. with totalVI for CITE-seq-like data) is not yet supported.
 
 authors:
