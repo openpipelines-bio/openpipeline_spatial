@@ -18,42 +18,38 @@ argument_groups:
     description: |
       File path to directory containing all required Xenium Onboard Analysis output files.
     example: "/path/to/xenium_output_bundle"
-  - name: "--id"
-    type: string
-    required: true
-    description: |
-      Unique string to specify the name of the import-segmentation output folder. May only include ASCII characters (alphanumeric, underscore, dash, period) and must not use whitespace, slash, quote, or comma characters.
-    example: "sample_import_segmentation"
 - name: General arguments
   arguments:
   - name: "--units"
     type: string
     required: false
     description: |
-      Indicates whether segmentation results are in physical space ("microns") or pixel space ("pixels"). Must be set as "microns" if --coordinate-transform or --transcript_assignment is used.
+      Indicates whether segmentation results are in physical space ("microns") or pixel space ("pixels"). Must be set as "microns" if --coordinate_transform or --transcript_assignment is used.
     choices: ["microns", "pixels"]
     default: "pixels"
 - name: Image based segmentation arguments 
   arguments:
   - name: "--expansion_distance"
-    type: integer
+    type: double
     required: false
     description: |
-      Nuclei boundary expansion distance in µm. Only for use when nucleus segmentation provided as input (accepted range: 0 - 100).
-      If not set, Xenium Ranger uses its default of 5 µm when --nuclei is provided.
+      Nuclei boundary expansion distance in micrometers. Only for use when nucleus segmentation provided as input.
+      If not set, Xenium Ranger uses its default of 5 micrometers when --nuclei is provided.
+    min: 0
+    max: 100
     example: 5
   - name: "--nuclei"
     type: file
     required: false
     description: |
-      Label mask (TIFF or NPY), polygons of nucleus segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the nucleus masks as input). --nuclei will use nucleusGeometry polygon if it exists in the GeoJSON (i.e., for QuPath-like GeoJSON files), or geometry if it does not. Error if --transcript-assignment argument is used.
+      Label mask (TIFF or NPY), polygons of nucleus segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the nucleus masks as input). --nuclei will use nucleusGeometry polygon if it exists in the GeoJSON (i.e., for QuPath-like GeoJSON files), or geometry if it does not. Error if --transcript_assignment argument is used.
     example: "/path/to/cells.zarr"
   - name: "--cells"
     type: file
     required: false
     description: |
-      Label mask (TIFF or NPY), polygons of cell segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the cell masks as input). Features with a non-cell objectType will be ignored. Must be used together with --nuclei. Error if --transcript-assignment argument is used.
-    example: '/path/to/cells.zarr'
+      Label mask (TIFF or NPY), polygons of cell segmentations (GeoJSON FeatureCollection), or Xenium Onboard Analysis cells.zarr.zip (the cell masks as input). Features with a non-cell objectType will be ignored. Must be used together with --nuclei. Error if --transcript_assignment argument is used.
+    example: '/path/to/cells.zarr.zip'
   - name: "--coordinate_transform"
     type: file
     required: false
@@ -66,7 +62,7 @@ argument_groups:
     type: file
     required: false
     description: |
-      Cell boundary polygons (GeoJSON) from 3rd party segmentation tools. Provided as input to Xenium Ranger so visualization polygons are included in output bundle to view in Xenium Explorer and 3rd party plotting tools. Required if --transcript-assignment argument used. Error if --cells or --nuclei arguments used.
+      Cell boundary polygons (GeoJSON) from 3rd party segmentation tools. Provided as input to Xenium Ranger so visualization polygons are included in output bundle to view in Xenium Explorer and 3rd party plotting tools. Required if --transcript_assignment argument used. Error if --cells or --nuclei arguments used.
     example: "/path/to/segmentation_polygons_2d.json"
   - name: "--transcript_assignment"
     type: file
@@ -89,9 +85,8 @@ resources:
 test_resources:
   - type: python_script
     path: test.py
-  - path: /resources_test/xenium/xenium_tiny
-  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny
-  - path: /resources_test/xenium/xenium_multicellseg_tiny_transcript_assignment
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny_cropped
+  - path: /resources_test/xenium_multichannel/xenium_multicellseg_tiny_cropped_transcript_assignment
 engines:
   - type: docker
     image: quay.io/nf-core/xeniumranger:4.0

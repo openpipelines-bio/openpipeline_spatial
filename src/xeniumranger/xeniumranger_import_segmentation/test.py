@@ -15,25 +15,22 @@ import scanpy as sc
 ## VIASH START
 meta = {
     "name": "xeniumranger_import_segmentation",
-    "resources_dir": "resources_test/xenium",
+    "resources_dir": "resources_test/xenium_multichannel",
 }
 ## VIASH END
 
-# 1. Nuclear-expansion fixture (full raw XOA bundle), ne = nuclear expansion
-input_ne = meta["resources_dir"] + "/xenium_tiny/"
-id_ne = "xenium_tiny_import_segmentation"
+# Raw XOA bundle cropped to a single patch of cells
+input_bundle = meta["resources_dir"] + "/xenium_multicellseg_tiny_cropped/"
+# Baysor-style transcript assignment + viz polygons derived from the cropped bundle (micron units)
+input_ta = (
+    meta["resources_dir"] + "/xenium_multicellseg_tiny_cropped_transcript_assignment/"
+)
 
-# 2. Multichannel fixture (full raw XOA bundle), mm = multichannel
-input_mm = meta["resources_dir"] + "/xenium_multicellseg_tiny/"
-id_mm = "xenium_multicellseg_tiny_import_segmentation"
-# Baysor-style transcript assignment + viz polygons derived from the mm bundle (micron units)
-input_ta = meta["resources_dir"] + "/xenium_multicellseg_tiny_transcript_assignment/"
-
-# 3. General arguments
+# General arguments
 units = "pixels"
 expansion_distance = "5"
 
-changed_files_ne = [
+changed_files = [
     "cells.csv.gz",
     "cells.parquet",
     "cells.zarr.zip",
@@ -50,46 +47,20 @@ changed_files_ne = [
     "analysis_summary.html",
     "experiment.xenium",
 ]
-input_not_in_output_ne = [
+input_not_in_output = [
     ".end-of-run",
     "aux_outputs.tar.gz",
     "analysis.tar.gz",
     "cell_feature_matrix.tar.gz",
 ]
-output_not_in_input_ne = [
-    "cell_id_map.csv.gz",
-]
-
-# xenium_multichannel/xenium_multicellseg_tiny is a full raw XOA bundle, same shape as xenium_tiny
-changed_files_mm = [
-    "cells.csv.gz",
-    "cells.parquet",
-    "cells.zarr.zip",
-    "cell_boundaries.csv.gz",
-    "cell_boundaries.parquet",
-    "nucleus_boundaries.csv.gz",
-    "nucleus_boundaries.parquet",
-    "cell_feature_matrix.h5",
-    "cell_feature_matrix.zarr.zip",
-    "transcripts.parquet",
-    "transcripts.zarr.zip",
-    "analysis.zarr.zip",
-    "metrics_summary.csv",
-    "analysis_summary.html",
-    "experiment.xenium",
-]
-input_not_in_output_mm = [
-    ".end-of-run",
-    "aux_outputs.tar.gz",
-    "analysis.tar.gz",
-    "cell_feature_matrix.tar.gz",
-]
-output_not_in_input_mm = [
+output_not_in_input = [
     "cell_id_map.csv.gz",
 ]
 
 
-def assert_outputs_exists(input, output, input_not_in_output, output_not_in_input):
+def assert_outputs_exists(
+    input_bundle, output, input_not_in_output, output_not_in_input
+):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
         "Output directory exists and is non-empty"
     )
@@ -98,8 +69,9 @@ def assert_outputs_exists(input, output, input_not_in_output, output_not_in_inpu
 
     input_files = sorted(
         f
-        for f in os.listdir(input)
-        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        for f in os.listdir(input_bundle)
+        if os.path.isfile(os.path.join(input_bundle, f))
+        and f not in input_not_in_output
     )
     output_files = sorted(
         f
@@ -191,12 +163,13 @@ def assert_transcript_assignment_imported(output, transcript_assignment):
 
 
 def assert_identical(
-    input, output, skip_files, input_not_in_output, output_not_in_input
+    input_bundle, output, skip_files, input_not_in_output, output_not_in_input
 ):
     input_files = sorted(
         f
-        for f in os.listdir(input)
-        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        for f in os.listdir(input_bundle)
+        if os.path.isfile(os.path.join(input_bundle, f))
+        and f not in input_not_in_output
     )
 
     output_files = sorted(
@@ -212,20 +185,17 @@ def assert_identical(
     for f in input_files:
         if f not in skip_files:
             assert filecmp.cmp(
-                os.path.join(input, f), os.path.join(output, f), shallow=False
+                os.path.join(input_bundle, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
 
 
-# Nuclear expansion path
 def test_basic_execution(run_component, random_path):
-    nuclei = input_ne + "cells.zarr.zip"
+    nuclei = input_bundle + "cells.zarr.zip"
     output = random_path()
     run_component(
         [
             "--xenium_bundle",
-            input_ne,
-            "--id",
-            id_ne,
+            input_bundle,
             "--nuclei",
             nuclei,
             "--units",
@@ -238,103 +208,48 @@ def test_basic_execution(run_component, random_path):
     )
 
     assert_outputs_exists(
-        input_ne, output, input_not_in_output_ne, output_not_in_input_ne
+        input_bundle, output, input_not_in_output, output_not_in_input
     )
     assert_valid_files(output)
     assert_identical(
-        input_ne,
+        input_bundle,
         output,
-        changed_files_ne,
-        input_not_in_output_ne,
-        output_not_in_input_ne,
+        changed_files,
+        input_not_in_output,
+        output_not_in_input,
     )
     assert_import_segmentation_used(output)
-
-
-def test_valid_id(run_component, random_path):
-    output = random_path()
-    malformed_id = ", ,"
-    with pytest.raises(subprocess.CalledProcessError) as err:
-        run_component(
-            [
-                "--xenium_bundle",
-                input_ne,
-                "--id",
-                malformed_id,
-                "--output",
-                output,
-            ]
-        )
-    assert re.search(
-        r"invalid value.*--id",
-        err.value.stdout.decode("utf-8"),
-        re.IGNORECASE,
-    )
 
 
 def test_missing_file(run_component, random_path, tmp_path):
     output = random_path()
     incomplete_bundle = tmp_path / "incomplete_bundle"
-    shutil.copytree(input_ne, incomplete_bundle)
+    shutil.copytree(input_bundle, incomplete_bundle)
     os.remove(incomplete_bundle / "experiment.xenium")
-    with pytest.raises(subprocess.CalledProcessError):
+    nuclei = input_bundle + "cells.zarr.zip"
+    with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
                 str(incomplete_bundle),
-                "--id",
-                id_ne,
+                "--nuclei",
+                nuclei,
                 "--output",
                 output,
             ]
         )
-
-
-# Multimodal path
-def test_basic_execution_multichannel(run_component, random_path):
-    nuclei = input_mm + "cells.zarr.zip"
-    output = random_path()
-    run_component(
-        [
-            "--xenium_bundle",
-            input_mm,
-            "--id",
-            id_mm,
-            "--nuclei",
-            nuclei,
-            "--units",
-            units,
-            "--expansion_distance",
-            expansion_distance,
-            "--output",
-            output,
-        ]
-    )
-
-    assert_outputs_exists(
-        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
-    )
-    assert_valid_files(output)
-    assert_identical(
-        input_mm,
-        output,
-        changed_files_mm,
-        input_not_in_output_mm,
-        output_not_in_input_mm,
-    )
-    assert_import_segmentation_used(output)
+    stdout = err.value.stdout.decode("utf-8")
+    assert re.search(r"experiment\.xenium", stdout, re.IGNORECASE)
 
 
 def test_cells_nuclei(run_component, random_path):
-    nuclei = input_mm + "cells.zarr.zip"
-    cells = input_mm + "cells.zarr.zip"
+    nuclei = input_bundle + "cells.zarr.zip"
+    cells = input_bundle + "cells.zarr.zip"
     output = random_path()
     run_component(
         [
             "--xenium_bundle",
-            input_mm,
-            "--id",
-            id_mm,
+            input_bundle,
             "--nuclei",
             nuclei,
             "--cells",
@@ -349,15 +264,15 @@ def test_cells_nuclei(run_component, random_path):
     )
 
     assert_outputs_exists(
-        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
+        input_bundle, output, input_not_in_output, output_not_in_input
     )
     assert_valid_files(output)
     assert_identical(
-        input_mm,
+        input_bundle,
         output,
-        changed_files_mm,
-        input_not_in_output_mm,
-        output_not_in_input_mm,
+        changed_files,
+        input_not_in_output,
+        output_not_in_input,
     )
     assert_import_segmentation_used(output)
 
@@ -369,9 +284,7 @@ def test_transcript_assignment(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input_mm,
-            "--id",
-            id_mm,
+            input_bundle,
             "--transcript_assignment",
             transcript_assignment,
             "--viz_polygons",
@@ -384,15 +297,15 @@ def test_transcript_assignment(run_component, random_path):
     )
 
     assert_outputs_exists(
-        input_mm, output, input_not_in_output_mm, output_not_in_input_mm
+        input_bundle, output, input_not_in_output, output_not_in_input
     )
     assert_valid_files(output)
     assert_identical(
-        input_mm,
+        input_bundle,
         output,
-        changed_files_mm,
-        input_not_in_output_mm,
-        output_not_in_input_mm,
+        changed_files,
+        input_not_in_output,
+        output_not_in_input,
     )
     assert_import_segmentation_used(output)
     assert_transcript_assignment_imported(output, transcript_assignment)

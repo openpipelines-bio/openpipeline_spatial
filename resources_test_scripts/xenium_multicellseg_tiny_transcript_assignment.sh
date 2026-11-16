@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Derive a Baysor-style transcript assignment (segmentation.csv) and viz polygons
-# (segmentation_polygons_2d.json) from the XOA segmentation in xenium_multichannel/xenium_multicellseg_tiny,
+# (segmentation_polygons_2d.json) from the XOA segmentation in xenium_multichannel/xenium_multicellseg_tiny_cropped,
 # for testing xeniumranger import-segmentation --transcript-assignment / --viz-polygons.
 #
 # Requires a python3 with pandas and pyarrow (override with PYTHON=/path/to/python).
@@ -12,9 +12,9 @@ set -eo pipefail
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # Define absolute directory paths
-DIR="$REPO_ROOT/resources_test/xenium"
-SRC="$REPO_ROOT/resources_test/xenium_multichannel/xenium_multicellseg_tiny"
-ID="xenium_multicellseg_tiny_transcript_assignment"
+DIR="$REPO_ROOT/resources_test/xenium_multichannel"
+SRC="$DIR/xenium_multicellseg_tiny_cropped"
+ID="xenium_multicellseg_tiny_cropped_transcript_assignment"
 OUT="$DIR/$ID"
 PYTHON="${PYTHON:-python3}"
 
@@ -87,3 +87,10 @@ with open(out / "segmentation_polygons_2d.json", "w") as f:
 
 print(f"{len(seg)} transcripts ({(~assigned).sum()} noise), {len(features)} cells -> {out}")
 EOF
+
+# sync to S3 (dry-run; drop --dryrun to upload)
+aws s3 sync \
+    --profile di \
+    "$OUT" \
+    "s3://openpipelines-bio/openpipeline_spatial/resources_test/xenium_multichannel/$ID" \
+    --dryrun
