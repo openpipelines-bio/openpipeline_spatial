@@ -47,6 +47,10 @@ engines:
         run: |
           DEBIAN_FRONTEND=noninteractive apt update && \
           apt upgrade -y && apt install -y procps && rm -rf /var/lib/apt/lists/*
+    test_setup:
+      - type: python
+        packages:
+          - tifffile==2023.7.10
     __merge__: [ /src/base/requirements/xeniumranger_test_setup.yaml, .]
 runners:
   - type: executable
