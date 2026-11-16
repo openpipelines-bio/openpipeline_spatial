@@ -6,6 +6,8 @@
 
 * `workflows/ingestion/spaceranger_hd_mapping`: Change the default of `--create_bam` from `false` to `true` to match other workflows and the Space Ranger recommendations. Set `--create_bam false` to keep the previous behaviour (PR #104).
 
+* Updated AnnData to 0.13.4, MuData to 0.4.1, SpatialData to 0.9.0 and Pandas to 3 (PR #107).
+
 ## NEW FUNCTIONALITY
 
 * `segmentation/cellpose3`: Component to segment cells or nuclei from an image in a SpatialData Zarr store (e.g. Xenium `morphology_focus`) using Cellpose3, writing the resulting instance segmentation mask back as a labels element (PR #77).
