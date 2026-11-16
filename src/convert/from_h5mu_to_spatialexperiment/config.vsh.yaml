@@ -52,7 +52,7 @@ engines:
           - libgeos-dev
       - type: r
         cran: [ hdf5r, SpatialExperiment ]
-        bioc: [ anndataR ]
+        bioc: [ anndataR, rhdf5 ]
     test_setup:
       - type: docker
         env: 
