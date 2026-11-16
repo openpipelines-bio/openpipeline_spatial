@@ -18,6 +18,8 @@
 
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
 
+* `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
@@ -41,6 +43,8 @@
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `visium-hd-large` to the choices of `--unknown_slide`, matching Space Ranger 4.1.0 (PR #104).
 
 * `mapping/spaceranger_count`: Pass multiple `--lanes` values to Space Ranger as a comma-separated list, which fixes runs with more than one lane (PR #104).
+
+* `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
 
 # openpipeline_spatial 0.7.0
 

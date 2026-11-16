@@ -3221,6 +3221,10 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "/src/utils/compress_h5mu.py"
+    },
+    {
+      "type" : "file",
       "path" : "/src/workflows/utils/labels.config",
       "dest" : "nextflow_labels.config"
     }
@@ -3395,7 +3399,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/neighbors/spatial_neighborhood_graph",
     "viash_version" : "0.9.7",
-    "git_commit" : "5407bdb8f0db9791a1acafd7021d24770857ed88",
+    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3488,6 +3492,7 @@ dep = {
 
 sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
+from compress_h5mu import write_h5ad_to_h5mu_with_compression
 
 logger = setup_logger()
 
@@ -3520,6 +3525,7 @@ sq.gr.spatial_neighbors(
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
     percentile=par["percentile"],
+    key_added="spatial",
 )
 
 # Making the connectivity matrix symmetric
@@ -3528,10 +3534,12 @@ adata.obsp["spatial_connectivities"] = adata.obsp["spatial_connectivities"].maxi
     adata.obsp["spatial_connectivities"].T
 )
 
-## Save model and data
+## Save data
+# Write the modality back into a copy of the input, so that the other modalities are preserved
 logger.info("Saving output data...")
-mdata = mu.MuData({par["modality"]: adata})
-mdata.write_h5mu(par["output"], compression=par["output_compression"])
+write_h5ad_to_h5mu_with_compression(
+    par["output"], par["input"], par["modality"], adata, par["output_compression"]
+)
 VIASHMAIN
 python -B "$tempscript"
 '''
