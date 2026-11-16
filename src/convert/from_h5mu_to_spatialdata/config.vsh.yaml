@@ -3,10 +3,10 @@ namespace: "convert"
 scope: "public"
 description: |
   Reads in an H5MU file and saves it as a SpatialData Zarr store. The selected
-  modality in the MuData is stored as the main table in the SpatialData object.
+  modality in the MuData is stored as a table in the SpatialData object.
   If a matching existing SpatialData is provided, it will be used to fill the
   remaining SpatialData slots.
-    
+
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ author ]
@@ -20,16 +20,22 @@ arguments:
     example: input.h5mu
     direction: input
     required: true
+  - name: "--modality"
+    type: string
+    default: rna
+    description: The modality in the MuData to be used as the main table in the SpatialData object.
   - name: "--input_spatialdata"
     type: file
     description: An optional existing SpatialData Zarr store to fill remaining slots from.
     example: existing.zarr
     direction: input
     required: false
-  - name: "--modality"
+  - name: "--input_table"
     type: string
-    default: rna
-    description: The modality in the MuData to be used as the main table in the SpatialData object.
+    default: table
+    description: |
+      Name of the table in `--input_spatialdata` to check against the selected
+      modality. Only used when `--input_spatialdata` is provided.
   - name: "--output"
     alternatives: ["-o"]
     type: file
@@ -37,6 +43,14 @@ arguments:
     example: "output.zarr"
     direction: output
     required: true
+  - name: "--output_table"
+    type: string
+    default: table
+    description: |
+      Name of the table in the output SpatialData object that stores the
+      selected modality. If this is the same as `--input_table`, the input
+      table is replaced. If it is different, the input table is kept and the
+      modality is added as a new table.
 
 resources:
   - type: python_script
@@ -52,7 +66,7 @@ engines:
     image: python:3.12-slim
     setup:
       - type: apt
-        packages: 
+        packages:
           - procps
       - type: python
         __merge__: [/src/base/requirements/anndata_mudata.yaml, /src/base/requirements/spatialdata.yaml]

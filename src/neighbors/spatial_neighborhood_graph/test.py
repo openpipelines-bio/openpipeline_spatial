@@ -102,5 +102,99 @@ def test_missing_library_key(run_component, tmp_path):
     )
 
 
+def test_percentile(run_component, tmp_path):
+    def run(output, extra_args):
+        run_component(
+            [
+                "--input",
+                input_xenium,
+                "--delaunay",
+                "true",
+                "--output",
+                str(output),
+            ]
+            + extra_args
+        )
+        return mu.read_h5mu(output).mod["rna"]
+
+    unpruned = run(tmp_path / "unpruned.h5mu", [])
+    pruned = run(tmp_path / "pruned.h5mu", ["--percentile", "80"])
+
+    threshold = np.percentile(unpruned.obsp["spatial_distances"].data, 80)
+    assert pruned.obsp["spatial_connectivities"].nnz < (
+        unpruned.obsp["spatial_connectivities"].nnz
+    ), "Expected edges to be pruned"
+    assert pruned.obsp["spatial_distances"].data.max() <= threshold, (
+        "Expected no edges longer than the distance percentile"
+    )
+
+
+def test_percentile_multiple_libraries(run_component, tmp_path):
+    mdata = mu.read_h5mu(input_xenium)
+    n_obs = mdata.mod["rna"].n_obs
+    libraries = np.where(np.arange(n_obs) < n_obs // 2, "sample_a", "sample_b")
+    mdata.mod["rna"].obs["sample_id"] = libraries
+    input_multi = tmp_path / "xenium_multi_library.h5mu"
+    mdata.write_h5mu(input_multi)
+
+    def run(output, extra_args):
+        run_component(
+            [
+                "--input",
+                str(input_multi),
+                "--input_obs_library_key",
+                "sample_id",
+                "--delaunay",
+                "true",
+                "--output",
+                str(output),
+            ]
+            + extra_args
+        )
+        return mu.read_h5mu(output).mod["rna"]
+
+    unpruned = run(tmp_path / "unpruned.h5mu", [])
+    pruned = run(tmp_path / "pruned.h5mu", ["--percentile", "80"])
+
+    # The distance threshold is computed separately for every library
+    for library in ["sample_a", "sample_b"]:
+        is_library = libraries == library
+        unpruned_dist = unpruned.obsp["spatial_distances"][is_library][:, is_library]
+        pruned_dist = pruned.obsp["spatial_distances"][is_library][:, is_library]
+        threshold = np.percentile(unpruned_dist.data, 80)
+        assert pruned_dist.nnz < unpruned_dist.nnz, (
+            f"Expected edges to be pruned in {library}"
+        )
+        assert pruned_dist.data.max() <= threshold, (
+            f"Expected no edges longer than the distance percentile of {library}"
+        )
+
+    connectivities = pruned.obsp["spatial_connectivities"]
+    is_a = libraries == "sample_a"
+    assert connectivities[is_a][:, ~is_a].nnz == 0, (
+        "Expected no edges between observations of different libraries"
+    )
+
+
+def test_percentile_grid(run_component, tmp_path):
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input_xenium,
+                "--coord_type",
+                "grid",
+                "--percentile",
+                "99",
+                "--output",
+                str(tmp_path / "output.h5mu"),
+            ]
+        )
+    assert re.search(
+        r"--percentile is only supported when --coord_type is 'generic'.",
+        err.value.stdout.decode("utf-8"),
+    )
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))

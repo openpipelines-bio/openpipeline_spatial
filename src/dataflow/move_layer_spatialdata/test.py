@@ -64,7 +64,9 @@ def test_move_layer_to_layer(run_component, tmp_path):
     output_path = tmp_path / "output.zarr"
 
     sdata = sd.read_zarr(input_path)
-    sdata["table"].layers["test_layer"] = sdata["table"].X.copy()
+    sdata["cells"] = sdata["table"]
+    del sdata["table"]
+    sdata["cells"].layers["test_layer"] = sdata["cells"].X.copy()
     tmp_input = tmp_path / "input_with_layer.zarr"
     sdata.write(str(tmp_input))
 
@@ -74,6 +76,8 @@ def test_move_layer_to_layer(run_component, tmp_path):
             str(tmp_input),
             "--output",
             str(output_path),
+            "--input_table",
+            "cells",
             "--input_layer",
             "test_layer",
             "--output_layer",
@@ -85,9 +89,9 @@ def test_move_layer_to_layer(run_component, tmp_path):
     assert output_path.exists(), "output zarr was not created"
     result = sd.read_zarr(str(output_path))
 
-    assert "test_layer" not in result["table"].layers, "test_layer should be removed"
-    assert "layer_2" in result["table"].layers, "layer_2 should exist"
-    assert result["table"].layers["layer_2"] is not None, "layer_2 should have data"
+    assert "test_layer" not in result["cells"].layers, "test_layer should be removed"
+    assert "layer_2" in result["cells"].layers, "layer_2 should exist"
+    assert result["cells"].layers["layer_2"] is not None, "layer_2 should have data"
 
 
 def test_copy_layer(run_component, tmp_path):
