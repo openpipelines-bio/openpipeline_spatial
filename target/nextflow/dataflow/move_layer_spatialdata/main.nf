@@ -3305,10 +3305,11 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "spatialdata~=0.8.0",
+            "pandas>3",
+            "scipy~=1.18.1",
+            "spatialdata~=0.9.0",
             "pyarrow~=18.0.0",
             "ome-zarr~=0.18.0"
           ],
@@ -3347,7 +3348,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/dataflow/move_layer_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3492,7 +3493,7 @@ if input_layer_name == output_layer_name:
 
 if par["input_layer"] and input_layer_name not in table.layers:
     raise ValueError(
-        f"Input layer '{input_layer_name}' not found in table '{par['input_table']}'. Available layers: {list(table.layers.keys())}"
+        f"Input layer '{input_layer_name}' not found in table '{par['input_table']}'. Available layers: {[key for key in table.layers.keys() if key is not None]}"
     )
 
 if par["output_layer"] and output_layer_name in table.layers:

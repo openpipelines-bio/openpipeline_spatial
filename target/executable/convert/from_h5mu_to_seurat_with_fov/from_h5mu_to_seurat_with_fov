@@ -454,15 +454,15 @@ RUN apt-get update && \
 
 RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")' && \
   Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")' && \
-  Rscript -e 'options(warn = 2); if (!requireNamespace("anndataR", quietly = TRUE)) BiocManager::install("anndataR")' && \
   Rscript -e 'options(warn = 2); if (!requireNamespace("rhdf5", quietly = TRUE)) BiocManager::install("rhdf5")' && \
-  Rscript -e 'options(warn = 2); remotes::install_cran(c("anndata", "hdf5r", "Seurat", "SeuratObject"), repos = "https://cran.rstudio.com")'
+  Rscript -e 'options(warn = 2); remotes::install_cran(c("anndata", "hdf5r", "Seurat", "SeuratObject"), repos = "https://cran.rstudio.com")' && \
+  Rscript -e 'options(warn = 2); remotes::install_github(c("scverse/anndataR@v1.2.3"), repos = "https://cran.rstudio.com")'
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_seurat_with_fov"
-LABEL org.opencontainers.image.created="2026-11-16T12:44:46Z"
+LABEL org.opencontainers.image.created="2026-11-16T15:43:19Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="01f5d19e3052fa45235c95aed4c45a2ccc75abd7"
+LABEL org.opencontainers.image.revision="b7b10607cae15680c71ecfbee8538f4592b265f8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1281,8 +1281,10 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
       dtype = h5a\$get_type()
     )
   }
-  h5src\$close()
-  h5dest\$close()
+  # close_all() also closes lingering object handles, which otherwise keep the
+  # file locked and prevent rhdf5 (used by anndataR) from opening it.
+  h5src\$close_all()
+  h5dest\$close_all()
 
   tmp_path
 }

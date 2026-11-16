@@ -226,11 +226,13 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "scanpy~=1.11.4"
-    - "anndata~=0.12.16"
+    - "scanpy~=1.12.5"
+    - "umap-learn==0.5.12"
+    - "anndata~=0.13.4"
     - "awkward"
-    - "scipy~=1.17.1"
-    - "mudata~=0.3.8"
+    - "pandas>3"
+    - "scipy~=1.18.1"
+    - "mudata~=0.4.1"
     script:
     - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
       \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
@@ -257,7 +259,7 @@ build_info:
   output: "target/executable/neighbors/join_graphs"
   executable: "target/executable/neighbors/join_graphs/join_graphs"
   viash_version: "0.9.7"
-  git_commit: "01f5d19e3052fa45235c95aed4c45a2ccc75abd7"
+  git_commit: "b7b10607cae15680c71ecfbee8538f4592b265f8"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"

@@ -3337,8 +3337,10 @@ meta = [
             "SeuratObject"
           ],
           "bioc" : [
-            "anndataR",
             "rhdf5"
+          ],
+          "github" : [
+            "scverse/anndataR@v1.2.3"
           ],
           "bioc_force_install" : false,
           "warnings_as_errors" : true
@@ -3362,7 +3364,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_seurat_with_fov",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3492,8 +3494,10 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
       dtype = h5a\\$get_type()
     )
   }
-  h5src\\$close()
-  h5dest\\$close()
+  # close_all() also closes lingering object handles, which otherwise keep the
+  # file locked and prevent rhdf5 (used by anndataR) from opening it.
+  h5src\\$close_all()
+  h5dest\\$close_all()
 
   tmp_path
 }

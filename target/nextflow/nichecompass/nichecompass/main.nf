@@ -3966,6 +3966,10 @@ meta = [
     },
     {
       "type" : "file",
+      "path" : "/src/base/nichecompass/nichecompass.patch"
+    },
+    {
+      "type" : "file",
       "path" : "/src/workflows/utils/labels.config",
       "dest" : "nextflow_labels.config"
     }
@@ -4094,23 +4098,32 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime",
+      "image" : "python:3.12-slim",
       "namespace_separator" : "/",
       "setup" : [
         {
+          "type" : "apt",
+          "packages" : [
+            "procps",
+            "patch"
+          ],
+          "interactive" : false
+        },
+        {
           "type" : "docker",
           "run" : [
-            "pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   \n"
+            "pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124 && \\\\\npip install --no-cache-dir pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html\n"
           ]
         },
         {
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "mudata~=0.3.8"
+            "pandas>3",
+            "scipy~=1.18.1",
+            "mudata~=0.4.1"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -4118,13 +4131,13 @@ meta = [
           "upgrade" : true
         },
         {
-          "type" : "python",
-          "user" : false,
-          "packages" : [
-            "numpy<2",
-            "nichecompass"
+          "type" : "docker",
+          "copy" : [
+            "nichecompass.patch /opt/nichecompass.patch"
           ],
-          "upgrade" : true
+          "run" : [
+            "pip install --no-cache-dir nichecompass==0.3.3 && \\\\\npatch -p2 -d \\"$(python -c 'import site; print(site.getsitepackages()[0])')\\" < /opt/nichecompass.patch"
+          ]
         }
       ],
       "test_setup" : [
@@ -4145,7 +4158,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/nichecompass/nichecompass",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

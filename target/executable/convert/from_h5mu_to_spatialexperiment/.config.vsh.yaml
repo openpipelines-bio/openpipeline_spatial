@@ -175,8 +175,10 @@ engines:
     cran:
     - "hdf5r"
     - "SpatialExperiment"
+    bioc:
+    - "rhdf5"
     github:
-    - "scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a"
+    - "scverse/anndataR@v1.2.3"
     bioc_force_install: false
     warnings_as_errors: true
   test_setup:
@@ -201,10 +203,11 @@ engines:
   - type: "python"
     user: true
     packages:
-    - "anndata~=0.12.16"
+    - "anndata~=0.13.4"
     - "awkward"
-    - "scipy~=1.17.1"
-    - "mudata~=0.3.8"
+    - "pandas>3"
+    - "scipy~=1.18.1"
+    - "mudata~=0.4.1"
     script:
     - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
       \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
@@ -219,7 +222,7 @@ build_info:
   output: "target/executable/convert/from_h5mu_to_spatialexperiment"
   executable: "target/executable/convert/from_h5mu_to_spatialexperiment/from_h5mu_to_spatialexperiment"
   viash_version: "0.9.7"
-  git_commit: "01f5d19e3052fa45235c95aed4c45a2ccc75abd7"
+  git_commit: "b7b10607cae15680c71ecfbee8538f4592b265f8"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"

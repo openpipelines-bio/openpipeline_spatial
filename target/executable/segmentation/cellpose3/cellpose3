@@ -455,7 +455,7 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "anndata~=0.12.16" "awkward" "scipy~=1.17.1" "spatialdata~=0.8.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0"
+  pip install --upgrade --no-cache-dir "anndata~=0.13.4" "awkward" "pandas>3" "scipy~=1.18.1" "spatialdata~=0.9.0" "pyarrow~=18.0.0" "ome-zarr~=0.18.0"
 
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "cellpose~=3.1.0"
@@ -466,9 +466,9 @@ chmod -R a+rwX /opt/cellpose_models
 
 LABEL org.opencontainers.image.authors="Mirte De Temmerman"
 LABEL org.opencontainers.image.description="Companion container for running component segmentation cellpose3"
-LABEL org.opencontainers.image.created="2026-11-16T12:44:44Z"
+LABEL org.opencontainers.image.created="2026-11-16T15:43:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="01f5d19e3052fa45235c95aed4c45a2ccc75abd7"
+LABEL org.opencontainers.image.revision="b7b10607cae15680c71ecfbee8538f4592b265f8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

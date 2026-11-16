@@ -453,14 +453,14 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "anndata~=0.12.16" "awkward" "scipy~=1.17.1" "mudata~=0.3.8" "scanpy~=1.11.4" && \
+  pip install --upgrade --no-cache-dir "anndata~=0.13.4" "awkward" "pandas>3" "scipy~=1.18.1" "mudata~=0.4.1" "scanpy~=1.12.5" "umap-learn==0.5.12" && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_spaceranger_to_h5mu"
-LABEL org.opencontainers.image.created="2026-11-16T12:44:45Z"
+LABEL org.opencontainers.image.created="2026-11-16T15:43:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="01f5d19e3052fa45235c95aed4c45a2ccc75abd7"
+LABEL org.opencontainers.image.revision="b7b10607cae15680c71ecfbee8538f4592b265f8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -3302,12 +3302,15 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "mudata~=0.3.8",
-            "scanpy~=1.11.4",
-            "scanpy~=1.11.4",
+            "pandas>3",
+            "scipy~=1.18.1",
+            "mudata~=0.4.1",
+            "scanpy~=1.12.5",
+            "umap-learn==0.5.12",
+            "scanpy~=1.12.5",
+            "umap-learn==0.5.12",
             "squidpy~=1.8.1",
             "joblib",
             "scikit-learn"
@@ -3341,7 +3344,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/feature_annotation/xenium_spatial_statistics",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

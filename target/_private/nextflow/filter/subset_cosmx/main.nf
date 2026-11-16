@@ -3278,7 +3278,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "scanpy~=1.11.4",
+            "scanpy~=1.12.5",
+            "umap-learn==0.5.12",
             "squidpy~=1.8.1"
           ],
           "upgrade" : true
@@ -3312,7 +3313,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_private/nextflow/filter/subset_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

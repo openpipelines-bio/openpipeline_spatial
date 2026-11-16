@@ -3208,10 +3208,11 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "mudata~=0.3.8",
+            "pandas>3",
+            "scipy~=1.18.1",
+            "mudata~=0.4.1",
             "viashpy==0.10.0"
           ],
           "github" : [
@@ -3231,7 +3232,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_test/nextflow/test_workflows/ingestion/spaceranger_mapping_test",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3321,9 +3322,8 @@ def test_run():
     assert list(input_mudata.mod.keys()) == ["rna"], (
         "Input should contain rna modality."
     )
-    assert list(input_mudata.var.columns) == expected_var_columns, (
-        f"Input var columns should be: {expected_var_columns}."
-    )
+    # mudata >= 0.4 does not pull modality columns into the global .var,
+    # so the annotation is only checked at the modality level.
     assert list(input_mudata.mod["rna"].var.columns) == expected_var_columns, (
         f"Input mod['rna'] var columns should be: {expected_var_columns}."
     )

@@ -3273,8 +3273,11 @@ meta = [
             "hdf5r",
             "SpatialExperiment"
           ],
+          "bioc" : [
+            "rhdf5"
+          ],
           "github" : [
-            "scverse/anndataR@36f3caad9a7f360165c1510bbe0c62657580415a"
+            "scverse/anndataR@v1.2.3"
           ],
           "bioc_force_install" : false,
           "warnings_as_errors" : true
@@ -3312,10 +3315,11 @@ meta = [
           "type" : "python",
           "user" : true,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "mudata~=0.3.8"
+            "pandas>3",
+            "scipy~=1.18.1",
+            "mudata~=0.4.1"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -3331,7 +3335,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_h5mu_to_spatialexperiment",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3458,8 +3462,10 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
       dtype = h5a\\$get_type()
     )
   }
-  h5src\\$close()
-  h5dest\\$close()
+  # close_all() also closes lingering object handles, which otherwise keep the
+  # file locked and prevent rhdf5 (used by anndataR) from opening it.
+  h5src\\$close_all()
+  h5dest\\$close_all()
 
   tmp_path
 }

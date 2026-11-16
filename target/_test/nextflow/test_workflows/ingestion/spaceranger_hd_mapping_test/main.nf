@@ -3204,10 +3204,11 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "anndata~=0.12.16",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "mudata~=0.3.8",
+            "pandas>3",
+            "scipy~=1.18.1",
+            "mudata~=0.4.1",
             "viashpy==0.10.0"
           ],
           "github" : [
@@ -3222,11 +3223,12 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "spatialdata-io~=0.5.1",
-            "anndata~=0.12.16",
+            "spatialdata-io~=0.7.2",
+            "anndata~=0.13.4",
             "awkward",
-            "scipy~=1.17.1",
-            "spatialdata~=0.8.0",
+            "pandas>3",
+            "scipy~=1.18.1",
+            "spatialdata~=0.9.0",
             "pyarrow~=18.0.0",
             "ome-zarr~=0.18.0"
           ],
@@ -3241,7 +3243,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/_test/nextflow/test_workflows/ingestion/spaceranger_hd_mapping_test",
     "viash_version" : "0.9.7",
-    "git_commit" : "01f5d19e3052fa45235c95aed4c45a2ccc75abd7",
+    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
