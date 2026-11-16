@@ -1,5 +1,5 @@
 __merge__: [/src/base/requirements/anndata.yaml, .]
 packages:
-  - spatialdata~=0.8.0
+  - spatialdata~=0.9.0
   - pyarrow~=18.0.0
   - ome-zarr~=0.18.0

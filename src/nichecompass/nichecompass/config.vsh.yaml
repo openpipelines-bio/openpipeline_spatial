@@ -437,6 +437,7 @@ resources:
   - path: /src/utils/setup_logger.py
   - path: /src/utils/subset_vars.py
   - path: /src/utils/compress_h5mu.py
+  - path: /src/base/nichecompass/nichecompass.patch
 
 test_resources:
   - type: python_script
@@ -447,17 +448,19 @@ test_resources:
 
 engines:
   - type: docker
-    image: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
+    image: python:3.12-slim
     setup:
+      - type: apt
+        packages:
+          - procps
+          - patch
       - type: docker
         run: |
-          pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html   
+          pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124 && \
+          pip install --no-cache-dir pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
       - type: python
         __merge__: [ /src/base/requirements/anndata_mudata.yaml, . ]
-      - type: python
-        packages:
-          - numpy<2
-          - nichecompass
+      - __merge__: /src/base/nichecompass/nichecompass_setup.yaml
     test_setup:
       - type: python
         __merge__: [ /src/base/requirements/viashpy.yaml, .]

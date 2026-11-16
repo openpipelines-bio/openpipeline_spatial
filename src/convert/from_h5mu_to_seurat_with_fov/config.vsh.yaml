@@ -79,8 +79,8 @@ engines:
       - type: apt
         packages: [ libhdf5-dev, libgeos-dev, hdf5-tools ]
       - type: r
+        __merge__: [ /src/base/requirements/anndataR.yaml, . ]
         cran: [ anndata, hdf5r, Seurat, SeuratObject ]
-        bioc: [ anndataR, rhdf5 ]
     test_setup:
       - type: r
         cran: [ testthat ]
