@@ -48,8 +48,10 @@ h5mu_to_h5ad <- function(h5mu_path, modality_name) {
       dtype = h5a$get_type()
     )
   }
-  h5src$close()
-  h5dest$close()
+  # close_all() also closes lingering object handles, which otherwise keep the
+  # file locked and prevent rhdf5 (used by anndataR) from opening it.
+  h5src$close_all()
+  h5dest$close_all()
 
   tmp_path
 }
