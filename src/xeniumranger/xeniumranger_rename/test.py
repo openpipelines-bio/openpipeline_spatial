@@ -17,7 +17,7 @@ import scanpy as sc
 meta = {"name": "xeniumranger_rename", "resources_dir": "resources_test/xenium"}
 ## VIASH END
 
-input = meta["resources_dir"] + "/xenium_tiny/"
+input_bundle = meta["resources_dir"] + "/xenium_tiny/"
 input_region_name = "region"
 input_cassette_name = "cassette"
 output_region_name = "region_renamed"
@@ -25,7 +25,7 @@ output_cassette_name = "cassette_renamed"
 changed_files = ["experiment.xenium", "metrics_summary.csv", "analysis_summary.html"]
 
 
-def assert_outputs_exists(input, output):
+def assert_outputs_exists(input_bundle, output):
     assert Path(output).is_dir() and len(list(Path(output).iterdir())) > 0, (
         "Output directory exists and is non-empty"
     )
@@ -40,8 +40,9 @@ def assert_outputs_exists(input, output):
 
     input_files = sorted(
         f
-        for f in os.listdir(input)
-        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        for f in os.listdir(input_bundle)
+        if os.path.isfile(os.path.join(input_bundle, f))
+        and f not in input_not_in_output
     )
     output_files = sorted(
         f for f in os.listdir(output) if os.path.isfile(os.path.join(output, f))
@@ -85,7 +86,7 @@ def assert_valid_files(output):
     return transcripts, cells, panel_data
 
 
-def assert_identical(input, output, skip_files):
+def assert_identical(input_bundle, output, skip_files):
     input_not_in_output = [
         "aux_outputs.tar.gz",
         "analysis.tar.gz",
@@ -93,8 +94,9 @@ def assert_identical(input, output, skip_files):
     ]
     input_files = sorted(
         f
-        for f in os.listdir(input)
-        if os.path.isfile(os.path.join(input, f)) and f not in input_not_in_output
+        for f in os.listdir(input_bundle)
+        if os.path.isfile(os.path.join(input_bundle, f))
+        and f not in input_not_in_output
     )
 
     output_files = sorted(
@@ -108,34 +110,34 @@ def assert_identical(input, output, skip_files):
     for f in input_files:
         if f not in skip_files:
             assert filecmp.cmp(
-                os.path.join(input, f), os.path.join(output, f), shallow=False
+                os.path.join(input_bundle, f), os.path.join(output, f), shallow=False
             ), f"{f} should be identical between input and output"
 
 
-def _read_experiment_xenium_pair(input, output):
-    with open(Path(input) / "experiment.xenium") as f:
+def _read_experiment_xenium_pair(input_bundle, output):
+    with open(Path(input_bundle) / "experiment.xenium") as f:
         input_exp = json.load(f)
     with open(Path(output) / "experiment.xenium") as f:
         output_exp = json.load(f)
     return input_exp, output_exp
 
 
-def _read_metrics_summary_pair(input, output):
-    input_metrics = pd.read_csv(Path(input) / "metrics_summary.csv").iloc[0]
+def _read_metrics_summary_pair(input_bundle, output):
+    input_metrics = pd.read_csv(Path(input_bundle) / "metrics_summary.csv").iloc[0]
     output_metrics = pd.read_csv(Path(output) / "metrics_summary.csv").iloc[0]
     return input_metrics, output_metrics
 
 
-def _read_analysis_summary_html_pair(input, output):
-    input_html = (Path(input) / "analysis_summary.html").read_text()
+def _read_analysis_summary_html_pair(input_bundle, output):
+    input_html = (Path(input_bundle) / "analysis_summary.html").read_text()
     output_html = (Path(output) / "analysis_summary.html").read_text()
     return input_html, output_html
 
 
-def assert_region_renaming(input, output):
-    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
-    input_metrics, output_metrics = _read_metrics_summary_pair(input, output)
-    input_html, output_html = _read_analysis_summary_html_pair(input, output)
+def assert_region_renaming(input_bundle, output):
+    input_exp, output_exp = _read_experiment_xenium_pair(input_bundle, output)
+    input_metrics, output_metrics = _read_metrics_summary_pair(input_bundle, output)
+    input_html, output_html = _read_analysis_summary_html_pair(input_bundle, output)
 
     assert input_exp["region_name"] == input_region_name, (
         "experiment.xenium in the input bundle should carry the original region_name"
@@ -157,10 +159,10 @@ def assert_region_renaming(input, output):
     )
 
 
-def assert_cassette_renaming(input, output):
-    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
-    input_metrics, output_metrics = _read_metrics_summary_pair(input, output)
-    input_html, output_html = _read_analysis_summary_html_pair(input, output)
+def assert_cassette_renaming(input_bundle, output):
+    input_exp, output_exp = _read_experiment_xenium_pair(input_bundle, output)
+    input_metrics, output_metrics = _read_metrics_summary_pair(input_bundle, output)
+    input_html, output_html = _read_analysis_summary_html_pair(input_bundle, output)
 
     assert input_exp["cassette_name"] == input_cassette_name, (
         "experiment.xenium in the input bundle should carry the original cassette_name"
@@ -187,7 +189,7 @@ def test_basic_execution_both(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--region_name",
             output_region_name,
             "--cassette_name",
@@ -197,11 +199,11 @@ def test_basic_execution_both(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
-    assert_region_renaming(input, output)
-    assert_cassette_renaming(input, output)
-    assert_identical(input, output, changed_files)
+    assert_region_renaming(input_bundle, output)
+    assert_cassette_renaming(input_bundle, output)
+    assert_identical(input_bundle, output, changed_files)
 
 
 def test_basic_execution_region_only(run_component, random_path):
@@ -209,7 +211,7 @@ def test_basic_execution_region_only(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--region_name",
             output_region_name,
             "--output",
@@ -217,12 +219,12 @@ def test_basic_execution_region_only(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
-    assert_region_renaming(input, output)
-    assert_identical(input, output, changed_files)
+    assert_region_renaming(input_bundle, output)
+    assert_identical(input_bundle, output, changed_files)
 
-    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    input_exp, output_exp = _read_experiment_xenium_pair(input_bundle, output)
     assert output_exp["cassette_name"] == input_exp["cassette_name"], (
         "Output cassette_name should not change, when only region_name is changed"
     )
@@ -233,7 +235,7 @@ def test_basic_execution_cassette_only(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--cassette_name",
             output_cassette_name,
             "--output",
@@ -241,31 +243,40 @@ def test_basic_execution_cassette_only(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
-    assert_cassette_renaming(input, output)
-    assert_identical(input, output, changed_files)
+    assert_cassette_renaming(input_bundle, output)
+    assert_identical(input_bundle, output, changed_files)
 
-    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    input_exp, output_exp = _read_experiment_xenium_pair(input_bundle, output)
     assert output_exp["region_name"] == input_exp["region_name"], (
         "Output region_name should not change, when only cassette_name is changed"
     )
 
 
-def test_no_name_given_omitted(run_component, random_path):
+@pytest.mark.parametrize(
+    "name_args",
+    [
+        pytest.param([], id="omitted"),
+        pytest.param(["--region_name", "", "--cassette_name", ""], id="empty"),
+    ],
+)
+def test_no_name_given(run_component, random_path, name_args):
     output = random_path()
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--output",
-            output,
-        ]
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--xenium_bundle",
+                input_bundle,
+                *name_args,
+                "--output",
+                output,
+            ]
+        )
+    assert re.search(
+        r"--region_name or --cassette_name must be set",
+        err.value.stdout.decode("utf-8"),
     )
-
-    assert_outputs_exists(input, output)
-    assert_valid_files(output)
-    assert_identical(input, output, changed_files)
 
 
 def test_length_region_name(run_component, random_path):
@@ -275,7 +286,7 @@ def test_length_region_name(run_component, random_path):
         run_component(
             [
                 "--xenium_bundle",
-                input,
+                input_bundle,
                 "--region_name",
                 long_region,
                 "--output",
@@ -294,7 +305,7 @@ def test_length_cassette_name(run_component, random_path):
         run_component(
             [
                 "--xenium_bundle",
-                input,
+                input_bundle,
                 "--cassette_name",
                 long_cassette,
                 "--output",
@@ -313,7 +324,7 @@ def test_valid_region(run_component, random_path):
         run_component(
             [
                 "--xenium_bundle",
-                input,
+                input_bundle,
                 "--region_name",
                 malformed_region,
                 "--output",
@@ -332,7 +343,7 @@ def test_valid_cassette(run_component, random_path):
         run_component(
             [
                 "--xenium_bundle",
-                input,
+                input_bundle,
                 "--cassette_name",
                 malformed_cassette,
                 "--output",
@@ -346,13 +357,15 @@ def test_valid_cassette(run_component, random_path):
 def test_missing_file(run_component, random_path, tmp_path):
     output = random_path()
     incomplete_bundle = tmp_path / "incomplete_bundle"
-    shutil.copytree(input, incomplete_bundle)
+    shutil.copytree(input_bundle, incomplete_bundle)
     os.remove(incomplete_bundle / "experiment.xenium")
     with pytest.raises(subprocess.CalledProcessError) as err:
         run_component(
             [
                 "--xenium_bundle",
                 str(incomplete_bundle),
+                "--region_name",
+                output_region_name,
                 "--output",
                 output,
             ]
@@ -361,67 +374,24 @@ def test_missing_file(run_component, random_path, tmp_path):
     assert re.search(r"experiment\.xenium", stdout, re.IGNORECASE)
 
 
-def test_no_name_given_empty(run_component, random_path):
-    output = random_path()
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--region_name",
-            "",
-            "--cassette_name",
-            "",
-            "--output",
-            output,
-        ]
-    )
-
-    assert_outputs_exists(input, output)
-    assert_valid_files(output)
-    assert_identical(input, output, changed_files)
-
-
 def test_relative_paths(run_component, tmp_path, monkeypatch):
     work_dir = tmp_path / "workdir"
     work_dir.mkdir()
-    shutil.copytree(input, work_dir / "bundle")
+    shutil.copytree(input_bundle, work_dir / "bundle")
     monkeypatch.chdir(work_dir)
 
     run_component(
         [
             "--xenium_bundle",
             "bundle",
+            "--region_name",
+            output_region_name,
             "--output",
             "out",
         ]
     )
 
     assert_outputs_exists(work_dir / "bundle", work_dir / "out")
-
-
-def test_repeated_id_isolation(run_component, random_path):
-    output_first = random_path()
-    output_second = random_path()
-
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--output",
-            output_first,
-        ]
-    )
-    run_component(
-        [
-            "--xenium_bundle",
-            input,
-            "--output",
-            output_second,
-        ]
-    )
-
-    assert_outputs_exists(input, output_first)
-    assert_outputs_exists(input, output_second)
 
 
 def test_rename_in_sequence(run_component, random_path):
@@ -433,7 +403,7 @@ def test_rename_in_sequence(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--region_name",
             region_name_1,
             "--output",
@@ -452,7 +422,7 @@ def test_rename_in_sequence(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output_first)
+    assert_outputs_exists(input_bundle, output_first)
     assert_valid_files(output_first)
     assert_outputs_exists(output_first, output_second)
     assert_valid_files(output_second)
@@ -472,7 +442,7 @@ def test_rename_same_name(run_component, random_path):
     run_component(
         [
             "--xenium_bundle",
-            input,
+            input_bundle,
             "--region_name",
             input_region_name,
             "--cassette_name",
@@ -482,10 +452,10 @@ def test_rename_same_name(run_component, random_path):
         ]
     )
 
-    assert_outputs_exists(input, output)
+    assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
 
-    input_exp, output_exp = _read_experiment_xenium_pair(input, output)
+    input_exp, output_exp = _read_experiment_xenium_pair(input_bundle, output)
     assert input_exp["region_name"] == input_region_name, (
         "experiment.xenium in the input bundle should carry the original region_name"
     )

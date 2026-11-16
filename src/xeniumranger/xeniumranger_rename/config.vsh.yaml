@@ -2,8 +2,9 @@ name: xeniumranger_rename
 namespace: xeniumranger
 scope: public
 description: |
-  The rename pipeline allows you to change the sample region_name and cassette_name throughout all the Xenium Onboard Analysis 
-  output files that contain this information using Xenium Ranger 4.0. 
+  The rename pipeline allows you to change the sample region_name and/or cassette_name throughout all the Xenium Onboard Analysis
+  output files that contain this information using Xenium Ranger 4.0.
+  At least one of `--region_name` or `--cassette_name` must be provided.
 keywords: [xeniumranger]
 links:
   documentation: https://www.10xgenomics.com/support/software/xenium-ranger/latest/analysis/running-pipelines/rename
@@ -24,11 +25,13 @@ argument_groups:
     type: string
     description: |
       New region name. Limit of 64 characters, upper or lowercase letters, numbers, underscores, and hyphens.
+    example: "region_1"
   - name: "--cassette_name"
     required: false
     type: string
     description: |
       New cassette name. Limit of 32 characters, upper or lowercase letters, numbers, underscores, and hyphens.
+    example: "cassette_1"
 - name: Outputs
   arguments:
   - name: "--output"

@@ -3,11 +3,17 @@
 set -eo pipefail
 
 ## VIASH START
-par_xenium_bundle="$par_xenium_bundle"
+par_xenium_bundle='resources_test/xenium/xenium_tiny'
 par_region_name=''
 par_cassette_name=''
 par_output="xeniumranger_rename_test"
 ## VIASH END
+
+# Renaming with no new name would only copy the bundle unchanged
+if [[ -z "${par_region_name:-}" && -z "${par_cassette_name:-}" ]]; then
+  echo "Error: at least one of --region_name or --cassette_name must be set." >&2
+  exit 1
+fi
 
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
 function clean_up {
