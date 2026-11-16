@@ -198,10 +198,6 @@ def test_percentile_grid(run_component, tmp_path):
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 4f7e73d3 (Fix conservation of all modalities of input in output)
 def test_multimodal_input(run_component, tmp_path):
     # add a second modality, which should be preserved in the output
     mdata = mu.read_h5mu(input_xenium)
@@ -225,10 +221,5 @@ def test_multimodal_input(run_component, tmp_path):
     np.testing.assert_array_equal(mdata_out.mod["prot"].X, prot.X)
 
 
-<<<<<<< HEAD
-=======
->>>>>>> ac3edd4b (Add --percentile parameter for edge pruning in neighborhood graph (#93))
-=======
->>>>>>> 4f7e73d3 (Fix conservation of all modalities of input in output)
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))

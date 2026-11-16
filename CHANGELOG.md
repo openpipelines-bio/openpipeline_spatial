@@ -16,24 +16,9 @@
 
 * `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
 
 * `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
-<<<<<<< HEAD
-=======
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #xx).
->>>>>>> 96a589dd (Wrap cellcharter.tl.Cluster and cellcharter.tl.ClusterAutoK in component)
-=======
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #94).
->>>>>>> b356134b (Update CHANGELOG)
-=======
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
->>>>>>> e888a951 (Apply requested changes)
-=======
->>>>>>> 6518d56c (Update CHANGELOG)
 
 ## MINOR CHANGES
 
@@ -50,9 +35,7 @@
 ## BUG FIXES
 
 * `neighbors/join_graphs`: Preserve all modalities of the input MuData in the output; previously only the processed modality was written (PR #97).
-<<<<<<< HEAD
 
-<<<<<<< HEAD
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--filter_probes` so that it is only passed to Space Ranger when set, which fixes runs without `--probe_set` such as Visium HD 3' (PR #104).
 
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Remove the default value of `--reorient_images` so that it is only passed to Space Ranger when set, which fixes runs with `--loupe_alignment` (PR #104).
@@ -60,12 +43,6 @@
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `visium-hd-large` to the choices of `--unknown_slide`, matching Space Ranger 4.1.0 (PR #104).
 
 * `mapping/spaceranger_count`: Pass multiple `--lanes` values to Space Ranger as a comma-separated list, which fixes runs with more than one lane (PR #104).
-
-=======
->>>>>>> 6518d56c (Update CHANGELOG)
-## BUG FIXES
-=======
->>>>>>> a57f0a41 (Apply suggested changes)
 
 * `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
 
