@@ -12,9 +12,9 @@ par_output='xeniumranger_resegment_test'
 ## VIASH END
 
 [[ "$par_segment_large_cells" == "false" ]] && unset par_segment_large_cells
-
-par_xenium_bundle=`realpath $par_xenium_bundle`
-par_output=`realpath $par_output`
+# Resolve paths before changing directory so relative inputs keep working
+par_xenium_bundle=$(realpath "$par_xenium_bundle")
+par_output=$(realpath -m "$par_output")
 
 tmpdir=$(mktemp -d "$meta_temp_dir/$meta_name-XXXXXXXX")
 function clean_up {
@@ -25,6 +25,9 @@ trap clean_up EXIT
 cd "$tmpdir"
 
 temp_id="xeniumranger_resegment_run"
+
+# Disable anonymized telemetry collection
+export TENX_DISABLE_TELEMETRY=1
 
 xeniumranger resegment \
   --id="$temp_id" \

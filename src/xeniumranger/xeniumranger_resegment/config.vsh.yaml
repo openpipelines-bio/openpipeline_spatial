@@ -50,9 +50,9 @@ argument_groups:
     description: |
       Nuclei boundary expansion distance in micrometers. (Min: 0, Max: 15 if either --boundary_stain
       or --interior_stain are enabled and 100 if nucleus-expansion only).
-    min: 0 
+    min: 0
     max: 100
-    default: 5.0
+    example: 5
   - name: "--dapi_filter"
     type: double
     required: false
@@ -62,7 +62,7 @@ argument_groups:
       DAPI Z-stack. If left unset, xeniumranger uses its own default: 15 pe for deconvolved DAPI,
       100 pe for non-deconvolved DAPI.
     min: 0
-    default: 15.0
+    example: 15
 - name: Outputs
   arguments:
   - name: "--output"

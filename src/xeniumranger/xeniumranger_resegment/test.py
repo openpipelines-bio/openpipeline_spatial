@@ -17,7 +17,7 @@ meta = {
 }
 ## VIASH END
 
-# 1. Nuclear expansion arguments, ne = nulcear expansion
+# 1. Nuclear expansion arguments, ne = nuclear expansion
 boundary_stain_ne = "disable"
 interior_stain_ne = "disable"
 
@@ -26,8 +26,6 @@ boundary_stain_mm = "ATP1A1/CD45/E-Cadherin"
 interior_stain_mm = "18S"
 
 # 3. General arguments
-dapi_filter = "15"
-expansion_distance = "0"
 changed_files = [
     "cells.csv.gz",
     "cells.parquet",
@@ -47,6 +45,12 @@ changed_files = [
     "analysis_summary.html",
     "experiment.xenium",
 ]
+
+
+def read_experiment_json(path):
+    with open(Path(path) / "experiment.xenium", "r") as file:
+        data = json.load(file)
+    return data
 
 
 def assert_outputs_exists(input_bundle, output):
@@ -111,9 +115,8 @@ def assert_valid_files(output):
     return transcripts, cells, panel_data
 
 
-def assert_stain_segmentation_used(output, boundary_stain, interior_stain):
-    with open(Path(output) / "experiment.xenium") as f:
-        exp = json.load(f)
+def assert_stain_segmentation_used(output):
+    exp = read_experiment_json(output)
 
     assert exp["segmentation_stain"], (
         "segmentation_stain should be non-empty when --boundary_stain/--interior_stain are set"
@@ -203,18 +206,23 @@ def test_missing_file(run_component, random_path, tmp_path):
     assert re.search(r"experiment\.xenium", stdout, re.IGNORECASE)
 
 
-# 2. Multimodal path
-def test_multimodal_fixtures(run_component, random_path):
+def test_expansion_distance_and_dapi_filter(run_component, random_path):
     input_bundle = meta["resources_dir"] + "/xenium_multicellseg_tiny_cropped/"
     output = random_path()
+    dapi_filter = "500"
+    expansion_distance = "0"
     run_component(
         [
             "--xenium_bundle",
             input_bundle,
             "--boundary_stain",
-            boundary_stain_mm,
+            boundary_stain_ne,
             "--interior_stain",
-            interior_stain_mm,
+            interior_stain_ne,
+            "--expansion_distance",
+            expansion_distance,
+            "--dapi_filter",
+            dapi_filter,
             "--output",
             output,
         ]
@@ -222,11 +230,21 @@ def test_multimodal_fixtures(run_component, random_path):
     assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
     assert_identical(input_bundle, output, changed_files)
-    assert_stain_segmentation_used(output, boundary_stain_mm, interior_stain_mm)
+    cells = pd.read_parquet(Path(output) / "cells.parquet")
+    assert (cells["cell_area"] == cells["nucleus_area"]).all(), (
+        "under expansion_dustance = 0, both areas shouldn't differ"
+    )
+
+    input_exp = read_experiment_json(input_bundle)
+    output_exp = read_experiment_json(output)
+    assert int(input_exp["num_cells"]) > int(output_exp["num_cells"]), ()
 
 
+# 2. Multimodal path
 def test_segment_large_cells(run_component, random_path):
     input_bundle = meta["resources_dir"] + "/xenium_multicellseg_tiny_cropped/"
+
+    # Baseline: multimodal stain-based resegmentation without --segment_large_cells
     baseline_output = random_path()
     run_component(
         [
@@ -240,7 +258,12 @@ def test_segment_large_cells(run_component, random_path):
             baseline_output,
         ]
     )
+    assert_outputs_exists(input_bundle, baseline_output)
+    assert_valid_files(baseline_output)
+    assert_identical(input_bundle, baseline_output, changed_files)
+    assert_stain_segmentation_used(baseline_output)
 
+    # Same run with --segment_large_cells
     output = random_path()
     run_component(
         [
@@ -258,13 +281,12 @@ def test_segment_large_cells(run_component, random_path):
     assert_outputs_exists(input_bundle, output)
     assert_valid_files(output)
     assert_identical(input_bundle, output, changed_files)
-    assert_stain_segmentation_used(output, boundary_stain_mm, interior_stain_mm)
+    assert_stain_segmentation_used(output)
 
     baseline_cb_parquet = pd.read_parquet(
         Path(baseline_output) / "cell_boundaries.parquet"
     )
     output_cb_parquet = pd.read_parquet(Path(output) / "cell_boundaries.parquet")
-
     assert not baseline_cb_parquet.equals(output_cb_parquet), (
         "--segment_large_cells should alter cell boundaries relative to a resegment run without it"
     )
