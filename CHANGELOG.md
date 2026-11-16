@@ -1,4 +1,4 @@
-# openpipeline_spatial x.x.x
+# openpipeline_spatial v0.8.0
 
 ## BREAKING CHANGES
 
