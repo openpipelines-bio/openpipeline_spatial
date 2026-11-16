@@ -13,6 +13,7 @@ par = {
     "n_spatial_neighbors": 4,
     "coord_type": "generic",
     "delaunay": False,
+    "percentile": None,
     "output": "foo.h5mu",
 }
 
@@ -23,6 +24,10 @@ sys.path.append(meta["resources_dir"])
 from setup_logger import setup_logger
 
 logger = setup_logger()
+
+## Validate the percentile
+if par["percentile"] is not None and par["coord_type"] != "generic":
+    raise ValueError("--percentile is only supported when --coord_type is 'generic'.")
 
 ## Read in data
 adata = mu.read_h5ad(par["input"], mod=par["modality"])
@@ -48,6 +53,7 @@ sq.gr.spatial_neighbors(
     library_key=library_key,
     n_neighs=par["n_spatial_neighbors"],
     delaunay=par["delaunay"],
+    percentile=par["percentile"],
 )
 
 # Making the connectivity matrix symmetric

@@ -92,11 +92,14 @@ def test_output_layer(run_component, tmp_path):
             "Visium_HD_Mouse_Brain",
             "--output_layer",
             "counts",
+            "--output_table",
+            "cells",
         ]
     )
 
     sdata = sd.read_zarr(output)
-    assert "counts" in sdata.tables["table"].layers, (
+    assert list(sdata.tables) == ["cells"], f"got tables {list(sdata.tables)}"
+    assert "counts" in sdata.tables["cells"].layers, (
         "expected counts to be stored as a named layer"
     )
 

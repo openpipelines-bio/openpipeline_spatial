@@ -24,6 +24,12 @@ for par in ${unset_if_false[@]}; do
     [[ "$test_val" == "false" ]] && unset $par
 done
 
+# Space Ranger errors when using --reorient-images with --loupe-alignment
+if [[ -n "${par_reorient_images:-}" && -n "${par_loupe_alignment:-}" ]]; then
+    echo "ERROR: --reorient_images cannot be used with --loupe_alignment. Remove --reorient_images." >&2
+    exit 1
+fi
+
 # Make sure paths are absolute, since we cd into a tempdir before running spaceranger
 par_gex_reference=`realpath $par_gex_reference`
 par_output=`realpath $par_output`
@@ -114,7 +120,7 @@ spaceranger count \
   ${par_disable_cell_annotation:+--disable-cell-annotation} \
   ${par_project:+--project="$par_project"} \
   ${par_sample:+--sample="$par_sample"} \
-  ${par_lanes:+--lanes="$par_lanes"} \
+  ${par_lanes:+--lanes="${par_lanes//;/,}"} \
   ${meta_cpus:+--localcores="$meta_cpus"} \
   ${meta_memory_gb:+--localmem=$(($meta_memory_gb-2))}
 

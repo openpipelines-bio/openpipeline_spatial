@@ -18,6 +18,14 @@ argument_groups:
         required: true
         description: |
           Paths to Zarr stores containing the SpatialData objects to concatenate.
+      - name: --input_table
+        type: string
+        multiple: true
+        multiple_sep: ","
+        description: |
+          Names of the main tables in the input SpatialData objects, in the same
+          order as `--inputs`. If set, give one name for each input. If not
+          set, "table" is used for all inputs.
 
   - name: Outputs
     arguments:
@@ -28,6 +36,11 @@ argument_groups:
         required: true
         description: |
           The output Zarr store containing the concatenated SpatialData object.
+      - name: --output_table
+        type: string
+        default: table
+        description: |
+          Name of the concatenated main table in the output SpatialData object.
 
   - name: SpatialData options
     description: |
