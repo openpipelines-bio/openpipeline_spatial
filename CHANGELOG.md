@@ -6,7 +6,7 @@
 
 * `workflows/ingestion/spaceranger_hd_mapping`: Change the default of `--create_bam` from `false` to `true` to match other workflows and the Space Ranger recommendations. Set `--create_bam false` to keep the previous behaviour (PR #104).
 
-* Updated AnnData to 0.13.4, MuData to 0.4.1, SpatialData to 0.9.0, SpatialData-IO to 0.7.2, Scanpy to 1.12.5, anndataR to 1.2.3 and Pandas to 3 (PR #107):
+* Updated AnnData to 0.13.4, MuData to 0.4.1, SpatialData to 0.9.0, SpatialData-IO to 0.7.2, Scanpy to 1.12.5, anndataR to 1.2.3 and Pandas to 3 (PR #107, #110):
   - Modality `.obs`/`.var` columns are no longer synced to the global `.obs`/`.var` of the MuData object.
   - String columns that are not categorical are now written to H5MU as `nullable-string-array`. Readers based on older `anndata` (< 0.11) or `anndataR` (< 1.2.3) can not read these files.
   - `nichecompass/nichecompass`, `nichecompass/gene_program_mask`: switched the base image to `python:3.12-slim` and pinned `nichecompass` to `0.3.3`, patched for Pandas 3.
