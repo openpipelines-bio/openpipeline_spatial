@@ -1,4 +1,4 @@
-# openpipeline_spatial vx.x.x
+# openpipeline_spatial x.x.x
 
 ## BREAKING CHANGES
 
