@@ -20,9 +20,9 @@
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
-* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
+* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92, #109).
 
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
+* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95, #109).
 
 * `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
 
