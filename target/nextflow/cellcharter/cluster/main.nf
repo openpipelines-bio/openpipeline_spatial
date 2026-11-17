@@ -3509,7 +3509,7 @@ meta = [
             "pandas>3",
             "scipy~=1.18.1",
             "mudata~=0.4.1",
-            "cellcharter~=0.3.7"
+            "cellcharter~=0.3.8"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -3545,7 +3545,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/cellcharter/cluster",
     "viash_version" : "0.9.7",
-    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
+    "git_commit" : "27904d1ef5d197fc42f4c0cb43d3438690790d20",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3749,9 +3749,9 @@ if n_clusters_range:
     logger.info("Clustering cells into %s clusters...", k)
     labels = autok.predict(adata_features, use_rep="features", k=k)
 
-    # ClusterAutoK also fits the numbers of clusters adjacent to the range to compute the stability.
-    # The stability is only available for the numbers of clusters within the range.
-    evaluated_n_clusters = np.array(autok.n_clusters[1:-1])
+    # ClusterAutoK also fits the numbers of clusters adjacent to the range to compute the stability,
+    # but only reports the stability for the numbers of clusters within the range.
+    evaluated_n_clusters = np.array(autok.n_clusters)
     stability = np.asarray(autok.stability)
     adata.uns[par["output_uns_stability"]] = {
         "n_clusters": evaluated_n_clusters,

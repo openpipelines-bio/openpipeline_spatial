@@ -135,9 +135,9 @@ if n_clusters_range:
     logger.info("Clustering cells into %s clusters...", k)
     labels = autok.predict(adata_features, use_rep="features", k=k)
 
-    # ClusterAutoK also fits the numbers of clusters adjacent to the range to compute the stability.
-    # The stability is only available for the numbers of clusters within the range.
-    evaluated_n_clusters = np.array(autok.n_clusters[1:-1])
+    # ClusterAutoK also fits the numbers of clusters adjacent to the range to compute the stability,
+    # but only reports the stability for the numbers of clusters within the range.
+    evaluated_n_clusters = np.array(autok.n_clusters)
     stability = np.asarray(autok.stability)
     adata.uns[par["output_uns_stability"]] = {
         "n_clusters": evaluated_n_clusters,

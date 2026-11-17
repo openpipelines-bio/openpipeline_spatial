@@ -554,7 +554,7 @@ build_info:
   output: "target/nextflow/workflows/spatial_domains/scvi_cellcharter"
   executable: "target/nextflow/workflows/spatial_domains/scvi_cellcharter/main.nf"
   viash_version: "0.9.7"
-  git_commit: "b7b10607cae15680c71ecfbee8538f4592b265f8"
+  git_commit: "27904d1ef5d197fc42f4c0cb43d3438690790d20"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/integrate/scvi"

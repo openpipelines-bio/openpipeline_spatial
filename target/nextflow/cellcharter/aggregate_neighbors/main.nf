@@ -3396,7 +3396,7 @@ meta = [
             "pandas>3",
             "scipy~=1.18.1",
             "mudata~=0.4.1",
-            "cellcharter~=0.3.7"
+            "cellcharter~=0.3.8"
           ],
           "script" : [
             "exec(\\"try:\\\\n  import zarr; from importlib.metadata import version\\\\nexcept ModuleNotFoundError:\\\\n  exit(0)\\\\nelse:  assert int(version(\\\\\\"zarr\\\\\\").partition(\\\\\\".\\\\\\")[0]) > 2\\")"
@@ -3432,7 +3432,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/cellcharter/aggregate_neighbors",
     "viash_version" : "0.9.7",
-    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
+    "git_commit" : "27904d1ef5d197fc42f4c0cb43d3438690790d20",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

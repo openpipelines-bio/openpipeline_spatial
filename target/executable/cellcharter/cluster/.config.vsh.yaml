@@ -400,7 +400,7 @@ engines:
     - "pandas>3"
     - "scipy~=1.18.1"
     - "mudata~=0.4.1"
-    - "cellcharter~=0.3.7"
+    - "cellcharter~=0.3.8"
     script:
     - "exec(\"try:\\n  import zarr; from importlib.metadata import version\\nexcept\
       \ ModuleNotFoundError:\\n  exit(0)\\nelse:  assert int(version(\\\"zarr\\\"\
@@ -427,7 +427,7 @@ build_info:
   output: "target/executable/cellcharter/cluster"
   executable: "target/executable/cellcharter/cluster/cluster"
   viash_version: "0.9.7"
-  git_commit: "b7b10607cae15680c71ecfbee8538f4592b265f8"
+  git_commit: "27904d1ef5d197fc42f4c0cb43d3438690790d20"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"

@@ -3876,7 +3876,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/spatial_domains/nichecompass_leiden",
     "viash_version" : "0.9.7",
-    "git_commit" : "b7b10607cae15680c71ecfbee8538f4592b265f8",
+    "git_commit" : "27904d1ef5d197fc42f4c0cb43d3438690790d20",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

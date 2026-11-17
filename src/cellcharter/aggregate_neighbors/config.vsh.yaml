@@ -142,7 +142,7 @@ engines:
       - type: python
         __merge__: [ /src/base/requirements/squidpy.yaml, /src/base/requirements/anndata_mudata.yaml, . ]
         packages:
-          - cellcharter~=0.3.7
+          - cellcharter~=0.3.8
     __merge__: [ /src/base/requirements/python_test_setup.yaml, .]
 
 runners:

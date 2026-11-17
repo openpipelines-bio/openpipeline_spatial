@@ -455,14 +455,14 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir torch~=2.8.0 --index-url https://download.pytorch.org/whl/cpu
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "scanpy~=1.12.5" "umap-learn==0.5.12" "squidpy~=1.8.1" "anndata~=0.13.4" "awkward" "pandas>3" "scipy~=1.18.1" "mudata~=0.4.1" "cellcharter~=0.3.7" && \
+  pip install --upgrade --no-cache-dir "scanpy~=1.12.5" "umap-learn==0.5.12" "squidpy~=1.8.1" "anndata~=0.13.4" "awkward" "pandas>3" "scipy~=1.18.1" "mudata~=0.4.1" "cellcharter~=0.3.8" && \
   python -c 'exec("try:\n  import zarr; from importlib.metadata import version\nexcept ModuleNotFoundError:\n  exit(0)\nelse:  assert int(version(\"zarr\").partition(\".\")[0]) > 2")'
 
 LABEL org.opencontainers.image.authors="Mirte De Temmerman"
 LABEL org.opencontainers.image.description="Companion container for running component cellcharter aggregate_neighbors"
-LABEL org.opencontainers.image.created="2026-11-16T15:43:18Z"
+LABEL org.opencontainers.image.created="2026-11-17T12:21:38Z"
 LABEL org.opencontainers.image.source="https://github.com/CSOgroup/cellcharter"
-LABEL org.opencontainers.image.revision="b7b10607cae15680c71ecfbee8538f4592b265f8"
+LABEL org.opencontainers.image.revision="27904d1ef5d197fc42f4c0cb43d3438690790d20"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
