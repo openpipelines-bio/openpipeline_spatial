@@ -107,7 +107,7 @@ def test_other_modalities_are_preserved(run_component, tmp_path):
     extra = ad.AnnData(X=np.ones((rna.n_obs, 3), dtype=np.float32))
     extra.obs_names = rna.obs_names
     extra.var_names = [f"prot_{i}" for i in range(3)]
-    with mu.set_options(pull_on_update=False):
+    with mu.settings.override(pull_on_update=False):
         input_mdata = mu.MuData({"rna": rna, "prot": extra})
     input_with_prot = tmp_path / "input_with_prot.h5mu"
     input_mdata.write_h5mu(input_with_prot)
