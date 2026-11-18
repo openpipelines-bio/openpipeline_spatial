@@ -3448,7 +3448,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/spatial_domains/spatial_expression_leiden",
     "viash_version" : "0.9.7",
-    "git_commit" : "27904d1ef5d197fc42f4c0cb43d3438690790d20",
+    "git_commit" : "6451e8b38196b54feaf088078822859cfed02073",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

@@ -481,9 +481,9 @@ chmod -R a+rwX /opt/cellpose_models
 
 LABEL org.opencontainers.image.authors="Mirte De Temmerman"
 LABEL org.opencontainers.image.description="Companion container for running component segmentation cellpose_sam"
-LABEL org.opencontainers.image.created="2026-11-17T12:21:37Z"
+LABEL org.opencontainers.image.created="2026-11-18T12:20:25Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="27904d1ef5d197fc42f4c0cb43d3438690790d20"
+LABEL org.opencontainers.image.revision="6451e8b38196b54feaf088078822859cfed02073"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
