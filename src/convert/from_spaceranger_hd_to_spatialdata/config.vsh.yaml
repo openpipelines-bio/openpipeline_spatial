@@ -42,7 +42,7 @@ arguments:
     required: false
     description: |
       Names of the tables in the output SpatialData object. If given, there
-      must be one name for each loaded table. For `--mode bins`, this muse be in
+      must be one name for each loaded table. For `--mode bins`, this must be in
       the same order as `--bin_size`. For `--mode segmented_cells`, the first
       name is for the cell table and the second name is used for the nucleus
       table if `--load_nucleus_segmentations` is set.
