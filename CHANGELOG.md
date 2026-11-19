@@ -32,6 +32,8 @@
 
 * `xeniumranger/xeniumranger_resegment`: Component to generate a new segmentation of the morphology image space by rerunning the Xenium Onboard Analysis (XOA) segmentation algorithms with modified parameters via Xenium Ranger 4.0 (PR #84).
 
+* `xeniumranger/xeniumranger_import_segmentation`: Component to import nucleus and/or cell segmentation results (label masks, GeoJSON polygons or `cells.zarr.zip`) or third-party transcript assignments (Baysor-style CSV + GeoJSON viz polygons) and recalculate all segmentation-dependent Xenium Onboard Analysis outputs via Xenium Ranger 4.0. Adds `resources_test_scripts/xenium_multicellseg_tiny_transcript_assignment.sh` to generate the transcript assignment test resources (PR #85).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
