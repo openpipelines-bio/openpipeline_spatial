@@ -464,9 +464,9 @@ RUN pip install --no-cache-dir nichecompass==0.3.3 && \
 patch -p2 -d "$(python -c 'import site; print(site.getsitepackages()[0])')" < /opt/nichecompass.patch
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component nichecompass nichecompass"
-LABEL org.opencontainers.image.created="2026-11-19T11:43:19Z"
+LABEL org.opencontainers.image.created="2026-11-19T12:42:28Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="b28ef8bd7654ec0f75c92a74a1a0efe2980013a1"
+LABEL org.opencontainers.image.revision="5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

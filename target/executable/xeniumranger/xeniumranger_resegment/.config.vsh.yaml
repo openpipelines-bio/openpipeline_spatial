@@ -1,0 +1,278 @@
+name: "xeniumranger_resegment"
+namespace: "xeniumranger"
+version: "build_main"
+authors:
+- name: "Hannes De Meyer"
+  roles:
+  - "author"
+  info:
+    links:
+      github: "Hannes23"
+      linkedin: "hannes-de-meyer"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--xenium_bundle"
+    description: "File path to directory containing all required Xenium Onboard Analysis\
+      \ output files.\n"
+    info: null
+    example:
+    - "/path/to/xenium_output_bundle"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Staining arguments"
+  arguments:
+  - type: "string"
+    name: "--boundary_stain"
+    description: "Name of the boundary stain to use for cell segmentation, or \"disable\"\
+      \ to not use boundary\nstain segmentation. Possible values are a cell segmentation\
+      \ stain (\"ATP1A1/CD45/E-Cadherin\",\n\"18S\", \"alphaSMA/Vimentin\"), a protein\
+      \ stain if present in the bundle, or \"disable\".\nIf not set, Xenium Ranger's\
+      \ own default is used.\n"
+    info: null
+    example:
+    - "ATP1A1/CD45/E-Cadherin"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--interior_stain"
+    description: "Name of the interior stain to use for cell segmentation, or \"disable\"\
+      \ to not use interior\nstain segmentation. Possible values are a cell segmentation\
+      \ stain (\"18S\",\n\"ATP1A1/CD45/E-Cadherin\", \"alphaSMA/Vimentin\"), a protein\
+      \ stain if present in the bundle,\nor \"disable\". If not set, Xenium Ranger's\
+      \ own default is used.\n"
+    info: null
+    example:
+    - "18S"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Image arguments"
+  arguments:
+  - type: "boolean_true"
+    name: "--segment_large_cells"
+    description: "Run boundary stain-based large cell segmentation.\n"
+    info: null
+    direction: "input"
+  - type: "double"
+    name: "--expansion_distance"
+    description: "Nuclei boundary expansion distance in micrometers. (Min: 0, Max:\
+      \ 15 if either --boundary_stain\nor --interior_stain are enabled and 100 if\
+      \ nucleus-expansion only).\n"
+    info: null
+    example:
+    - 5.0
+    required: false
+    min: 0.0
+    max: 100.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--dapi_filter"
+    description: "Minimum intensity in photoelectrons (pe) to filter nuclei. Specifies\
+      \ the threshold for the 2D\nDAPI image; if the 2D image is deconvolved, XR v4.0\
+      \ automatically multiplies this by 7 for the\nDAPI Z-stack. If left unset, xeniumranger\
+      \ uses its own default: 15 pe for deconvolved DAPI,\n100 pe for non-deconvolved\
+      \ DAPI.\n"
+    info: null
+    example:
+    - 15.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "The folder to store the resegmented Xenium Ranger output bundle.\n"
+    info: null
+    example:
+    - "/path/to/output"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "bash_script"
+  path: "script.sh"
+  is_executable: true
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Generate a new segmentation of the morphology image space by rerunning\
+  \ the Xenium Onboard Analysis (XOA) segmentation algorithms with modified parameters.\n"
+test_resources:
+- type: "python_script"
+  path: "test.py"
+  is_executable: true
+- type: "file"
+  path: "xenium_multicellseg_tiny_cropped"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+keywords:
+- "xeniumranger"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+  docker_registry: "ghcr.io"
+  documentation: "https://www.10xgenomics.com/support/software/xenium-ranger/latest/analysis/running-pipelines/XR-resegment"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "highcpu"
+    - "veryhighmem"
+    - "highdisk"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "quay.io/nf-core/xeniumranger:4.0"
+  namespace_separator: "/"
+  setup:
+  - type: "docker"
+    run:
+    - "DEBIAN_FRONTEND=noninteractive apt update && \\\napt upgrade -y && apt install\
+      \ -y procps && rm -rf /var/lib/apt/lists/*\n"
+  test_setup:
+  - type: "docker"
+    run:
+    - "export DEBIAN_FRONTEND=noninteractive && \\\napt update && \\\napt install\
+      \ -y python3.9 python3.9-venv python3.9-distutils python-is-python3 git curl\
+      \ ca-certificates && \\\ncurl -sS https://bootstrap.pypa.io/pip/3.9/get-pip.py\
+      \ | python3.9 && \\\nupdate-alternatives --install /usr/bin/python3 python3\
+      \ /usr/bin/python3.9 10 && \\\nupdate-alternatives --set python3 /usr/bin/python3.9\
+      \ && \\\nrm -rf /var/lib/apt/lists/*\n"
+  - type: "python"
+    user: false
+    packages:
+    - "pyarrow==21.0.0"
+    - "numpy<2"
+    - "scanpy~=1.9.8"
+    upgrade: true
+  - type: "python"
+    user: false
+    packages:
+    - "anndata==0.10.8"
+    - "viashpy==0.9.0"
+    github:
+    - "openpipelines-bio/core@d1be1ae27029727da5a26391e327c4db472f727b#subdirectory=packages/python/openpipeline_testutils"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+build_info:
+  config: "src/xeniumranger/xeniumranger_resegment/config.vsh.yaml"
+  runner: "executable"
+  engine: "docker"
+  output: "target/executable/xeniumranger/xeniumranger_resegment"
+  executable: "target/executable/xeniumranger/xeniumranger_resegment/xeniumranger_resegment"
+  viash_version: "0.9.7"
+  git_commit: "5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
+package_config:
+  name: "openpipeline_spatial"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_spatial/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".resources += {path: '/src/workflows/utils/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_spatial"
+    docker_registry: "ghcr.io"
