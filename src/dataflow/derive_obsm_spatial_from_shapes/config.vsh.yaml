@@ -1,0 +1,79 @@
+name: derive_obsm_spatial_from_shapes
+namespace: dataflow
+label: Derive .obsm['spatial'] from shapes centroids
+summary: Populate a table's .obsm["spatial"] from the centroids of its annotating shapes element
+description: |
+  Some SpatialData readers store per-cell coordinates only implicitly, as the
+  geometry of the shapes element a table annotates (via
+  `table.uns["spatialdata_attrs"]`), without also writing them to
+  `table.obsm["spatial"]`. For example `spatialdata_io.visium_hd()` in
+  segmented-cells mode leaves `.obsm` empty, unlike `spatialdata_io.xenium()`
+  which populates `.obsm["spatial"]` directly from its `cell_circles` shapes.
+  Many downstream tools (QC, squidpy spatial neighbours, spatial statistics)
+  expect that key to be present regardless of technology. This component
+  derives it from the centroid of each row's geometry in the table's
+  annotating shapes element and writes it back into the SpatialData Zarr store.
+
+authors:
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        label: Input SpatialData
+        description: Path to the input SpatialData Zarr store
+        example: input.zarr
+        required: true
+      - name: --input_table
+        type: string
+        label: Input table name
+        default: table
+        description: |
+          Name of the table in the input SpatialData object to update. The
+          updated table keeps this name in the output. The table must annotate
+          a single shapes element.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        default: output.zarr
+        label: Output SpatialData
+        description: Path to the output SpatialData Zarr store
+      - name: --output_obsm_spatial
+        type: string
+        label: Output .obsm key
+        default: spatial
+        description: Key in `.obsm` of the table to write the derived centroids to.
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.zarr
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [/src/base/requirements/spatialdata.yaml]
+    __merge__: [/src/base/requirements/python_test_setup.yaml, .]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [singlecpu, lowmem, lowdisk]

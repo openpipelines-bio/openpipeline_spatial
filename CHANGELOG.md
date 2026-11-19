@@ -34,6 +34,8 @@
 
 * `xeniumranger/xeniumranger_import_segmentation`: Component to import nucleus and/or cell segmentation results (label masks, GeoJSON polygons or `cells.zarr.zip`) or third-party transcript assignments (Baysor-style CSV + GeoJSON viz polygons) and recalculate all segmentation-dependent Xenium Onboard Analysis outputs via Xenium Ranger 4.0. Adds `resources_test_scripts/xenium_multicellseg_tiny_transcript_assignment.sh` to generate the transcript assignment test resources (PR #85).
 
+* `dataflow/derive_obsm_spatial_from_shapes`: Component to derive `.obsm['spatial']` from the centroids of the shapes that a SpatialData table annotates (PR #113).
+
 * `convert/from_spaceranger_to_spatialdata`: Component to convert the output from Space Ranger for Visium into a SpatialData object (PR #112).
 
 * `convert/from_spaceranger_hd_to_spatialdata`, `workflows/ingestion/spaceranger_hd_mapping`: (PR #111)
