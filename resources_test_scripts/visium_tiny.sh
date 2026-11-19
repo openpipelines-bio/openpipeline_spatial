@@ -73,6 +73,15 @@ nextflow run . \
 
 echo "> Sample processing complete"
 
+# Spatial neighbourhood graph for a hexagonal Visium grid
+viash run "$REPO_ROOT/src/neighbors/spatial_neighborhood_graph/config.vsh.yaml" -- \
+    --input "$DIR/visium_tiny_processed.h5mu" \
+    --output "$DIR/visium_tiny_neighbours.h5mu" \
+    --coord_type grid \
+    --n_spatial_neighbors 6
+
+echo "> Spatial neighbour graph calculation complete"
+
 aws s3 sync \
     --profile di \
     --exclude "*.yaml" \
