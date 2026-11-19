@@ -460,9 +460,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 
 LABEL org.opencontainers.image.authors="Dorien Roosen"
 LABEL org.opencontainers.image.description="Companion container for running component convert from_h5mu_to_spatialexperiment"
-LABEL org.opencontainers.image.created="2026-11-19T12:42:27Z"
+LABEL org.opencontainers.image.created="2026-11-19T14:39:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_spatial"
-LABEL org.opencontainers.image.revision="5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d"
+LABEL org.opencontainers.image.revision="7311fe9950e4d56853ebbee6e3ee5caf4945bf7c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

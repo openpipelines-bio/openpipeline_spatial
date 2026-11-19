@@ -77,28 +77,55 @@ argument_groups:
         description: The Space Ranger output, converted to SpatialData (Zarr).
         required: true
         example: output.zarr
+      - name: "--output_table"
+        type: string
+        multiple: true
+        required: false
+        description: |
+          Names of the tables in the output SpatialData object. If given, there
+          must be one name for each loaded table. For `--mode bins`, this must be in
+          the same order as `--bin_size`. For `--mode segmented_cells`, the first
+          name is for the cell table and the second name is used for the nucleus
+          table if `--load_nucleus_segmentations` is set.
+
+          If not given, the cell table or a single bin table is named `table`.
+          Several bin tables and the nucleus table keep the `spatialdata-io` names
+          (e.g. `square_008um`, `nucleus_segmentations`).
+        example: [ table ]
       - name: "--mode"
         type: string
         description: |
           Which Space Ranger HD output to convert to SpatialData: `segmented_cells`
           (per-cell counts and cell boundary polygons) or `bins` (binned counts at
-          `--bin_size`). Segmentation is generally preferred, but binned output is
+          each `--bin_size`). Segmentation is generally preferred, but binned output is
           available for compatibility.
         choices: [ segmented_cells, bins ]
         default: segmented_cells
       - name: "--bin_size"
         type: integer
-        description: Bin size in microns to convert when `--mode bins`.
-        choices: [ 2, 8, 16 ]
-        default: 8
+        multiple: true
+        description: |
+          Bin sizes in microns to convert when `--mode bins`, each to its own
+          table. Each bin size must be in the Space Ranger output (2, 8, 16 or
+          `--custom_bin_size`).
+        default: [ 8 ]
+      - name: "--load_nucleus_segmentations"
+        type: boolean
+        default: false
+        description: |
+          Also convert the nucleus segmentation when `--mode segmented_cells`, as
+          an extra table after the cell table. Needs the nucleus segmentation files
+          in the Space Ranger output.
       - name: "--output_type"
         type: string
-        description: Which count matrix to convert (`filtered` or `raw`). Applies to both modes.
+        description: |
+          Which binned count matrix to convert (`filtered` or `raw`) when
+          `--mode bins`. Cells are always converted from the filtered matrix.
         choices: [ filtered, raw ]
         default: filtered
       - name: "--output_layer"
         type: string
-        description: If provided, store the counts as a named layer in addition to `.X`.
+        description: If provided, store the counts of each table as a named layer in addition to `.X`.
         required: false
       - name: "--dataset_id"
         type: string

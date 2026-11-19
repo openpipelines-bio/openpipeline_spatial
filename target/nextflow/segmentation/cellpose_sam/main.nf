@@ -3535,7 +3535,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/segmentation/cellpose_sam",
     "viash_version" : "0.9.7",
-    "git_commit" : "5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d",
+    "git_commit" : "7311fe9950e4d56853ebbee6e3ee5caf4945bf7c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {

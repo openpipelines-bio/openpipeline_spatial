@@ -3182,8 +3182,20 @@ meta = [
         },
         {
           "type" : "string",
+          "name" : "--output_table",
+          "description" : "Names of the tables in the output SpatialData object. If given, there\nmust be one name for each loaded table. For `--mode bins`, this must be in\nthe same order as `--bin_size`. For `--mode segmented_cells`, the first\nname is for the cell table and the second name is used for the nucleus\ntable if `--load_nucleus_segmentations` is set.\n\nIf not given, the cell table or a single bin table is named `table`.\nSeveral bin tables and the nucleus table keep the `spatialdata-io` names\n(e.g. `square_008um`, `nucleus_segmentations`).\n",
+          "example" : [
+            "table"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
           "name" : "--mode",
-          "description" : "Which Space Ranger HD output to convert to SpatialData: `segmented_cells`\n(per-cell counts and cell boundary polygons) or `bins` (binned counts at\n`--bin_size`). Segmentation is generally preferred, but binned output is\navailable for compatibility.\n",
+          "description" : "Which Space Ranger HD output to convert to SpatialData: `segmented_cells`\n(per-cell counts and cell boundary polygons) or `bins` (binned counts at\neach `--bin_size`). Segmentation is generally preferred, but binned output is\navailable for compatibility.\n",
           "default" : [
             "segmented_cells"
           ],
@@ -3199,16 +3211,23 @@ meta = [
         {
           "type" : "integer",
           "name" : "--bin_size",
-          "description" : "Bin size in microns to convert when `--mode bins`.",
+          "description" : "Bin sizes in microns to convert when `--mode bins`, each to its own\ntable. Each bin size must be in the Space Ranger output (2, 8, 16 or\n`--custom_bin_size`).\n",
           "default" : [
             8
           ],
           "required" : false,
-          "choices" : [
-            2,
-            8,
-            16
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--load_nucleus_segmentations",
+          "description" : "Also convert the nucleus segmentation when `--mode segmented_cells`, as\nan extra table after the cell table. Needs the nucleus segmentation files\nin the Space Ranger output.\n",
+          "default" : [
+            false
           ],
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3216,7 +3235,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--output_type",
-          "description" : "Which count matrix to convert (`filtered` or `raw`). Applies to both modes.",
+          "description" : "Which binned count matrix to convert (`filtered` or `raw`) when\n`--mode bins`. Cells are always converted from the filtered matrix.\n",
           "default" : [
             "filtered"
           ],
@@ -3232,7 +3251,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--output_layer",
-          "description" : "If provided, store the counts as a named layer in addition to `.X`.",
+          "description" : "If provided, store the counts of each table as a named layer in addition to `.X`.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3715,7 +3734,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/workflows/ingestion/spaceranger_hd_mapping",
     "viash_version" : "0.9.7",
-    "git_commit" : "5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d",
+    "git_commit" : "7311fe9950e4d56853ebbee6e3ee5caf4945bf7c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3812,6 +3831,8 @@ workflow run_wf {
         "input": state.output_raw,
         "mode": state.mode,
         "bin_size": state.bin_size,
+        "load_nucleus_segmentations": state.load_nucleus_segmentations,
+        "output_table": state.output_table,
         "output_type": state.output_type,
         "output_layer": state.output_layer,
         // Space Ranger writes a bare "feature_slice.h5"; the converter infers

@@ -44,13 +44,19 @@ argument_groups:
     multiple_sep: ";"
   - type: "string"
     name: "--output_table"
-    description: "Name of the main table in the output SpatialData object."
+    description: "Names of the tables in the output SpatialData object. If given,\
+      \ there\nmust be one name for each loaded table. For `--mode bins`, this must\
+      \ be in\nthe same order as `--bin_size`. For `--mode segmented_cells`, the first\n\
+      name is for the cell table and the second name is used for the nucleus\ntable\
+      \ if `--load_nucleus_segmentations` is set.\n\nIf not given, the cell table\
+      \ or a single bin table is named `table`.\nSeveral bin tables and the nucleus\
+      \ table keep the `spatialdata-io` names\n(e.g. `square_008um`, `nucleus_segmentations`).\n"
     info: null
-    default:
+    example:
     - "table"
     required: false
     direction: "input"
-    multiple: false
+    multiple: true
     multiple_sep: ";"
   - type: "string"
     name: "--mode"
@@ -69,23 +75,36 @@ argument_groups:
     multiple_sep: ";"
   - type: "integer"
     name: "--bin_size"
-    description: "Bin size in microns to load when `--mode bins`. Visium HD captures\
-      \ data at\n2 µm and aggregates it into 8 µm and 16 µm square bins.\n"
+    description: "Bin sizes in microns to load when `--mode bins`. Visium HD captures\
+      \ data\nat 2 µm and aggregates it into 8 µm and 16 µm square bins by default,\
+      \ set\n[2, 8, 16] to read all of these. Space Ranger can also write a custom\
+      \ bin\nsize. Each bin size must be present in `binned_outputs/`.\n"
     info: null
     default:
     - 8
     required: false
-    choices:
-    - 2
-    - 8
-    - 16
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--load_nucleus_segmentations"
+    description: "Also load the nucleus segmentation for `--mode segmented_cells`.\
+      \ Added as\nan extra table with nucleus polygon shapes, see `--output_table`\
+      \ for\nnaming. Its counts are the sum of the 2 µm bins under each nucleus. Needs\n\
+      `segmented_outputs/nucleus_segmentations.geojson`, a\n`barcode_mappings.parquet`\
+      \ file and the filtered 2 µm bin matrix in the\n`--input` directory.\n"
+    info: null
+    default:
+    - false
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "string"
     name: "--output_type"
-    description: "Which count matrix to load: `filtered` (barcodes under tissue only)\
-      \ or\n`raw` (all barcodes). Applies to both the segmented-cell and binned matrices.\n"
+    description: "Which binned count matrix to load when `--mode bins`. Either `filtered`\n\
+      (barcodes under tissue only) or `raw` (all barcodes). Not used for\n`--mode\
+      \ segmented_cells`, which always loads the filtered cell matrix.\n"
     info: null
     default:
     - "filtered"
@@ -98,8 +117,8 @@ argument_groups:
     multiple_sep: ";"
   - type: "string"
     name: "--output_layer"
-    description: "If provided, the count matrix is also stored as a named layer\n\
-      (`table.layers[output_layer]`) in addition to `.X`.\n"
+    description: "If provided, the count matrix of each output table is also stored\
+      \ as a\nnamed layer (`table.layers[output_layer]`) in addition to `.X`.\n"
     info: null
     required: false
     direction: "input"
@@ -127,9 +146,10 @@ resources:
 description: "Converts the output from 10X Genomics Space Ranger for Visium HD into\
   \ a\nSpatialData object.\n\nBy default it reads the segmented cells (per-cell count\
   \ matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`.\
-  \ Set\n`--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)\n\
-  at the bin size given by `--bin_size`. In both cases the loaded table is\nrenamed\
-  \ to the value of `--output_table`.\n"
+  \ Set\n`--mode bins` to instead read one or more binned outputs\n(`binned_outputs/square_<N>um/`)\
+  \ at the bin sizes given by `--bin_size`. In\n`--mode bins` the cell segmentation\
+  \ is not included in the output. See\n`--output_table` for how the output tables\
+  \ are named.\n"
 test_resources:
 - type: "python_script"
   path: "test.py"
@@ -268,7 +288,7 @@ build_info:
   output: "target/nextflow/convert/from_spaceranger_hd_to_spatialdata"
   executable: "target/nextflow/convert/from_spaceranger_hd_to_spatialdata/main.nf"
   viash_version: "0.9.7"
-  git_commit: "5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d"
+  git_commit: "7311fe9950e4d56853ebbee6e3ee5caf4945bf7c"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_spatial"
 package_config:
   name: "openpipeline_spatial"

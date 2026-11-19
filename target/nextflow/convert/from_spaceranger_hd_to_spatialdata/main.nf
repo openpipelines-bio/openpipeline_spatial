@@ -3101,13 +3101,13 @@ meta = [
         {
           "type" : "string",
           "name" : "--output_table",
-          "description" : "Name of the main table in the output SpatialData object.",
-          "default" : [
+          "description" : "Names of the tables in the output SpatialData object. If given, there\nmust be one name for each loaded table. For `--mode bins`, this must be in\nthe same order as `--bin_size`. For `--mode segmented_cells`, the first\nname is for the cell table and the second name is used for the nucleus\ntable if `--load_nucleus_segmentations` is set.\n\nIf not given, the cell table or a single bin table is named `table`.\nSeveral bin tables and the nucleus table keep the `spatialdata-io` names\n(e.g. `square_008um`, `nucleus_segmentations`).\n",
+          "example" : [
             "table"
           ],
           "required" : false,
           "direction" : "input",
-          "multiple" : false,
+          "multiple" : true,
           "multiple_sep" : ";"
         },
         {
@@ -3129,16 +3129,23 @@ meta = [
         {
           "type" : "integer",
           "name" : "--bin_size",
-          "description" : "Bin size in microns to load when `--mode bins`. Visium HD captures data at\n2 µm and aggregates it into 8 µm and 16 µm square bins.\n",
+          "description" : "Bin sizes in microns to load when `--mode bins`. Visium HD captures data\nat 2 µm and aggregates it into 8 µm and 16 µm square bins by default, set\n[2, 8, 16] to read all of these. Space Ranger can also write a custom bin\nsize. Each bin size must be present in `binned_outputs/`.\n",
           "default" : [
             8
           ],
           "required" : false,
-          "choices" : [
-            2,
-            8,
-            16
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--load_nucleus_segmentations",
+          "description" : "Also load the nucleus segmentation for `--mode segmented_cells`. Added as\nan extra table with nucleus polygon shapes, see `--output_table` for\nnaming. Its counts are the sum of the 2 µm bins under each nucleus. Needs\n`segmented_outputs/nucleus_segmentations.geojson`, a\n`barcode_mappings.parquet` file and the filtered 2 µm bin matrix in the\n`--input` directory.\n",
+          "default" : [
+            false
           ],
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3146,7 +3153,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--output_type",
-          "description" : "Which count matrix to load: `filtered` (barcodes under tissue only) or\n`raw` (all barcodes). Applies to both the segmented-cell and binned matrices.\n",
+          "description" : "Which binned count matrix to load when `--mode bins`. Either `filtered`\n(barcodes under tissue only) or `raw` (all barcodes). Not used for\n`--mode segmented_cells`, which always loads the filtered cell matrix.\n",
           "default" : [
             "filtered"
           ],
@@ -3162,7 +3169,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--output_layer",
-          "description" : "If provided, the count matrix is also stored as a named layer\n(`table.layers[output_layer]`) in addition to `.X`.\n",
+          "description" : "If provided, the count matrix of each output table is also stored as a\nnamed layer (`table.layers[output_layer]`) in addition to `.X`.\n",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3196,7 +3203,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Converts the output from 10X Genomics Space Ranger for Visium HD into a\nSpatialData object.\n\nBy default it reads the segmented cells (per-cell count matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set\n`--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)\nat the bin size given by `--bin_size`. In both cases the loaded table is\nrenamed to the value of `--output_table`.\n",
+  "description" : "Converts the output from 10X Genomics Space Ranger for Visium HD into a\nSpatialData object.\n\nBy default it reads the segmented cells (per-cell count matrix and cell\nboundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set\n`--mode bins` to instead read one or more binned outputs\n(`binned_outputs/square_<N>um/`) at the bin sizes given by `--bin_size`. In\n`--mode bins` the cell segmentation is not included in the output. See\n`--output_table` for how the output tables are named.\n",
   "test_resources" : [
     {
       "type" : "python_script",
@@ -3371,7 +3378,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_spatial/openpipeline_spatial/target/nextflow/convert/from_spaceranger_hd_to_spatialdata",
     "viash_version" : "0.9.7",
-    "git_commit" : "5ceb8ad2ee790c832a0671dd38d1e8e8635a3d2d",
+    "git_commit" : "7311fe9950e4d56853ebbee6e3ee5caf4945bf7c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_spatial"
   },
   "package_config" : {
@@ -3418,6 +3425,7 @@ def innerWorkflowFactory(args) {
   def rawScript = '''set -e
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
+import re
 import sys
 from pathlib import Path
 
@@ -3429,9 +3437,10 @@ import spatialdata_io
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output_table': $( if [ ! -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TABLE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_table': $( if [ ! -z ${VIASH_PAR_OUTPUT_TABLE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TABLE//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
   'mode': $( if [ ! -z ${VIASH_PAR_MODE+x} ]; then echo "r'${VIASH_PAR_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'bin_size': $( if [ ! -z ${VIASH_PAR_BIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BIN_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'bin_size': $( if [ ! -z ${VIASH_PAR_BIN_SIZE+x} ]; then echo "list(map(int, r'${VIASH_PAR_BIN_SIZE//\\'/\\'\\"\\'\\"r\\'}'.split(';')))"; else echo None; fi ),
+  'load_nucleus_segmentations': $( if [ ! -z ${VIASH_PAR_LOAD_NUCLEUS_SEGMENTATIONS+x} ]; then echo "r'${VIASH_PAR_LOAD_NUCLEUS_SEGMENTATIONS//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
   'output_type': $( if [ ! -z ${VIASH_PAR_OUTPUT_TYPE+x} ]; then echo "r'${VIASH_PAR_OUTPUT_TYPE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output_layer': $( if [ ! -z ${VIASH_PAR_OUTPUT_LAYER+x} ]; then echo "r'${VIASH_PAR_OUTPUT_LAYER//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
@@ -3492,6 +3501,67 @@ def add_cell_type_annotations(input_path, table):
     )
 
 
+def check_bin_sizes(input_path, bin_sizes):
+    """Check that each requested bin size has a \\`binned_outputs/\\` folder.
+
+    \\`spatialdata_io.visium_hd()\\` ignores missing bin sizes and loads all bins if
+    none of them are present, so check before loading.
+    """
+    if len(set(bin_sizes)) != len(bin_sizes):
+        raise ValueError(f"'--bin_size' has duplicate values: {bin_sizes}")
+
+    available = sorted(
+        int(match.group(1))
+        for folder in (input_path / "binned_outputs").glob("square_*um")
+        if folder.is_dir() and (match := re.fullmatch(r"square_(\\\\d+)um", folder.name))
+    )
+    missing = [size for size in bin_sizes if size not in available]
+    if missing:
+        raise ValueError(
+            f"Bin sizes {missing} not found in '{input_path / 'binned_outputs'}'. "
+            f"Available bin sizes: {available}"
+        )
+
+
+def get_output_names(table_keys, output_table, main_table_first):
+    """Get the output name for each loaded table, in the same order.
+
+    Without \\`output_table\\`, a single table is named "table". With several
+    tables, the first is named "table" if \\`main_table_first\\` is set, and the
+    other tables keep the \\`spatialdata_io\\` names.
+    """
+    if output_table:
+        if len(output_table) != len(table_keys):
+            raise ValueError(
+                f"'--output_table' has {len(output_table)} names, but "
+                f"{len(table_keys)} tables will be loaded: {table_keys}"
+            )
+        if len(set(output_table)) != len(output_table):
+            raise ValueError(f"'--output_table' has duplicate names: {output_table}")
+        return list(output_table)
+
+    if len(table_keys) == 1 or main_table_first:
+        return ["table", *table_keys[1:]]
+
+    return list(table_keys)
+
+
+def rename_tables(sdata, mapping):
+    """Rename tables in \\`sdata\\` using a \\`{old_name: new_name}\\` mapping.
+
+    Remove all old tables before adding the new ones, so a new name that is the
+    same as another old name does not overwrite that table.
+    """
+    tables = {new: sdata[old] for old, new in mapping.items() if old != new}
+    for old, new in mapping.items():
+        if old != new:
+            logger.info("Renaming table '%s' to '%s'", old, new)
+            del sdata[old]
+
+    for new, table in tables.items():
+        sdata[new] = table
+
+
 def main(par):
     input_path = Path(par["input"])
     filtered = par["output_type"] == "filtered"
@@ -3503,45 +3573,77 @@ def main(par):
     logger.info("output_type: %s", par["output_type"])
 
     if par["mode"] == "bins":
+        if par["load_nucleus_segmentations"]:
+            raise ValueError(
+                "'--load_nucleus_segmentations' can only be used with "
+                "'--mode segmented_cells'"
+            )
+        # visium_hd() names the binned tables after the bin size, e.g. "square_008um".
+        table_keys = [f"square_{size:03d}um" for size in par["bin_size"]]
+    else:  # segmented_cells
+        # spatialdata_io names the segmentation tables "cell_segmentations" and
+        # "nucleus_segmentations" (VisiumHDKeys.CELL_SEG_KEY_HD, NUCLEUS_SEG_KEY_HD).
+        table_keys = ["cell_segmentations"]
+        if par["load_nucleus_segmentations"]:
+            table_keys.append("nucleus_segmentations")
+    output_names = get_output_names(
+        table_keys,
+        par["output_table"],
+        main_table_first=par["mode"] == "segmented_cells",
+    )
+
+    if par["mode"] == "bins":
         logger.info("bin_size: %s um", par["bin_size"])
+        check_bin_sizes(input_path, par["bin_size"])
         sdata = spatialdata_io.visium_hd(
             path=input_path,
             dataset_id=par["dataset_id"],
-            bin_size=[par["bin_size"]],
+            bin_size=par["bin_size"],
             filtered_counts_file=filtered,
             load_segmentations_only=False,
         )
-        # visium_hd() names the binned table after the bin size, e.g. "square_008um".
-        table_key = f"square_{par['bin_size']:03d}um"
+        # visium_hd() also loads the cell segmentation when its files exist,
+        # even with load_segmentations_only=False. Remove that table and the
+        # shapes it annotates so only the binned data is kept.
+        if "cell_segmentations" in sdata.tables:
+            region = sdata["cell_segmentations"].uns["spatialdata_attrs"]["region"]
+            logger.info("Removing cell segmentation table and shapes '%s'", region)
+            del sdata["cell_segmentations"]
+            del sdata[region]
     else:  # segmented_cells
         sdata = spatialdata_io.visium_hd(
             path=input_path,
             dataset_id=par["dataset_id"],
             filtered_counts_file=filtered,
             load_segmentations_only=True,
-            load_nucleus_segmentations=False,
+            load_nucleus_segmentations=par["load_nucleus_segmentations"],
         )
-        # Space Ranger names the segmented-cell table "cell_segmentations"
-        # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
-        table_key = "cell_segmentations"
+        # visium_hd() skips the nucleus segmentation without an error when its
+        # files are missing.
+        if (
+            par["load_nucleus_segmentations"]
+            and "nucleus_segmentations" not in sdata.tables
+        ):
+            raise ValueError(
+                "'--load_nucleus_segmentations' is set, but no nucleus segmentation "
+                "was loaded. The nucleus segmentation files may be missing from the input."
+            )
 
-    # Rename the loaded table to the output table name
-    if table_key != par["output_table"]:
-        logger.info("Renaming table '%s' to '%s'", table_key, par["output_table"])
-        sdata[par["output_table"]] = sdata[table_key]
-        del sdata[table_key]
+    # Rename the loaded tables to the output table names
+    rename_tables(sdata, dict(zip(table_keys, output_names)))
 
     # Cell-type annotations are per-cell, so only for the segmented-cell table.
     if par["mode"] != "bins":
-        add_cell_type_annotations(input_path, sdata[par["output_table"]])
+        add_cell_type_annotations(input_path, sdata[output_names[0]])
 
     logger.info("SpatialData object:\\\\n%s", sdata)
 
     if par["output_layer"]:
-        logger.info("Storing counts as layer '%s'", par["output_layer"])
-        sdata[par["output_table"]].layers[par["output_layer"]] = sdata[
-            par["output_table"]
-        ].X.copy()
+        for name in output_names:
+            logger.info(
+                "Storing counts as layer '%s' in table '%s'", par["output_layer"], name
+            )
+            sdata[name].layers[par["output_layer"]] = sdata[name].X.copy()
 
     logger.info("Writing SpatialData to '%s'", par["output"])
     sdata.write(par["output"], overwrite=True)
