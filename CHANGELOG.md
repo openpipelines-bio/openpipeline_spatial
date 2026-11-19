@@ -18,6 +18,8 @@
 
 * `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
 
+* `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
+
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
 * `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92, #109).
@@ -25,6 +27,8 @@
 * `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95, #109).
 
 * `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
+
+* `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
 
 * `convert/from_spaceranger_hd_to_spatialdata`, `workflows/ingestion/spaceranger_hd_mapping`: (PR #111)
   - `--bin_size` and `--output_table` accept several values, so that several bin sizes can be loaded as separate tables.
