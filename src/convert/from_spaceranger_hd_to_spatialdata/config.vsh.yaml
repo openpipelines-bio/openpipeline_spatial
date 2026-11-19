@@ -7,9 +7,10 @@ description: |
 
   By default it reads the segmented cells (per-cell count matrix and cell
   boundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set
-  `--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)
-  at the bin size given by `--bin_size`. In both cases the loaded table is
-  renamed to the value of `--output_table`.
+  `--mode bins` to instead read one or more binned outputs
+  (`binned_outputs/square_<N>um/`) at the bin sizes given by `--bin_size`. In
+  `--mode bins` the cell segmentation is not included in the output. See
+  `--output_table` for how the output tables are named.
 keywords: [spaceranger, visium_hd, segmentation, spatialdata]
 links:
   documentation: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/outputs/segmented-outputs
@@ -37,8 +38,19 @@ arguments:
     required: true
   - name: "--output_table"
     type: string
-    default: table
-    description: Name of the main table in the output SpatialData object.
+    multiple: true
+    required: false
+    description: |
+      Names of the tables in the output SpatialData object. If given, there
+      must be one name for each loaded table. For `--mode bins`, this must be in
+      the same order as `--bin_size`. For `--mode segmented_cells`, the first
+      name is for the cell table and the second name is used for the nucleus
+      table if `--load_nucleus_segmentations` is set.
+
+      If not given, the cell table or a single bin table is named `table`.
+      Several bin tables and the nucleus table keep the `spatialdata-io` names
+      (e.g. `square_008um`, `nucleus_segmentations`).
+    example: [ table ]
   - name: "--mode"
     type: string
     description: |
@@ -50,22 +62,35 @@ arguments:
   - name: "--bin_size"
     type: integer
     description: |
-      Bin size in microns to load when `--mode bins`. Visium HD captures data at
-      2 µm and aggregates it into 8 µm and 16 µm square bins.
-    choices: [ 2, 8, 16 ]
-    default: 8
+      Bin sizes in microns to load when `--mode bins`. Visium HD captures data
+      at 2 µm and aggregates it into 8 µm and 16 µm square bins by default, set
+      [2, 8, 16] to read all of these. Space Ranger can also write a custom bin
+      size. Each bin size must be present in `binned_outputs/`.
+    multiple: true
+    default: [ 8 ]
+  - name: "--load_nucleus_segmentations"
+    type: boolean
+    default: false
+    description: |
+      Also load the nucleus segmentation for `--mode segmented_cells`. Added as
+      an extra table with nucleus polygon shapes, see `--output_table` for
+      naming. Its counts are the sum of the 2 µm bins under each nucleus. Needs
+      `segmented_outputs/nucleus_segmentations.geojson`, a
+      `barcode_mappings.parquet` file and the filtered 2 µm bin matrix in the
+      `--input` directory.
   - name: "--output_type"
     type: string
     description: |
-      Which count matrix to load: `filtered` (barcodes under tissue only) or
-      `raw` (all barcodes). Applies to both the segmented-cell and binned matrices.
+      Which binned count matrix to load when `--mode bins`. Either `filtered`
+      (barcodes under tissue only) or `raw` (all barcodes). Not used for
+      `--mode segmented_cells`, which always loads the filtered cell matrix.
     choices: [ filtered, raw ]
     default: filtered
   - name: "--output_layer"
     type: string
     description: |
-      If provided, the count matrix is also stored as a named layer
-      (`table.layers[output_layer]`) in addition to `.X`.
+      If provided, the count matrix of each output table is also stored as a
+      named layer (`table.layers[output_layer]`) in addition to `.X`.
     required: false
   - name: "--dataset_id"
     type: string
