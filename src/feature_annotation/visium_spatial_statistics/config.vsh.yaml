@@ -1,0 +1,100 @@
+name: visium_spatial_statistics
+namespace: feature_annotation
+label: Visium Spatial Statistics
+summary: Calculate spatial statistics for Visium spot data
+description: |
+  Calculate spatial statistics from Visium data including tissue neighbourhood
+  metrics, local expression density, position-based features and global
+  spatial patterns. This component expects a MuData object with a pre-computed
+  spatial neighbourhood graph in `.obsp`.
+
+authors:
+  - __merge__: /src/authors/luke_zappia.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: --input
+        type: file
+        required: true
+        example: input.h5mu
+        description: |
+          A MuData file containing Visium spatial data and a pre-computed
+          spatial neighbourhood graph in `.obsp`.
+      - name: --modality
+        type: string
+        default: rna
+        description: The name of the modality to use from the MuData object.
+      - name: --obsm_spatial_coordinates
+        type: string
+        default: spatial
+        description: |
+          The key in `.obsm` where spatial coordinates are stored. Expected
+          shape is (n_spots, 2) for 2D coordinates.
+      - name: --obsp_spatial_graph
+        type: string
+        default: spatial_connectivities
+        description: The key in `.obsp` where the spatial graph connectivities are stored.
+      - name: --obs_total_counts
+        type: string
+        default: total_counts
+        description: |
+          The key in `.obs` where total counts per spot are stored. If the key
+          is not found, local expression density is skipped with a warning.
+
+  - name: Outputs
+    arguments:
+      - name: --output
+        type: file
+        direction: output
+        default: output.h5mu
+        example: output.h5mu
+        description: |
+          The output MuData file with calculated spatial statistics. Per-spot
+          metrics are stored in `.obs` and global statistics in
+          `.uns["spatial_stats"]`.
+      - name: --output_prefix
+        type: string
+        default: spatial_
+        description: Prefix to add to all generated column names in `.obs`.
+
+  - name: Parameters
+    arguments:
+      - name: --tissue_edge_max_neighbors
+        type: integer
+        choices: [ 6, 8 ]
+        default: 6
+        description: |
+          Maximum number of neighbours for an interior spot. Spots with fewer
+          neighbours than this threshold are classified as tissue-edge spots.
+          Use 6 for standard Visium (hexagonal grid) and 8 for Visium HD
+          (square-bin grid, Moore neighbourhood).
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/visium/visium_tiny_neighbours.h5mu
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [ /src/base/requirements/anndata_mudata.yaml ]
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ singlecpu, midmem, lowdisk ]
