@@ -1,4 +1,7 @@
+import re
+import subprocess
 import sys
+
 import pytest
 import spatialdata as sd
 
@@ -103,6 +106,134 @@ def test_output_layer(run_component, tmp_path):
     assert "counts" in sdata.tables["cells"].layers, (
         "expected counts to be stored as a named layer"
     )
+
+
+def test_bins_multiple_default_names(run_component, tmp_path):
+    output = tmp_path / "bins_multiple.zarr"
+    run_component(
+        [
+            "--input",
+            input,
+            "--output",
+            str(output),
+            "--mode",
+            "bins",
+            "--bin_size",
+            "2",
+            "--bin_size",
+            "8",
+            "--bin_size",
+            "16",
+            "--dataset_id",
+            "Visium_HD_Mouse_Brain",
+        ]
+    )
+
+    sdata = sd.read_zarr(output)
+
+    # Several bin tables keep the spatialdata-io names.
+    expected = ["square_002um", "square_008um", "square_016um"]
+    assert sorted(sdata.tables) == expected, f"got tables {list(sdata.tables)}"
+    for name in expected:
+        region = sdata.tables[name].uns["spatialdata_attrs"]["region"]
+        assert region == f"Visium_HD_Mouse_Brain_{name}"
+        assert region in sdata.shapes, f"shapes '{region}' missing"
+
+
+def test_bins_multiple_renamed(run_component, tmp_path):
+    output = tmp_path / "bins_renamed.zarr"
+    run_component(
+        [
+            "--input",
+            input,
+            "--output",
+            str(output),
+            "--mode",
+            "bins",
+            "--bin_size",
+            "16",
+            "--bin_size",
+            "8",
+            "--output_table",
+            "bins_16",
+            "--output_table",
+            "bins_8",
+            "--output_layer",
+            "counts",
+            "--dataset_id",
+            "Visium_HD_Mouse_Brain",
+        ]
+    )
+
+    sdata = sd.read_zarr(output)
+
+    assert sorted(sdata.tables) == ["bins_16", "bins_8"], (
+        f"got tables {list(sdata.tables)}"
+    )
+    # Names are matched to bin sizes by position: 8um has more bins than 16um.
+    assert sdata.tables["bins_8"].n_obs > sdata.tables["bins_16"].n_obs
+    assert (
+        sdata.tables["bins_8"].uns["spatialdata_attrs"]["region"]
+        == "Visium_HD_Mouse_Brain_square_008um"
+    )
+    for name in ["bins_16", "bins_8"]:
+        assert "counts" in sdata.tables[name].layers, (
+            f"expected counts layer in table '{name}'"
+        )
+
+
+def test_fail_output_table_count(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input,
+                "--output",
+                str(output),
+                "--mode",
+                "bins",
+                "--bin_size",
+                "8",
+                "--bin_size",
+                "16",
+                "--output_table",
+                "bins",
+                "--dataset_id",
+                "Visium_HD_Mouse_Brain",
+            ]
+        )
+    assert re.search(
+        r"'--output_table' has 1 names, but 2 tables will be loaded",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
+
+
+def test_fail_missing_bin_size(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input,
+                "--output",
+                str(output),
+                "--mode",
+                "bins",
+                "--bin_size",
+                "4",
+                "--dataset_id",
+                "Visium_HD_Mouse_Brain",
+            ]
+        )
+    assert re.search(
+        r"Bin sizes \[4\] not found .* Available bin sizes: \[2, 8, 16\]",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
 
 
 if __name__ == "__main__":
