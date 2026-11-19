@@ -6,17 +6,31 @@
 
 * `workflows/ingestion/spaceranger_hd_mapping`: Change the default of `--create_bam` from `false` to `true` to match other workflows and the Space Ranger recommendations. Set `--create_bam false` to keep the previous behaviour (PR #104).
 
+* Updated AnnData to 0.13.4, MuData to 0.4.1, SpatialData to 0.9.0, SpatialData-IO to 0.7.2, Scanpy to 1.12.5, anndataR to 1.2.3 and Pandas to 3 (PR #107, #110):
+  - Modality `.obs`/`.var` columns are no longer synced to the global `.obs`/`.var` of the MuData object.
+  - String columns that are not categorical are now written to H5MU as `nullable-string-array`. Readers based on older `anndata` (< 0.11) or `anndataR` (< 1.2.3) can not read these files.
+  - `nichecompass/nichecompass`, `nichecompass/gene_program_mask`: switched the base image to `python:3.12-slim` and pinned `nichecompass` to `0.3.3`, patched for Pandas 3.
+  - `convert/from_h5mu_to_spatialexperiment`, `convert/from_h5mu_to_seurat_with_fov`: pinned `anndataR` to `1.2.3` through a shared `src/base/requirements/anndataR.yaml`, to support reading `nullable-string-array` columns.
+
 ## NEW FUNCTIONALITY
 
 * `segmentation/cellpose3`: Component to segment cells or nuclei from an image in a SpatialData Zarr store (e.g. Xenium `morphology_focus`) using Cellpose3, writing the resulting instance segmentation mask back as a labels element (PR #77).
 
 * `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
 
+* `xeniumranger/xeniumranger_relabel`: Component to re-assign the gene identity of already-decoded Xenium transcripts using a corrected or updated gene panel via Xenium Ranger 4.0 (PR #73).
+
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
-* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92).
+* `cellcharter/aggregate_neighbors`: Aggregate features over multiple hops of the spatial neighborhood graph with CellCharter, as input for spatial domain clustering (PR #92, #109).
 
-* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95).
+* `cellcharter/cluster`: Cluster cells into spatial domains with CellCharter's Gaussian Mixture Model, either with a fixed number of clusters (`cellcharter.tl.Cluster`) or by selecting the number of clusters through a stability analysis (`cellcharter.tl.ClusterAutoK`), with optional GPU acceleration (PR #95, #109).
+
+* `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
+
+* `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
+
+* `xeniumranger/xeniumranger_resegment`: Component to generate a new segmentation of the morphology image space by rerunning the Xenium Onboard Analysis (XOA) segmentation algorithms with modified parameters via Xenium Ranger 4.0 (PR #84).
 
 * `xeniumranger/xeniumranger_import_segmentation`: Component to import nucleus and/or cell segmentation results (label masks, GeoJSON polygons or `cells.zarr.zip`) or third-party transcript assignments (Baysor-style CSV + GeoJSON viz polygons) and recalculate all segmentation-dependent Xenium Onboard Analysis outputs via Xenium Ranger 4.0. Adds `resources_test_scripts/xenium_multicellseg_tiny_transcript_assignment.sh` to generate the transcript assignment test resources (PR #85).
 
@@ -43,6 +57,8 @@
 * `mapping/spaceranger_count`, `workflows/ingestion/spaceranger_mapping`, `workflows/ingestion/spaceranger_hd_mapping`: Add `visium-hd-large` to the choices of `--unknown_slide`, matching Space Ranger 4.1.0 (PR #104).
 
 * `mapping/spaceranger_count`: Pass multiple `--lanes` values to Space Ranger as a comma-separated list, which fixes runs with more than one lane (PR #104).
+
+* `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
 
 # openpipeline_spatial 0.7.0
 

@@ -1,0 +1,8 @@
+# nichecompass 0.3.3 is patched to work with pandas 3 (fixes backported from nichecompass 1.0.0,
+# which is not released on PyPI): DataFrame.applymap was removed, and missing gene symbols arrive as NaN.
+# Requires the 'patch' executable and '/src/base/nichecompass/nichecompass.patch' to be added as a resource.
+type: docker
+copy: ["nichecompass.patch /opt/nichecompass.patch"]
+run: |
+  pip install --no-cache-dir nichecompass==0.3.3 && \
+  patch -p2 -d "$(python -c 'import site; print(site.getsitepackages()[0])')" < /opt/nichecompass.patch
