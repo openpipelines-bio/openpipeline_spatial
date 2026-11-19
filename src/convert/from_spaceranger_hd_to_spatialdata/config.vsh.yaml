@@ -42,10 +42,14 @@ arguments:
     required: false
     description: |
       Names of the tables in the output SpatialData object. If given, there
-      must be one name for each loaded table, in the same order as
-      `--bin_size` for `--mode bins`. If not given, a single table is named
-      `table`, and several bin tables keep the `spatialdata-io` names
-      (e.g. `square_008um`).
+      must be one name for each loaded table. For `--mode bins`, this muse be in
+      the same order as `--bin_size`. For `--mode segmented_cells`, the first
+      name is for the cell table and the second name is used for the nucleus
+      table if `--load_nucleus_segmentations` is set.
+
+      If not given, the cell table or a single bin table is named `table`.
+      Several bin tables and the nucleus table keep the `spatialdata-io` names
+      (e.g. `square_008um`, `nucleus_segmentations`).
     example: [ table ]
   - name: "--mode"
     type: string
@@ -64,6 +68,16 @@ arguments:
       size. Each bin size must be present in `binned_outputs/`.
     multiple: true
     default: [ 8 ]
+  - name: "--load_nucleus_segmentations"
+    type: boolean
+    default: false
+    description: |
+      Also load the nucleus segmentation for `--mode segmented_cells`. Added as
+      an extra table with nucleus polygon shapes, see `--output_table` for
+      naming. Its counts are the sum of the 2 µm bins under each nucleus. Needs
+      `segmented_outputs/nucleus_segmentations.geojson`, a
+      `barcode_mappings.parquet` file and the filtered 2 µm bin matrix in the
+      `--input` directory.
   - name: "--output_type"
     type: string
     description: |

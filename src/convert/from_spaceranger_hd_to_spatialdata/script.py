@@ -12,6 +12,7 @@ par = {
     "output_table": None,
     "mode": "segmented_cells",
     "bin_size": [8],
+    "load_nucleus_segmentations": False,
     "output_type": "filtered",
     "output_layer": None,
     "dataset_id": None,
@@ -71,8 +72,13 @@ def check_bin_sizes(input_path, bin_sizes):
         )
 
 
-def get_output_names(table_keys, output_table):
-    """Get the output name for each loaded table, in the same order."""
+def get_output_names(table_keys, output_table, main_table_first):
+    """Get the output name for each loaded table, in the same order.
+
+    Without `output_table`, a single table is named "table". With several
+    tables, the first is named "table" if `main_table_first` is set, and the
+    other tables keep the `spatialdata_io` names.
+    """
     if output_table:
         if len(output_table) != len(table_keys):
             raise ValueError(
@@ -83,8 +89,8 @@ def get_output_names(table_keys, output_table):
             raise ValueError(f"'--output_table' has duplicate names: {output_table}")
         return list(output_table)
 
-    if len(table_keys) == 1:
-        return ["table"]
+    if len(table_keys) == 1 or main_table_first:
+        return ["table", *table_keys[1:]]
 
     return list(table_keys)
 
@@ -116,13 +122,24 @@ def main(par):
     logger.info("output_type: %s", par["output_type"])
 
     if par["mode"] == "bins":
+        if par["load_nucleus_segmentations"]:
+            raise ValueError(
+                "'--load_nucleus_segmentations' can only be used with "
+                "'--mode segmented_cells'"
+            )
         # visium_hd() names the binned tables after the bin size, e.g. "square_008um".
         table_keys = [f"square_{size:03d}um" for size in par["bin_size"]]
     else:  # segmented_cells
-        # Space Ranger names the segmented-cell table "cell_segmentations"
-        # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
+        # spatialdata_io names the segmentation tables "cell_segmentations" and
+        # "nucleus_segmentations" (VisiumHDKeys.CELL_SEG_KEY_HD, NUCLEUS_SEG_KEY_HD).
         table_keys = ["cell_segmentations"]
-    output_names = get_output_names(table_keys, par["output_table"])
+        if par["load_nucleus_segmentations"]:
+            table_keys.append("nucleus_segmentations")
+    output_names = get_output_names(
+        table_keys,
+        par["output_table"],
+        main_table_first=par["mode"] == "segmented_cells",
+    )
 
     if par["mode"] == "bins":
         logger.info("bin_size: %s um", par["bin_size"])
@@ -148,8 +165,18 @@ def main(par):
             dataset_id=par["dataset_id"],
             filtered_counts_file=filtered,
             load_segmentations_only=True,
-            load_nucleus_segmentations=False,
+            load_nucleus_segmentations=par["load_nucleus_segmentations"],
         )
+        # visium_hd() skips the nucleus segmentation without an error when its
+        # files are missing.
+        if (
+            par["load_nucleus_segmentations"]
+            and "nucleus_segmentations" not in sdata.tables
+        ):
+            raise ValueError(
+                "'--load_nucleus_segmentations' is set, but no nucleus segmentation "
+                "was loaded. The nucleus segmentation files may be missing from the input."
+            )
 
     # Rename the loaded tables to the output table names
     rename_tables(sdata, dict(zip(table_keys, output_names)))

@@ -236,5 +236,54 @@ def test_fail_missing_bin_size(run_component, tmp_path):
     assert not output.exists()
 
 
+def test_fail_nucleus_missing_files(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    # The test data has no nucleus segmentation files.
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input,
+                "--output",
+                str(output),
+                "--load_nucleus_segmentations",
+                "true",
+                "--dataset_id",
+                "Visium_HD_Mouse_Brain",
+            ]
+        )
+    assert re.search(
+        r"'--load_nucleus_segmentations' is set, but no nucleus segmentation was loaded",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
+
+
+def test_fail_nucleus_bins_mode(run_component, tmp_path):
+    output = tmp_path / "should_not_exist.zarr"
+
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        run_component(
+            [
+                "--input",
+                input,
+                "--output",
+                str(output),
+                "--mode",
+                "bins",
+                "--load_nucleus_segmentations",
+                "true",
+                "--dataset_id",
+                "Visium_HD_Mouse_Brain",
+            ]
+        )
+    assert re.search(
+        r"'--load_nucleus_segmentations' can only be used with '--mode segmented_cells'",
+        err.value.stdout.decode("utf-8"),
+    )
+    assert not output.exists()
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
