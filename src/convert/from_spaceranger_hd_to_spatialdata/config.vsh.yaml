@@ -9,7 +9,8 @@ description: |
   boundary polygons) that Space Ranger 4.x writes to `segmented_outputs/`. Set
   `--mode bins` to instead read a binned output (`binned_outputs/square_<N>um/`)
   at the bin size given by `--bin_size`. In both cases the loaded table is
-  renamed to the value of `--output_table`.
+  renamed to the value of `--output_table`. In `--mode bins` the cell
+  segmentation is not included in the output.
 keywords: [spaceranger, visium_hd, segmentation, spatialdata]
 links:
   documentation: https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/outputs/segmented-outputs
@@ -57,8 +58,9 @@ arguments:
   - name: "--output_type"
     type: string
     description: |
-      Which count matrix to load: `filtered` (barcodes under tissue only) or
-      `raw` (all barcodes). Applies to both the segmented-cell and binned matrices.
+      Which binned count matrix to load when `--mode bins`. Either `filtered`
+      (barcodes under tissue only) or `raw` (all barcodes). Not used for
+      `--mode segmented_cells`, which always loads the filtered cell matrix.
     choices: [ filtered, raw ]
     default: filtered
   - name: "--output_layer"

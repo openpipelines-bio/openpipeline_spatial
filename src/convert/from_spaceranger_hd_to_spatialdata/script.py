@@ -69,6 +69,14 @@ def main(par):
         )
         # visium_hd() names the binned table after the bin size, e.g. "square_008um".
         table_key = f"square_{par['bin_size']:03d}um"
+        # visium_hd() also loads the cell segmentation when its files exist,
+        # even with load_segmentations_only=False. Remove that table and the
+        # shapes it annotates so only the binned data is kept.
+        if "cell_segmentations" in sdata.tables:
+            region = sdata["cell_segmentations"].uns["spatialdata_attrs"]["region"]
+            logger.info("Removing cell segmentation table and shapes '%s'", region)
+            del sdata["cell_segmentations"]
+            del sdata[region]
     else:  # segmented_cells
         sdata = spatialdata_io.visium_hd(
             path=input_path,

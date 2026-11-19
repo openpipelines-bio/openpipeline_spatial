@@ -69,14 +69,15 @@ def test_bins(run_component, tmp_path):
 
     sdata = sd.read_zarr(output)
 
-    assert "table" in sdata.tables, (
-        f"expected a 'table' with binned counts, got {list(sdata.tables)}"
+    assert list(sdata.tables) == ["table"], (
+        f"expected only a 'table' with binned counts, got {list(sdata.tables)}"
     )
     assert sdata.tables["table"].n_obs > 0, "binned table has no bins"
 
     # Binned data is stored as square-bin shapes named after the bin size.
-    assert any("square_008um" in key for key in sdata.shapes), (
-        f"expected 8um bin shapes, got {list(sdata.shapes)}"
+    # The cell segmentation is not kept in bins mode.
+    assert list(sdata.shapes) == ["Visium_HD_Mouse_Brain_square_008um"], (
+        f"expected only 8um bin shapes, got {list(sdata.shapes)}"
     )
 
 
