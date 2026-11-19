@@ -30,6 +30,8 @@
 
 * `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
 
+* `xeniumranger/xeniumranger_resegment`: Component to generate a new segmentation of the morphology image space by rerunning the Xenium Onboard Analysis (XOA) segmentation algorithms with modified parameters via Xenium Ranger 4.0 (PR #84).
+
 * `convert/from_spaceranger_hd_to_spatialdata`, `workflows/ingestion/spaceranger_hd_mapping`: (PR #111)
   - `--bin_size` and `--output_table` accept several values, so that several bin sizes can be loaded as separate tables.
     Without `--output_table`, a single table is still named `table` and several bin tables keep the `spatialdata-io` names (for example `square_008um`).
