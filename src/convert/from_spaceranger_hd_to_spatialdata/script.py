@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 
@@ -8,9 +9,10 @@ import spatialdata_io
 par = {
     "input": "resources_test/visium_hd/Visium_HD_Mouse_Brain_tiny_spaceranger",
     "output": "output.zarr",
-    "output_table": "table",
+    "output_table": None,
     "mode": "segmented_cells",
-    "bin_size": 8,
+    "bin_size": [8],
+    "load_nucleus_segmentations": False,
     "output_type": "filtered",
     "output_layer": None,
     "dataset_id": None,
@@ -48,6 +50,67 @@ def add_cell_type_annotations(input_path, table):
     )
 
 
+def check_bin_sizes(input_path, bin_sizes):
+    """Check that each requested bin size has a `binned_outputs/` folder.
+
+    `spatialdata_io.visium_hd()` ignores missing bin sizes and loads all bins if
+    none of them are present, so check before loading.
+    """
+    if len(set(bin_sizes)) != len(bin_sizes):
+        raise ValueError(f"'--bin_size' has duplicate values: {bin_sizes}")
+
+    available = sorted(
+        int(match.group(1))
+        for folder in (input_path / "binned_outputs").glob("square_*um")
+        if folder.is_dir() and (match := re.fullmatch(r"square_(\d+)um", folder.name))
+    )
+    missing = [size for size in bin_sizes if size not in available]
+    if missing:
+        raise ValueError(
+            f"Bin sizes {missing} not found in '{input_path / 'binned_outputs'}'. "
+            f"Available bin sizes: {available}"
+        )
+
+
+def get_output_names(table_keys, output_table, main_table_first):
+    """Get the output name for each loaded table, in the same order.
+
+    Without `output_table`, a single table is named "table". With several
+    tables, the first is named "table" if `main_table_first` is set, and the
+    other tables keep the `spatialdata_io` names.
+    """
+    if output_table:
+        if len(output_table) != len(table_keys):
+            raise ValueError(
+                f"'--output_table' has {len(output_table)} names, but "
+                f"{len(table_keys)} tables will be loaded: {table_keys}"
+            )
+        if len(set(output_table)) != len(output_table):
+            raise ValueError(f"'--output_table' has duplicate names: {output_table}")
+        return list(output_table)
+
+    if len(table_keys) == 1 or main_table_first:
+        return ["table", *table_keys[1:]]
+
+    return list(table_keys)
+
+
+def rename_tables(sdata, mapping):
+    """Rename tables in `sdata` using a `{old_name: new_name}` mapping.
+
+    Remove all old tables before adding the new ones, so a new name that is the
+    same as another old name does not overwrite that table.
+    """
+    tables = {new: sdata[old] for old, new in mapping.items() if old != new}
+    for old, new in mapping.items():
+        if old != new:
+            logger.info("Renaming table '%s' to '%s'", old, new)
+            del sdata[old]
+
+    for new, table in tables.items():
+        sdata[new] = table
+
+
 def main(par):
     input_path = Path(par["input"])
     filtered = par["output_type"] == "filtered"
@@ -59,45 +122,77 @@ def main(par):
     logger.info("output_type: %s", par["output_type"])
 
     if par["mode"] == "bins":
+        if par["load_nucleus_segmentations"]:
+            raise ValueError(
+                "'--load_nucleus_segmentations' can only be used with "
+                "'--mode segmented_cells'"
+            )
+        # visium_hd() names the binned tables after the bin size, e.g. "square_008um".
+        table_keys = [f"square_{size:03d}um" for size in par["bin_size"]]
+    else:  # segmented_cells
+        # spatialdata_io names the segmentation tables "cell_segmentations" and
+        # "nucleus_segmentations" (VisiumHDKeys.CELL_SEG_KEY_HD, NUCLEUS_SEG_KEY_HD).
+        table_keys = ["cell_segmentations"]
+        if par["load_nucleus_segmentations"]:
+            table_keys.append("nucleus_segmentations")
+    output_names = get_output_names(
+        table_keys,
+        par["output_table"],
+        main_table_first=par["mode"] == "segmented_cells",
+    )
+
+    if par["mode"] == "bins":
         logger.info("bin_size: %s um", par["bin_size"])
+        check_bin_sizes(input_path, par["bin_size"])
         sdata = spatialdata_io.visium_hd(
             path=input_path,
             dataset_id=par["dataset_id"],
-            bin_size=[par["bin_size"]],
+            bin_size=par["bin_size"],
             filtered_counts_file=filtered,
             load_segmentations_only=False,
         )
-        # visium_hd() names the binned table after the bin size, e.g. "square_008um".
-        table_key = f"square_{par['bin_size']:03d}um"
+        # visium_hd() also loads the cell segmentation when its files exist,
+        # even with load_segmentations_only=False. Remove that table and the
+        # shapes it annotates so only the binned data is kept.
+        if "cell_segmentations" in sdata.tables:
+            region = sdata["cell_segmentations"].uns["spatialdata_attrs"]["region"]
+            logger.info("Removing cell segmentation table and shapes '%s'", region)
+            del sdata["cell_segmentations"]
+            del sdata[region]
     else:  # segmented_cells
         sdata = spatialdata_io.visium_hd(
             path=input_path,
             dataset_id=par["dataset_id"],
             filtered_counts_file=filtered,
             load_segmentations_only=True,
-            load_nucleus_segmentations=False,
+            load_nucleus_segmentations=par["load_nucleus_segmentations"],
         )
-        # Space Ranger names the segmented-cell table "cell_segmentations"
-        # (spatialdata_io VisiumHDKeys.CELL_SEG_KEY_HD).
-        table_key = "cell_segmentations"
+        # visium_hd() skips the nucleus segmentation without an error when its
+        # files are missing.
+        if (
+            par["load_nucleus_segmentations"]
+            and "nucleus_segmentations" not in sdata.tables
+        ):
+            raise ValueError(
+                "'--load_nucleus_segmentations' is set, but no nucleus segmentation "
+                "was loaded. The nucleus segmentation files may be missing from the input."
+            )
 
-    # Rename the loaded table to the output table name
-    if table_key != par["output_table"]:
-        logger.info("Renaming table '%s' to '%s'", table_key, par["output_table"])
-        sdata[par["output_table"]] = sdata[table_key]
-        del sdata[table_key]
+    # Rename the loaded tables to the output table names
+    rename_tables(sdata, dict(zip(table_keys, output_names)))
 
     # Cell-type annotations are per-cell, so only for the segmented-cell table.
     if par["mode"] != "bins":
-        add_cell_type_annotations(input_path, sdata[par["output_table"]])
+        add_cell_type_annotations(input_path, sdata[output_names[0]])
 
     logger.info("SpatialData object:\n%s", sdata)
 
     if par["output_layer"]:
-        logger.info("Storing counts as layer '%s'", par["output_layer"])
-        sdata[par["output_table"]].layers[par["output_layer"]] = sdata[
-            par["output_table"]
-        ].X.copy()
+        for name in output_names:
+            logger.info(
+                "Storing counts as layer '%s' in table '%s'", par["output_layer"], name
+            )
+            sdata[name].layers[par["output_layer"]] = sdata[name].X.copy()
 
     logger.info("Writing SpatialData to '%s'", par["output"])
     sdata.write(par["output"], overwrite=True)

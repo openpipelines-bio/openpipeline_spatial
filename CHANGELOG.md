@@ -36,6 +36,14 @@
 
 * `dataflow/derive_obsm_spatial_from_shapes`: Component to derive `.obsm['spatial']` from the centroids of the shapes that a SpatialData table annotates (PR #113).
 
+* `convert/from_spaceranger_to_spatialdata`: Component to convert the output from Space Ranger for Visium into a SpatialData object (PR #112).
+
+* `convert/from_spaceranger_hd_to_spatialdata`, `workflows/ingestion/spaceranger_hd_mapping`: (PR #111)
+  - `--bin_size` and `--output_table` accept several values, so that several bin sizes can be loaded as separate tables.
+    Without `--output_table`, a single table is still named `table` and several bin tables keep the `spatialdata-io` names (for example `square_008um`).
+    Custom Space Ranger bin sizes are also accepted.
+  - Add `--load_nucleus_segmentations` to also load the nucleus segmentation table and shapes with `--mode segmented_cells`.
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
@@ -61,6 +69,9 @@
 * `mapping/spaceranger_count`: Pass multiple `--lanes` values to Space Ranger as a comma-separated list, which fixes runs with more than one lane (PR #104).
 
 * `neighbors/spatial_neighborhood_graph`: Preserve all modalities of the input in the output, instead of only the processed modality (PR #96).
+
+* `convert/from_spaceranger_hd_to_spatialdata`: With `--mode bins`, no longer write the unannotated `cell_segmentations` table and shapes that `spatialdata-io` loads when cell segmentation files are present.
+  Correct the `--output_type` description of the component and `workflows/ingestion/spaceranger_hd_mapping`, which applies only to `--mode bins` (PR #xxx).
 
 # openpipeline_spatial 0.7.0
 
