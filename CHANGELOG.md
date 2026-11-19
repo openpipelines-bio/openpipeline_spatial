@@ -28,6 +28,8 @@
 
 * `workflows/spatial_domains/scvi_cellcharter`: Workflow to identify spatial domains with CellCharter, running scVI, the spatial neighborhood graph, CellCharter's neighborhood aggregation and CellCharter's clustering (PR #96).
 
+* `xeniumranger/xeniumranger_rename`: Component to change the region name and cassette name throughout all Xenium Onboard Analysis (XOA) output files via Xenium Ranger 4.0 (PR #82).
+
 ## MINOR CHANGES
 
 * `neighbors/spatial_neighborhood_graph`: Add `--input_obs_library_key` argument to compute the spatial neighborhood graph per library for multi-sample input (PR #72).
