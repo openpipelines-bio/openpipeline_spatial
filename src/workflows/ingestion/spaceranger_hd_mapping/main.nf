@@ -50,6 +50,8 @@ workflow run_wf {
         "input": state.output_raw,
         "mode": state.mode,
         "bin_size": state.bin_size,
+        "load_nucleus_segmentations": state.load_nucleus_segmentations,
+        "output_table": state.output_table,
         "output_type": state.output_type,
         "output_layer": state.output_layer,
         // Space Ranger writes a bare "feature_slice.h5"; the converter infers
