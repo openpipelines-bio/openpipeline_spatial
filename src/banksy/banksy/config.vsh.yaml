@@ -1,0 +1,179 @@
+name: banksy
+scope: "public"
+namespace: banksy
+description: |
+  Identify spatial domains and refine cell typing with BANKSY (Building
+  Aggregates with a Neighborhood Kernel and Spatial Yardstick).
+
+  BANKSY augments each cell's own (z-scored) expression profile with the
+  z-scored mean expression of its `--k_geom` spatial nearest neighbours, and
+  optionally an azimuthal Gabor filter (AGF) term capturing the directionality
+  of that neighbourhood. The `--lambda_param` mixing weight controls how much
+  the neighbourhood contributes relative to a cell's own expression: low
+  values (~0.2) refine cell typing, high values (~0.8) yield tissue domain
+  segmentation, where spatially colocalized cells of different types are
+  grouped into the same domain. PCA, a k-nearest-neighbour graph and Leiden
+  clustering are then run on this augmented representation to produce the
+  final domain/cell-type labels.
+
+  Assumes `.X` (or `--layer`) contains library-size-normalised, log1p-
+  transformed expression - BANKSY does not normalise internally. Builds its
+  own spatial neighbour graph internally from `--input_obsm_spatial_coords`;
+  does not consume the output of `neighbors/spatial_neighborhood_graph`.
+
+references:
+  doi:
+    - "10.1038/s41588-024-01664-3" # BANKSY unifies cell typing and tissue domain segmentation for scalable spatial omics data analysis
+
+authors:
+  - __merge__: /src/authors/mirte_detemmerman.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: "Inputs"
+    arguments:
+      - name: "--input"
+        type: file
+        required: true
+        description: Input H5MU file.
+        example: input.h5mu
+      - name: "--modality"
+        type: string
+        default: "rna"
+        description: Which modality from the input MuData file to process.
+      - name: "--layer"
+        type: string
+        required: false
+        description: |
+          Layer containing library-size-normalised, log1p-transformed
+          expression to use. If not provided, `.X` is used. BANKSY does not
+          normalise internally.
+      - name: "--input_obsm_spatial_coords"
+        type: string
+        default: "spatial"
+        description: Key in `.obsm` where spatial coordinates are stored.
+      - name: "--var_input"
+        type: string
+        required: false
+        description: |
+          Key in `.var` that indicates which features to include as input
+          (a boolean column, e.g. highly variable genes). If not provided,
+          all features are used. Only affects which genes are used to compute
+          the BANKSY embedding/clustering; the output retains all features.
+
+  - name: "BANKSY Spatial Graph"
+    arguments:
+      - name: "--k_geom"
+        type: integer
+        default: 15
+        min: 1
+        description: |
+          Number of spatial nearest neighbours (per cell) that define its
+          neighbourhood. Recommended ~15-18 for imaging-based single-cell
+          resolution technologies (Xenium, MERFISH, CosMx), ~6 for Visium's
+          hexagonal spot grid.
+      - name: "--nbr_weight_decay"
+        type: string
+        default: "scaled_gaussian"
+        choices: ["uniform", "reciprocal", "reciprocal_squared", "scaled_gaussian", "ranked"]
+        description: |
+          How neighbour influence decays with distance. `scaled_gaussian` is
+          BANKSY's recommended default.
+      - name: "--max_m"
+        type: integer
+        default: 1
+        choices: [0, 1]
+        description: |
+          Highest-order azimuthal Gabor filter (AGF) to compute. `0` disables
+          the AGF term (own expression + mean neighbourhood expression only);
+          `1` (recommended default) adds one directional neighbourhood block
+          capturing whether the neighbourhood expression pattern is isotropic
+          or has a gradient/edge across the cell.
+
+  - name: "BANKSY Embedding"
+    arguments:
+      - name: "--lambda_param"
+        type: double
+        default: 0.8
+        min: 0.0
+        max: 1.0
+        description: |
+          Weight of the neighbourhood contribution relative to a cell's own
+          expression. `0` ignores space entirely (plain cell typing); `~0.2`
+          refines cell typing; `~0.8` (default) performs tissue domain
+          segmentation, the primary use case of this component.
+      - name: "--pca_dims"
+        type: integer
+        default: 20
+        min: 1
+        description: |
+          Number of principal components to compute on the BANKSY-augmented
+          feature matrix. Automatically capped to fit small inputs.
+
+  - name: "Clustering"
+    arguments:
+      - name: "--resolution"
+        type: double
+        default: 1.0
+        min: 0.0
+        description: |
+          Leiden clustering resolution on the BANKSY PCA embedding. Higher
+          values yield more, smaller clusters.
+      - name: "--random_state"
+        type: integer
+        default: 0
+        min: 0
+        description: Random seed for PCA/neighbours/Leiden reproducibility.
+
+  - name: "Outputs"
+    arguments:
+      - name: "--output"
+        type: file
+        direction: output
+        required: true
+        description: Output H5MU file.
+        example: output.h5mu
+      - name: "--output_obsm_embedding"
+        type: string
+        default: "banksy_embedding"
+        description: |
+          Key of the `.obsm` field where the BANKSY PCA embedding will be
+          stored.
+      - name: "--output_obs_cluster"
+        type: string
+        default: "banksy_cluster"
+        description: |
+          Key of the `.obs` field where the resulting Leiden cluster labels
+          (domains at high `--lambda_param`, refined cell types at low
+          `--lambda_param`) will be stored.
+    __merge__: [., /src/base/h5_compression_argument.yaml]
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+  - path: /src/utils/subset_vars.py
+
+test_resources:
+  - type: python_script
+    path: test.py
+  - path: /resources_test/xenium/xenium_tiny.h5mu
+
+engines:
+  - type: docker
+    image: python:3.12-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: [ /src/base/requirements/anndata_mudata.yaml, /src/base/requirements/scanpy.yaml, . ]
+        packages:
+          - pybanksy~=1.3.5
+    __merge__: [ /src/base/requirements/python_test_setup.yaml, . ]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, midmem]
