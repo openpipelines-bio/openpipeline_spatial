@@ -7,6 +7,7 @@ from pathlib import Path
 par = {
     "input": "resources_test/xenium/xenium_tiny",
     "output": "./test/xenium_tiny.zarr",
+    "output_table": "table",
     "cells_boundaries": True,
     "nucleus_boundaries": True,
     "cells_as_circles": None,
@@ -60,6 +61,11 @@ sdata = xenium(
     n_jobs=par["n_jobs"],
 )
 
+# spatialdata_io.xenium() stores the cell table as "table"
+if par["cells_table"] and par["output_table"] != "table":
+    logger.info(f"Renaming table 'table' to '{par['output_table']}'...")
+    sdata[par["output_table"]] = sdata["table"]
+    del sdata["table"]
 
 logger.info("Writing out SpatialData object to Zarr...")
 sdata.write(par["output"], overwrite=True)

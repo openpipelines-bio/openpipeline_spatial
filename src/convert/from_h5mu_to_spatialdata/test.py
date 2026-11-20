@@ -185,5 +185,33 @@ def test_execution_with_numpy_region(run_component, tmp_path):
     )
 
 
+def test_table_names(run_component, tmp_path):
+    sdata_existing = sd.read_zarr(meta["resources_dir"] + "/xenium_tiny.zarr")
+    sdata_existing["cells"] = sdata_existing["table"]
+    del sdata_existing["table"]
+    input_spatialdata = tmp_path / "existing.zarr"
+    sdata_existing.write(input_spatialdata)
+    output = tmp_path / "output.zarr"
+
+    run_component(
+        [
+            "--input",
+            meta["resources_dir"] + "/xenium_tiny.h5mu",
+            "--input_spatialdata",
+            input_spatialdata,
+            "--input_table",
+            "cells",
+            "--output",
+            output,
+            "--output_table",
+            "processed",
+        ]
+    )
+
+    sdata = sd.read_zarr(output)
+    # The input table is kept because the output table has a different name
+    assert set(sdata.tables.keys()) == {"cells", "processed"}
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__]))
