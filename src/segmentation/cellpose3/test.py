@@ -131,6 +131,43 @@ def test_each_channel_of_multichannel_image(
     )
 
 
+def test_tiled_segmentation_matches_untiled(run_component, tmp_path):
+    # The test image is 3525 x 5806 pixels: a tile size of 8192 segments it in
+    # a single pass, a tile size of 2048 splits it into 2 x 3 tiles.
+    n_objects = {}
+    for mode, tile_size in [("untiled", "8192"), ("tiled", "2048")]:
+        output = tmp_path / f"segmented_{mode}.zarr"
+        stdout = run_component(
+            [
+                "--input",
+                input_file,
+                "--output",
+                str(output),
+                "--tile_size",
+                tile_size,
+            ]
+        ).decode("utf-8")
+        expected_n_tiles = 1 if mode == "untiled" else 6
+        assert f"on {expected_n_tiles} tile(s)" in stdout
+
+        sdata = sd.read_zarr(output)
+        labels_arr = np.asarray(sdata.labels["cellpose_labels"].data)
+        image_arr = _get_image_array(sdata.images["morphology_focus"])
+        assert labels_arr.shape == image_arr.shape[-2:], (
+            "Labels shape should match the (y, x) shape of the input image."
+        )
+        n_objects[mode] = len(np.unique(labels_arr)) - 1
+
+    assert n_objects["untiled"] > 0
+    # Tiling may change the result slightly (cells on tile borders,
+    # whole-image instead of per-image normalization), but cells should be
+    # neither lost nor counted twice.
+    assert n_objects["tiled"] == pytest.approx(n_objects["untiled"], rel=0.05), (
+        f"Tiled segmentation found {n_objects['tiled']} objects, untiled "
+        f"segmentation found {n_objects['untiled']}."
+    )
+
+
 def test_fail_missing_image_key(run_component, tmp_path):
     output = tmp_path / "should_not_exist.zarr"
 
