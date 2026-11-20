@@ -207,7 +207,8 @@ for tile_idx, (y0, x0) in enumerate(tile_origins, start=1):
     # the image without overlapping. The model is run on the core plus an
     # overlap margin, so that cells crossing the core's border are seen in
     # full. A cell is only kept by the tile whose core contains the centre of
-    # the cell's bounding box, so no cell is kept twice.
+    # the cell's bounding box, so no cell is kept twice. A cell that mostly
+    # overlaps a cell already kept by a neighbouring tile is dropped.
     y1, x1 = min(y0 + tile_size, height), min(x0 + tile_size, width)
     ty0, tx0 = max(y0 - overlap, 0), max(x0 - overlap, 0)
     ty1, tx1 = min(y1 + overlap, height), min(x1 + overlap, width)
@@ -231,7 +232,7 @@ for tile_idx, (y0, x0) in enumerate(tile_origins, start=1):
             tx0 + bbox[1].start : tx0 + bbox[1].stop,
         ]
         # Pixels already claimed by a cell from a neighbouring tile are kept.
-        target[(tile_masks[bbox] == label) & (target == 0)] = next_label
+        cell = tile_masks[bbox] == label
         next_label += 1
 
 # Counting via np.unique would sort the full-size mask array.
