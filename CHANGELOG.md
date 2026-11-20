@@ -6,7 +6,7 @@
 
 ## NEW FUNCTIONALITY
 
-* `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80).
+* `segmentation/cellpose_sam`: Component to segment cells or nuclei from a spatial image using Cellpose-SAM, Cellpose's SAM-based generalist segmentation model (PR #80, PR #102).
 
 * `workflows/spatial_domains/spatial_expression_leiden`: Workflow to identify spatial domains via Leiden clustering on a fused expression/spatial neighborhood graph (PR #72).
 
